@@ -13,19 +13,26 @@
 
 
 import {getCurrentScriptContext} from "./tw-helper";
+import {setupScriptUI} from "./script-ui";
 
 (function () {
     //load when document is ready
     $(function () {
 
-        let currentScriptContext = getCurrentScriptContext();
-        if (currentScriptContext === "place") {
+        let currentScriptContext:string = getCurrentScriptContext();
+        console.log("standdeff-organizer loaded in " + currentScriptContext);
+        setupScriptUI(currentScriptContext);
+
+
+        /*if (currentScriptContext === "place") {
             console.log("standdeff-organizer loaded in place");
         } else if (currentScriptContext === "forum-view_thread") {
             console.log("standdeff-organizer loaded in view_thread");
         } else if (currentScriptContext === "forum-new_thread") {
             console.log("standdeff-organizer loaded in new_thread");
-        }
+        }*/
 
     });
+
+
 })();

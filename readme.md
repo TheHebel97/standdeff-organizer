@@ -8,4 +8,6 @@ Anforderungen:
 - [ ] Flexibel einsetzbar bzgl flex oder sd
 - [ ] Logging der Anfragen
 - [ ] Erkennung auf welcher Seite das Skript aktiv ist
+- [ ] Passende Gruppe wird ausgewählt
+- [ ] checkboxen beim Massenut werden passend gecheckt
 

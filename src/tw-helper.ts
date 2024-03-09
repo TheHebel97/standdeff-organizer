@@ -1,11 +1,13 @@
-export function getCurrentScriptContext() {
+export function getCurrentScriptContext() :string {
     const urlParams = new URLSearchParams(window.location.search);
     let screenParamValue = urlParams.get('screen');
-    if (screenParamValue === "place") {
-        return screenParamValue;
+    let screenName:string = screenParamValue !== null ? screenParamValue : "";
+    if (screenName === "place") {
+        return screenName;
     }
-    if (screenParamValue === "forum") {
-        const modeParamValue = urlParams.get('mode');
-        return screenParamValue + "-" + modeParamValue;
+    if (screenName === "forum") {
+        const modeParamValue = urlParams.get('mode')===null ? urlParams.get('screenmode') : urlParams.get('mode');
+        return screenName + "-" + modeParamValue;
     }
+    return "unknown";
 }

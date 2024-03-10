@@ -50,6 +50,7 @@ export interface GameData {
     world: string;
     units: Unit[];
     mode: string;
+    screen: string;
 }
 
 

@@ -1,26 +1,22 @@
-export function storeDataInGM<T>(data: T, key: string) {
-    if (typeof GM_setValue === "function") {
+export function storeDataInLocalStorage<T>(data: T, key: string) {
         let newData:any;
         const type = typeof data;
         if (type === undefined) {
             console.error("Error storing data in GM: data is undefined");
             return;
         }
-        if (type === "object" && isStringValidJson(data as string)) {
+        if (type === "object") {
              newData = JSON.stringify(data);
         }
         if (type === "string"||type === "number"||type === "boolean") {
             newData = data;
         }
-        GM_setValue(key, newData);
-    }else{
-        console.error("Error storing data in GM: GM_setValue is not a function");
-    }
+        localStorage.setItem(key, newData);
 }
 
-export function getDataFromGM<T>(key: string) :T {
-    if (typeof GM_getValue === "function") {
-        const storedData:string|null = GM_getValue(key);
+export function getDataFromLocalStorage<T>(key: string) :T {
+
+        const storedData:string|null = localStorage.getItem(key);
         let result:T;
         if (storedData === null) {
             console.error("Error getting data from GM: data is null");
@@ -28,14 +24,7 @@ export function getDataFromGM<T>(key: string) :T {
         }
 
         return isStringValidJson(storedData) ? JSON.parse(storedData) : storedData as T;
-
-    } else {
-        console.error("Error getting data from GM: GM_getValue is not a function");
-        return undefined as unknown as T;
-    }
 }
-
-
 
 //private helper functions
 function isStringValidJson(str: string) {
@@ -48,6 +37,3 @@ function isStringValidJson(str: string) {
     return true;
 }
 
-function isObject<T>(data: T) {
-    return typeof data === "object";
-}

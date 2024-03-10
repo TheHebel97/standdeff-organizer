@@ -82,8 +82,6 @@ declare global {
     const TribalWars: {
         redirect: (screen: string, args: { [key: string]: any }) => void;
     };
-    const GM_getValue: (key: string) => string;
-    const GM_setValue: (key: string, value: string) => void;
     const TWMap: {
         allies: {
             [id: number]: {

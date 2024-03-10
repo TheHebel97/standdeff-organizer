@@ -11,3 +11,7 @@ export function getCurrentScriptContext() :string {
     }
     return "unknown";
 }
+
+export function getUnitInfoData(){
+
+}

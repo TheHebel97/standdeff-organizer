@@ -2,10 +2,9 @@ import {getDataFromLocalStorage, storeDataInLocalStorage} from "./helper-functio
 import {isUserForumMod} from "./tw-helper";
 
 export function setupScriptUI(this: any, currentScriptContext: string) {
-
     if (currentScriptContext === "place") {
         console.log("standdeff-organizer loaded in place");
-    } else if (currentScriptContext === "forum-view_thread-null") {
+    } else if (currentScriptContext === "forum-view_thread") {
         console.log("standdeff-organizer loaded in view_thread");
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -40,15 +39,22 @@ export function setupScriptUI(this: any, currentScriptContext: string) {
                 $(".clearfix > table").first().find("h2").append(sdTableTitle)
                 console.log("thread id is in sd thread ids")
                 const edit_post_id: string | null = urlParams.get('edit_post_id');
-                if (edit_post_id !== null) {
-                    if (edit_post_id === threadIds[currentThreadId]) {
-                        //
-                        //
-                        //
-                        //todo: hier eigentliches skript
-                    }
+                if (edit_post_id === threadIds[currentThreadId]) {
+                    //
+                    //
+                    //
+                    //todo: hier eigentliches skript
+                    console.log("bearbeitenmodus")
+
                     return;
                 }
+                console.log("tabellenmodus")
+                const writingNewPost:boolean = urlParams.get('answer') === "true";
+                if (writingNewPost) {
+                    console.log("writing new post")
+                    return;
+                }
+                console.log("bearbeitung der tabelle")
 
             } else {
                 console.log("thread id is not in thread ids")

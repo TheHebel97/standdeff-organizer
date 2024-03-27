@@ -7,8 +7,8 @@ export function getCurrentScriptContext() :string {
     }
     if (screenName === "forum") {
         const modeParamValue = urlParams.get('mode')===null ? urlParams.get('screenmode') : urlParams.get('mode');
-        const editModeParamValue = urlParams.get('edit_post_id');
-        return screenName + "-" + modeParamValue + "-" + editModeParamValue;
+        //const editModeParamValue = urlParams.get('edit_post_id');
+        return screenName + "-" + modeParamValue;
     }
     return "unknown";
 }

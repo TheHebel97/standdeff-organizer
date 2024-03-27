@@ -19,7 +19,7 @@ export function getUnitInfoData(){
 
 
 export function isUserForumMod(){
-    //only works in the forum
+    //only works inside the forum
     if(game_data.screen === "forum") {
         const modDefiningElement = $("#ally_content > :eq(1)").find("a")
         return modDefiningElement.length > 0;

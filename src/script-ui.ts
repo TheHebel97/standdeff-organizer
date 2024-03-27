@@ -11,8 +11,8 @@ export function setupScriptUI(this: any, currentScriptContext: string) {
         const urlParams = new URLSearchParams(window.location.search);
 
         const currentThreadId: string | null = urlParams.get('thread_id');
-        // @ts-ignore
-        //const edit_post_id: string = urlParams.get('edit_post_id');
+
+
 //sd tabellen thread ids aus dem localstorage auslesen
         if (getDataFromLocalStorage("newThread")) {
             console.log("new thread data found")
@@ -35,15 +35,20 @@ export function setupScriptUI(this: any, currentScriptContext: string) {
         if (threadIds !== undefined && currentThreadId !== null) {
             console.log("thread ids found")
             if (threadIds.hasOwnProperty(currentThreadId)) {
-                //
-                //
-                //
-                //todo: hier eigentliches skript
-                console.log("thread id is in sd thread ids")
-//visuell anzeigen, dass es sich um die sd tabelle handelt
+                //visuell anzeigen, dass es sich um die sd tabelle handelt
                 const sdTableTitle = `<span style="color: #002bff; font-size: x-small"> (SD Tabelle)</span>`
                 $(".clearfix > table").first().find("h2").append(sdTableTitle)
-
+                console.log("thread id is in sd thread ids")
+                const edit_post_id: string | null = urlParams.get('edit_post_id');
+                if (edit_post_id !== null) {
+                    if (edit_post_id === threadIds[currentThreadId]) {
+                        //
+                        //
+                        //
+                        //todo: hier eigentliches skript
+                    }
+                    return;
+                }
 
             } else {
                 console.log("thread id is not in thread ids")

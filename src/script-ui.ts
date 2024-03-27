@@ -1,14 +1,98 @@
 import {getDataFromLocalStorage, storeDataInLocalStorage} from "./helper-functions";
 import {isUserForumMod} from "./tw-helper";
 
-export function setupScriptUI(currentScriptContext: string) {
+export function setupScriptUI(this: any, currentScriptContext: string) {
 
     if (currentScriptContext === "place") {
         console.log("standdeff-organizer loaded in place");
-    } else if (currentScriptContext === "forum-view_thread") {
+    } else if (currentScriptContext === "forum-view_thread-null") {
         console.log("standdeff-organizer loaded in view_thread");
-    } else if (currentScriptContext === "forum-new_thread") {
+
+        const urlParams = new URLSearchParams(window.location.search);
+        // @ts-ignore
+        const currentThreadId: number = parseInt(urlParams.get('thread_id'));
+//sd tabellen thread ids aus dem localstorage auslesen
+        if (getDataFromLocalStorage("newThread")) {
+            console.log("new thread data found")
+            storeDataInLocalStorage(false, "newThread")
+            addThreadIdToLocalStorage(currentThreadId);
+            console.log(getDataFromLocalStorage("threadIds"))
+
+        } else {
+            console.log("no new thread data found")
+        }
+        //check if there is a thread id in the local storage
+        let threadIds: number[] = getDataFromLocalStorage("threadIds");
+        console.log(threadIds)
+        if (threadIds !== undefined) {
+            console.log("thread ids found")
+            if (threadIds.includes(currentThreadId)) {
+                //todo: hier eigentliches skript
+                console.log("thread id is in sd thread ids")
+            } else {
+                console.log("thread id is not in thread ids")
+                //button zum hinzufügen der thread id anheften
+                const addThreadELem = `<img id="addThread" style="cursor: pointer" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAMESURBVDhPrZVpSFRRFMf/740zo+hgmjpODqNpmYWQwZgLZIL5oYxwiyJoFcJoozIjIsoPQYQgWYQ1TSAaKbmippKFpZaS5kZaUoimuGaoM46z9+71OSYaqPT78t4957z/vefcw3kMOHTTQ9bmkidoKs6CZmKImFaMk6sMIXHJUMaehoNExjBErPDOKXxvrITX1mB4bQniQxcwGk0QCu341WIGv7VhsPsTNoXuRcKNZ2DqctKsb9S3EJWUhpD4JD5sdTQVqTGvwaTHy6zOUjmOpxfz7rWRnRKHyZEBsKRmy6W5WogG0VpUGL3egO6vPZia0oBhGLi5ucDHWwF7ezF6e/sxMjpG60lgWQYyTynk8g0Qi0XURrAJErH39R+hUudifHwCApZFQMBmXL6YzH0kQ5YqG7XvPsDBwZ5eEMuw8Pf3Q0L8fuxU7uBVuI34J4aHR3D3XiaOHklEVXkeql/l02AniSP12wkEOHHsEAry1aipKkB56XN4eLgh8+FTtLZ1YnbWQONsgiaTGa6uLpxDz6Vl5FJiERkRDne39XzEYkQiIVKvnIPvRgWaW9qh0f0lSOqykXMEbQ9EYUkFyiqq0dXdA51ulgb9Czs7AYKVQTCZTdBotdRmOyE50fXUC0iIjUFxaSUy7j/G29p6TE9r+IjlsVoBrWYGFvLCQQX1et3cghM9mHgAL3KyEB0VgcwHKnxu7aTlWA6LxYrR0XFIpe4QCwXUZjuhVjuDXxO/bfWL2RcNF9d16P85AN3s0tQtFgvaO76grqERfn4+cHSYax3aNgbNJN2JpOjJ7SaRSDA2Ng6z2QyZTAqxSERT6+sbQGNjM5ydnWE0GZGT+xK7d4XT2jd0lC0IEry95RjiWqewqBwGo4HrQwHOnjmJsBAlbVyFwgvVr2vR0tpO40VCEa5dPY+wUCW98XmY25GwbttzGLGX0nnT2ijJSEFXTR5YMs8mB3/w5rVDNIgWS4YjmWc1qjTetXoqH92kGkRryYD18A20tdFKICdbNGCJ8f/9AmTMH8N0QjyBbMOkAAAAAElFTkSuQmCC"/>`
+
+                $(".thread_answer").parent().parent().append(addThreadELem)
+                $("#addThread").on("click", function () {
+                    addThreadIdToLocalStorage(currentThreadId);
+                    $("#addThread").remove()
+                    $("#tooltip").css({
+                        "display": "none",
+                    })
+                });
+                $("#addThread").on("mousemove", function (event) {
+                    //get mouse position
+                    let x = event.clientX;
+                    let y = event.clientY;
+
+                    //position des tooltips
+                    $("#tooltip").css({
+                        "top": `${y+330}px`,
+                        "left": `${x+12}px`,
+                        "right": "auto",
+                        "display": "",
+                    }).addClass("tooltip-style");
+                    $("#tooltip > h3").text("SD Tabelle hinzufügen")
+                });
+                $("#addThread").on("mouseout", function () {
+                    $("#tooltip").css({
+                        "display": "none",
+                    })
+                });
+            }
+        } else {
+            console.log("no thread ids found")
+
+            const popupBox = `
+                    <div class="popup_box_container" id="dbInfo_popup_box">
+                        <div class='popup_box show'>
+                            <a class='popup_box_close tooltip-delayed' href='#' onclick='$(\"#dbInfo_popup_box\").remove()'>&nbsp</a>
+                            <div class='popup_box_content'>
+                              <div class='center'>
+                                <h2>Handelt es sich bei dem Thread um die Sd Tabelle?</h2>
+                                <input id="safeThreadAsSd" type="button" value="Ja, bitte abspeichern" class="btn" style="margin-top: 5px;">
+                              </div>
+                            </div>
+                        </div>
+                        <div class='fader'></div>
+                    </div>
+    `
+            $('#ds_body')[0].insertAdjacentHTML('beforeend', popupBox)
+            $("#safeThreadAsSd").on("click", function () {
+                addThreadIdToLocalStorage(currentThreadId);
+                $("#dbInfo_popup_box").remove()
+            });
+        }
+        // if (isUserForumMod()) {
+        //     console.log("user is forum mod");
+        // }
+
+
+    } else if (currentScriptContext === "forum-new_thread-null") {
         console.log("standdeff-organizer loaded in new_thread");
+        storeDataInLocalStorage(false, "newThread")
         if (isUserForumMod()) {
             console.log("user is forum mod");
             //html elements
@@ -35,22 +119,33 @@ export function setupScriptUI(currentScriptContext: string) {
             $(".clearfix > h2").append(config)
             $(".configbtn").on("click", swapConfgDisplay)
             $("#setupTable").on("click", setupTable)
-
+            //++$("input[name=send]").on("click", function () {
 
 
         }
 
 //else nothing
 
+    }
+    /*let test = {"test": 1};
+    console.log(typeof test);
 
-        const test = {"test": 1};
-        console.log(typeof test);
-
+    storeDataInLocalStorage(test, "test1")
+    window.addEventListener('storage', (event) => {
+        // Prüfen Sie den Schlüssel, der geändert wurde
+        if (event.key === 'test1') {
+            // Führen Sie Ihre Aktion aus
+            console.log('Der Wert von "meinSchlüssel" hat sich geändert!');
+        }
+    });
+    setTimeout(() => {
+        test = {"test": 2};
         storeDataInLocalStorage(test, "test1")
         console.log(getDataFromLocalStorage("test1"))
+    }, 2000);
 
 
-    }
+*/
 
 }
 
@@ -62,6 +157,19 @@ function swapConfgDisplay() {
     } else {
         element.css("display", "none")
     }
+}
+
+function isThreadIdInLocalStorage(threadId: number) {
+    let threadIds: { [key: string]: number } = getDataFromLocalStorage("threadIds") || {};
+    return Object.values(threadIds).includes(threadId);
+}
+
+function addThreadIdToLocalStorage(currentThreadId: number) {
+    let threadIds: number[] = getDataFromLocalStorage("threadIds") || [];
+
+// Fügen Sie einen neuen Wert hinzu
+    threadIds.push(currentThreadId);
+    storeDataInLocalStorage(threadIds, "threadIds")
 }
 
 //todo: give multiple inputs instead of just spliiting by ","
@@ -94,10 +202,13 @@ function setupTable() {
     let bow = game_data.units.includes("archer") ? $("#inputBow").val().split(",") : null;
     troopArray.push(spear, sword, bow);
     let paketText = createPaketString(troopArray)
+    $(".clearfix > form > input[value=Senden]").on("click", function () {
+        storeDataInLocalStorage(true, "newThread")
+    });
     let text = `[b]SD Tabelle Paketsystem[/b]
 
 [table]
-[**]ID[||]Dorfkoordinaten[||]Massenutlink[||]angefordert[||]noch benötigt [||]Spieler[||]Bemerkung[/**]
+[**]ID[||]Dorfkoordinaten[||][color=#001c83]Massenutlink[/color][||]angefordert[||][color=#8d0100]noch benötigt[/color] [||]Spieler[||]Bemerkung[/**]
 [/table]
 
 [b]1 Paket =[/b]

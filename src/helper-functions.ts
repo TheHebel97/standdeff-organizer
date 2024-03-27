@@ -5,7 +5,7 @@ export function storeDataInLocalStorage<T>(data: T, key: string) {
             console.error("Error storing data in GM: data is undefined");
             return;
         }
-        if (type === "object") {
+        if (type === "object" || Array.isArray(data)) {
              newData = JSON.stringify(data);
         }
         if (type === "string"||type === "number"||type === "boolean") {

@@ -1,6 +1,44 @@
 import {storeDataInLocalStorage} from "../helper-functions";
+import {isUserForumMod} from "../tw-helper";
 
-export function setupTable() {
+export function createNewTable() {
+    console.log("standdeff-organizer loaded in new_thread");
+    storeDataInLocalStorage(false, "newThread")
+    //debugger;
+    if (isUserForumMod()) {
+        console.log("user is forum mod");
+        //html elements
+        const settingsBtn = `<input type="button" style="background-image: url(https://dsde.innogamescdn.com/asset/7b986b1a/graphic//buildings/smith.png);
+            background-repeat: no-repeat; width:20px;height:20px; border: none; cursor: pointer; background-color: transparent; margin-left:7px;" class="configbtn">`;
+        let tbBows = game_data.units.includes("archer") ? `<img src="https://dsde.innogamescdn.com/asset/b5d78b17/graphic/unit/unit_archer@2x.png" title="Bogenschütze" alt="" class="" style="width: 15px; height: 15px">
+      <input type="text" class="inputBow" id="inputBow" style="width:70px;background-color:#EAD5AA">` : "";
+        let config = `<br><div class="configs" style="display: none; width: 95%;margin-left: auto;margin-bottom: 20px;
+      margin-right: auto;margin-top:15px;">
+      <img src="https://dsde.innogamescdn.com/asset/b5d78b17/graphic/unit/unit_spear@2x.png" title="Speerträger" alt="" class="" style="width: 15px; height: 15px">
+      <input type="text" class="inputSpear" id="inputSpear" style="width:70px;background-color:#EAD5AA;margin-right: 10px"> 
+      <img src="https://dsde.innogamescdn.com/asset/b5d78b17/graphic/unit/unit_sword@2x.png" title="Schwertkämpfer" alt="" class="" style="width: 15px; height: 15px"> 
+      <input type="text" class="inputSword" id="inputSword" style="width:70px;background-color:#EAD5AA;margin-right: 10px"> ` + tbBows + `
+      <br>
+      <br>
+
+      <input type="button" class="btn" id="setupTable" value="SD Tabelle generieren">
+      </div>
+      `;
+
+
+        //append html elements
+        $(".clearfix > h2").append(settingsBtn)
+        $(".clearfix > h2").append(config)
+        $(".configbtn").on("click", swapConfgDisplay)
+        $("#setupTable").on("click", setupTable)
+        //++$("input[name=send]").on("click", function () {
+
+
+    }
+
+}
+
+function setupTable() {
     let troopArray = [];
     // @ts-ignore
     let spear = $("#inputSpear").val().split(",")
@@ -86,6 +124,7 @@ Ablauf der Aktualisierung:
 
     $("#message").val(text);
 }
+
 //todo: give multiple inputs instead of just spliiting by ","
 //fix typescript errors
 //rewrite manual
@@ -104,5 +143,14 @@ const createPaketString = (troopArray: any[]) => {
         text += "\n"
     }
     return text;
+}
+
+function swapConfgDisplay() {
+    let element = $(".configs");
+    if (element.css("display") === "none") {
+        element.css("display", "block")
+    } else {
+        element.css("display", "none")
+    }
 }
 

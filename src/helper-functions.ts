@@ -26,6 +26,32 @@ export function getDataFromLocalStorage<T>(key: string) :T {
         return isStringValidJson(storedData) ? JSON.parse(storedData) : storedData as T;
 }
 
+export function addThreadIdToLocalStorage(currentThreadId: string | null, postId: string | null) {
+    debugger;
+    let threadIds: { [key: string]: string }  = getDataFromLocalStorage("threadIds") || {};
+
+    if (currentThreadId !== null && postId !== null) {
+        if (!threadIds.hasOwnProperty(currentThreadId)) {
+            threadIds[currentThreadId] = postId;
+            storeDataInLocalStorage(threadIds, "threadIds")
+        } else {
+            console.error("thread id is already in thread ids")
+            return;
+        }
+    } else {
+        if (currentThreadId === null) {
+            console.error("current thread id is null")
+        }
+        if (postId === null) {
+            console.error("post id is null")
+        }
+        return;
+    }
+
+}
+
+
+
 //private helper functions
 function isStringValidJson(str: string) {
     try {

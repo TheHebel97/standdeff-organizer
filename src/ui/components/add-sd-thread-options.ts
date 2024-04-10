@@ -1,4 +1,4 @@
-import {addThreadIdToLocalStorage, getDataFromLocalStorage} from "../helper-functions";
+import {addThreadIdToLocalStorage, getDataFromLocalStorage} from "../../logic/helpers/helper-functions";
 
 export function addSdOptions(currentThreadId: string | null){
     console.log("thread id is not in thread ids")

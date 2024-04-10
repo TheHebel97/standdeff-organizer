@@ -1,4 +1,4 @@
-const helperFunctions = require('../helper-functions')
+const helperFunctions = require('../logic/helpers/helper-functions')
 
 test('storeDataInGM', () => {
     const data : object = {test: "test"};

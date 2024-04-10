@@ -1,5 +1,5 @@
-import {storeDataInLocalStorage} from "../helper-functions";
-import {isUserForumMod} from "../tw-helper";
+import {storeDataInLocalStorage} from "../logic/helpers/helper-functions";
+import {isUserForumMod} from "../logic/helpers/tw-helper";
 
 export function createNewTable() {
     console.log("standdeff-organizer loaded in new_thread");
@@ -30,7 +30,7 @@ export function createNewTable() {
         $(".clearfix > h2").append(settingsBtn)
         $(".clearfix > h2").append(config)
         $(".configbtn").on("click", swapConfgDisplay)
-        $("#setupTable").on("click", setupTable)
+        $("#newThread").on("click", newThread)
         //++$("input[name=send]").on("click", function () {
 
 
@@ -38,7 +38,7 @@ export function createNewTable() {
 
 }
 
-function setupTable() {
+function newThread() {
     let troopArray = [];
     // @ts-ignore
     let spear = $("#inputSpear").val().split(",")

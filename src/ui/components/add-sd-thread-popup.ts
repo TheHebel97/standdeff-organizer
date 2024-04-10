@@ -1,4 +1,4 @@
-import {addThreadIdToLocalStorage, getDataFromLocalStorage} from "../helper-functions";
+import {addThreadIdToLocalStorage, getDataFromLocalStorage} from "../../logic/helpers/helper-functions";
 
 export function addSdPopup(currentThreadId: string | null){
     console.log("no thread ids found")

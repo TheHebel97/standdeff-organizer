@@ -10,6 +10,9 @@ export function getCurrentScriptContext() :string {
         //const editModeParamValue = urlParams.get('edit_post_id');
         return screenName + "-" + modeParamValue;
     }
+    if(screenName === "settings"){
+        return screenName;
+    }
     return "unknown";
 }
 
@@ -22,7 +25,7 @@ export function isUserForumMod(){
     //only works inside the forum
     if(game_data.screen === "forum") {
         const modDefiningElement = $("#ally_content > :eq(1)").find("a")
-        return false;
+        //return false;
         return modDefiningElement.length > 0;
     }else{
         console.error("you can only authenticate as a forum mod in the forum screen");

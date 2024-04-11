@@ -4,8 +4,8 @@ import {
     storeDataInLocalStorage
 } from "../logic/helpers/helper-functions";
 import {isUserForumMod} from "../logic/helpers/tw-helper";
-import {addSdOptions} from "./components/add-sd-thread-options";
-import {addSdPopup} from "./components/add-sd-thread-popup";
+import {addSdOptions} from "./components/options-sd-thread";
+import {addSdPopup} from "./components/first-start-thread-popup";
 import {sdTable} from "./components/sd-table";
 
 

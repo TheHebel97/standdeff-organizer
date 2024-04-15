@@ -27,7 +27,6 @@ export function getDataFromLocalStorage<T>(key: string) :T {
 }
 
 export function addThreadIdToLocalStorage(currentThreadId: string | null, postId: string | null) {
-    debugger;
     let threadIds: { [key: string]: string }  = getDataFromLocalStorage("threadIds") || {};
 
     if (currentThreadId !== null && postId !== null) {

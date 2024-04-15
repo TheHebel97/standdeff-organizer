@@ -75,3 +75,12 @@ export interface TwScavengeBaseFactors {
     duration_factor: number;
     duration_initial_seconds: number;
 }
+
+export interface requestData {
+    coords: string;
+    amount: number;
+    playerName: string | undefined;
+    comment: string | undefined;
+    dateFrom: string | undefined;
+    dateUntil: string | undefined;
+}

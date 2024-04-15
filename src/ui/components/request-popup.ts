@@ -1,4 +1,4 @@
-export function showRequestPopup() {
+export function showRequestPopup(pastRequests: any[]) {
     console.log("show request popup");
 
     const popupBoxBunkerAnfragen = `

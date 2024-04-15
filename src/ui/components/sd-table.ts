@@ -1,7 +1,5 @@
-import {isUserForumMod} from "../../logic/helpers/tw-helper";
-import {editPost} from "./edit-post";
 import {editSdPost} from "./edit-sd-post";
-import {newPost} from "./new-post";
+import {postLayout} from "./post-layout";
 
 export function sdTable(threadIds: { [key: string]: string }) {
     console.log("visualisierung der sd tabelle")
@@ -17,17 +15,10 @@ export function sdTable(threadIds: { [key: string]: string }) {
     if (edit_post_id === threadIds[currentThreadId]) {
         editSdPost();
         return;
-    } else if (edit_post_id !== null) {
-        editPost();
-        return;
     }
-    if (urlParams.has("answer")) {
-        newPost();
-        return;
+    if ($("#message").length) { //wenn textarea vorhanden
+        postLayout();
     }
-    console.log("tabellenmodus")
-//darstellen des bearbeitungszustands innerhelb der sd tabelle
-    // über listener auf dem localstorage
 
 
 }

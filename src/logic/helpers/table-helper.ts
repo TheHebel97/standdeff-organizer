@@ -19,8 +19,8 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
             amount: Number(amount),
             playerName: optionalData[1] || undefined,
             comment: optionalData[3] || undefined,
-            dateFrom: optionalData[5] || undefined,
-            dateUntil: optionalData[7] || undefined
+            dateFrom: Number(optionalData[5]) || undefined,
+            dateUntil: Number(optionalData[7]) || undefined
         };
 
         // Add the requestData object to the array

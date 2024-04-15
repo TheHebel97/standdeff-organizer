@@ -81,6 +81,6 @@ export interface requestData {
     amount: number;
     playerName: string | undefined;
     comment: string | undefined;
-    dateFrom: string | undefined;
-    dateUntil: string | undefined;
+    dateFrom: number | undefined;
+    dateUntil: number | undefined;
 }

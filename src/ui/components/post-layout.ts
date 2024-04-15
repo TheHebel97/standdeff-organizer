@@ -5,7 +5,7 @@ import {convertMessageRequestStringToRequestArray} from "../../logic/helpers/tab
 
 export function postLayout() {
     console.log("post layout");
-    let pastRequests: [requestData];
+    let pastRequests: requestData[];
     const urlParams = new URLSearchParams(window.location.search);
 
     if (!isUserForumMod()) {
@@ -40,6 +40,7 @@ export function postLayout() {
 
     $("#requestBunker").on("click", function () {
         showRequestPopup(pastRequests);
+        console.log("past requests", pastRequests);
     })
     $("#addBearbeitung").on("click", function () {
         console.log("bearbeitung eintragen")

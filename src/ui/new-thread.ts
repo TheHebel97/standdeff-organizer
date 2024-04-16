@@ -4,6 +4,18 @@ import {isUserForumMod} from "../logic/helpers/tw-helper";
 export function createNewTable() {
     console.log("standdeff-organizer loaded in new_thread");
     storeDataInLocalStorage(false, "newThread")
+
+    $(".clearfix > form > input[value=Senden]").on("mouseenter", function () {
+        // @ts-ignore
+        if ($("input[name=subject]").val().length < 3) {
+            $(".clearfix > form > input[value=Senden]").attr("disabled", "true")
+        }
+    });
+   $(".clearfix > form > input[value=Senden]").on("mouseleave", function () {
+    $(".clearfix > form > input[value=Senden]").removeAttr("disabled");
+});
+
+
     //debugger;
     if (isUserForumMod()) {
         console.log("user is forum mod");
@@ -30,7 +42,7 @@ export function createNewTable() {
         $(".clearfix > h2").append(settingsBtn)
         $(".clearfix > h2").append(config)
         $(".configbtn").on("click", swapConfgDisplay)
-        $("#newThread").on("click", newThread)
+        $("#setupTable").on("click", newThread)
         //++$("input[name=send]").on("click", function () {
 
 

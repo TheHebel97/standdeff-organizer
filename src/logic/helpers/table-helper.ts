@@ -8,6 +8,7 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
     let requests: requestData[] = [];
 
     // Iterate over each line
+    //evtl auch mit regex
     for (const line of lines) {
         // Split the line at the first space to get coords and amount
         let [coords, amount, ...optionalData] = line.split(' ', 3);
@@ -18,9 +19,9 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
             coords: coords,
             amount: Number(amount),
             playerName: optionalData[1] || undefined,
-            comment: optionalData[3] || undefined,
-            dateFrom: Number(optionalData[5]) || undefined,
-            dateUntil: Number(optionalData[7]) || undefined
+            comment: optionalData[2] || undefined,
+            dateFrom: Number(optionalData[3]) || undefined,
+            dateUntil: Number(optionalData[4]) || undefined
         };
 
         // Add the requestData object to the array

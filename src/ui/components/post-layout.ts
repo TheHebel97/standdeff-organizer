@@ -32,14 +32,27 @@ export function postLayout() {
 
 
     if (!urlParams.has("answer")) { // neuer post
-        let pastRequests: requestData[];
+
         console.log("bearbeiten eines posts, der nicht die sd tabelle ist")
-        const editText: String = String($("#message").val());
-        pastRequests = getDataFromLocalStorage<requestData[]>("requestData");
-        if (!pastRequests){
-            pastRequests = convertMessageRequestStringToRequestArray(editText)
+        let editText: String = String($("#message").val());
+        let pastRequests: requestData[] = getDataFromLocalStorage<requestData[]>("requestData") || [] as requestData[];
+        let newRequests: requestData[] = convertMessageRequestStringToRequestArray(editText) || [] as requestData[];
+
+// Merge pastRequests and newRequests
+        pastRequests = [...pastRequests, ...newRequests];
+
+// Remove duplicates based on coords
+        let uniqueRequests: requestData[] = [];
+        let map = new Map();
+
+        for (let request of pastRequests) {
+            if (!map.has(request.coords)) {
+                map.set(request.coords, true);
+                uniqueRequests.push(request);
+            }
         }
-        storeDataInLocalStorage(pastRequests, "requestData");
+
+        storeDataInLocalStorage(uniqueRequests, "requestData");
     }
     console.log("neuer post")
 

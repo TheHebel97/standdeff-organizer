@@ -49,6 +49,13 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
 
 }
 
+export function convertEpochToDate(epoch: number): string {
+    return new Date(epoch * 1000).toISOString().substring(0, 10);
+}
+
+export function convertDateToEpoch(date: string): number {
+    return new Date(date).getTime() / 1000;
+}
 
 
 //private helper functions

@@ -12,6 +12,12 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
     for (const line of lines) {
         // Split the line at the first space to get coords and amount
         let [coords, amount, ...optionalData] = line.split(' ', 3);
+        // Check if coords matches the pattern "3digits | 3 digits"
+        const coordsPattern = /^\d{3}\|\d{3}$/;
+        const amountPattern = /^\d+$/;
+        if (!coordsPattern.test(coords) || !amountPattern.test(amount)) {
+            continue;  // Skip this line if coords does not match the pattern
+        }
         // Split the optional data at the delimiter "
         optionalData = optionalData[0]?.split('"') || [];
         // Create the requestData object

@@ -1,25 +1,9 @@
 import {requestData} from "../../types/types";
+import {convertEpochToDate, getDataFromLocalStorage} from "../../logic/helpers/helper-functions";
 
-export function showRequestPopup(pastRequests: requestData[]) {
+export function showRequestPopup() {
     console.log("show request popup");
-
-    if (pastRequests === undefined) {
-        pastRequests = [{
-            "coords": "123|123",
-            "amount": 300,
-            "playerName": "TheHebel97",
-            "comment": "test",
-            "dateFrom": 1713214717465,
-            "dateUntil": 1713214717465
-        }, {
-            "coords": "123|123",
-            "amount": 300,
-            "playerName": "TheHebel97",
-            "comment": "test",
-            "dateFrom": undefined,
-            "dateUntil": undefined
-        }];
-    }
+    // requestData-Objekt aus dem LocalStorage abrufen
 
     const initPopopBox = `
                     <div class="popup_box_container" id="dbInfo_popup_box">
@@ -29,6 +13,14 @@ export function showRequestPopup(pastRequests: requestData[]) {
                               <div class='center'>
                                 <h2>Bunker Anfragen</h2>
                                 <table class="requestContent">
+                                  <tr style='margin=2px;'>
+                                    <th style="padding-left: 10px; padding-right: 10px">Koordinate</th>
+                                    <th style="padding-left: 10px; padding-right: 10px">Pakete</th>
+                                    <th style="padding-left: 10px; padding-right: 10px">Spieler <span style="font-size: 0.8em;">(optional)</span></th>
+                                    <th style="padding-left: 10px; padding-right: 10px">Anmerkung <span style="font-size: 0.8em;">(optional)</span></th>
+                                    <th style="padding-left: 10px; padding-right: 10px">ab <span style="font-size: 0.8em;">(optional)</span></th>
+                                    <th style="padding-left: 10px; padding-right: 10px">bis <span style="font-size: 0.8em;">(optional)</span></th>
+                                    <th style="padding-left: 10px; padding-right: 10px">Löschen</th></tr>
                                 </table>
                                 <hr style="margin-top: 15px; margin-bottom: 15px">
                                 <textarea class="textAreaKoords" style="background-color:#EAD5AA;" ></textarea>
@@ -39,57 +31,59 @@ export function showRequestPopup(pastRequests: requestData[]) {
                         <div class='fader'></div>
                     </div>
     `
-
     $('#ds_body')[0].insertAdjacentHTML('beforeend', initPopopBox)
-    let requestHtml: string = "<tr style='margin=2px;'><th>Koordinate</th><th>Pakete</th><th>Spieler</th><th>Anmerkung</th><th>ab (Zeitlich)</th><th>bis (Zeitlich)</th><th>Löschen</th></tr>";
+    renderTableRows();
 
-    pastRequests.forEach((request: requestData, index: number) => {
-        const dateFrom = request.dateFrom !== undefined ? new Date(request.dateFrom).toISOString().split('T')[0] : '';
-        const dateUntil = request.dateUntil !== undefined ? new Date(request.dateUntil).toISOString().split('T')[0] : '';
-
-
-        requestHtml += `<tr>
-<td>${request.coords}</td>
-<td><input type="number" value="${request.amount}"></td>
-<td><input type="text" value="${request.playerName}"></td>
-<td><input type="text" value="${request.comment}"></td>
-<td><input type="date" value="${dateFrom}"></td>
-<td><input type="date" value="${dateUntil}"></td>
-<td><input style="background: url(https://dsde.innogamescdn.com/asset/c045337f/graphic/delete.png)" onclick="deleteRequest(${index})></td>
-</tr>`
-    });
-//todo: deleteRequest function / siehe aussehen xD
-    function deleteRequest(index: number) {
-        pastRequests.splice(index, 1);
-        // @ts-ignore
-        //$(this).closest('tr').remove();
-    }
-
-    console.log("requestHtml");
-    console.log(requestHtml);
-    $(".requestContent").append(requestHtml)
-    $(".textAreaKoords").on("change", function () {
-        console.log("change")
-        console.log($(".textAreaKoords").val())
-    });
 
 }
 
-//<tr>
-//                                         <th>Koordinate</th>
-//                                         <th>Pakete</th>
-//                                         <th>Spieler</th>
-//                                         <th>Anmerkung</th>
-//                                         <th>ab (Zeitlich)</th>
-//                                         <th>bis (Zeitlich)</th>
-//                                     </tr>
-//                                     <tr class="">
-//                                         <td></td>
-//                                         <td><input type="number" class="inputAnzahl" style="margin:2px;width:50px;background-color:#EAD5AA"></td>
-//                                         <td><input type="text" class="inputName" style="margin:2px;width:50px;background-color:#EAD5AA"></td>
-//                                         <td><input type="text" class="inputComment" style="margin:2px;width:90px;background-color:#EAD5AA"></td>
-//                                         <td><input type="datetime-local" class="inputTimeFrom" style="margin:2px;width:100px;background-color:#EAD5AA"></td>
-//                                         <td><input type="datetime-local" class="inputTimeUntil" style="margin:2px;width:100px;background-color:#EAD5AA"></td>
-//                                     </tr>
+
+function renderTableRows(): void {
+
+    let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+    let returnHtml: string = "";
+    requestDataArray.forEach((requestRow, index) => {
+        console.log(Object.keys(requestRow).length)
+        Object.values(requestRow).forEach((value) => {
+            if (value === undefined) {
+                console.log("value is undefined");
+            }
+            console.log(value);
+        });
+        console.log(requestRow);
+        returnHtml += `<tr style='margin=2px;'><td style="padding-left: 10px; padding-right: 10px">`
+        if (requestRow.coords) {
+            returnHtml += `<span style="font-size: 1.2em; font-weight: bold;">${requestRow.coords}</span>`;
+        }
+        returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
+        if (requestRow.amount) {
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" value="${requestRow.amount}">`;
+        }
+        returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
+        if (requestRow.playerName) {
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" value="${requestRow.playerName}">`;
+        }
+        returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
+        if (requestRow.comment) {
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" value="${requestRow.comment}">`;
+        }
+        returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
+        if (requestRow.dateFrom) {
+            let dateFrom = convertEpochToDate(requestRow.dateFrom);
+            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateFromInput${index}" value="${dateFrom}">`;
+        }
+        returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
+        if (requestRow.dateUntil) {
+            let dateUntil = convertEpochToDate(requestRow.dateUntil);
+            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateUntilInput${index}" value="${dateUntil}">`;
+        }
+        returnHtml += "</td></tr>";
+    })
+
+
+    $(".requestContent").append(returnHtml);
+}
+
+
 
 

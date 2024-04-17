@@ -1,7 +1,7 @@
 import {isUserForumMod} from "../../logic/helpers/tw-helper";
 import {showRequestPopup} from "./request-popup";
 import {convertMessageRequestStringToRequestArray} from "../../logic/helpers/table-helper";
-import {storeDataInLocalStorage} from "../../logic/helpers/helper-functions";
+import {getDataFromLocalStorage, storeDataInLocalStorage} from "../../logic/helpers/helper-functions";
 import {requestData} from "../../types/types";
 
 export function postLayout() {
@@ -35,7 +35,10 @@ export function postLayout() {
         let pastRequests: requestData[];
         console.log("bearbeiten eines posts, der nicht die sd tabelle ist")
         const editText: String = String($("#message").val());
-        pastRequests = convertMessageRequestStringToRequestArray(editText)
+        pastRequests = getDataFromLocalStorage<requestData[]>("requestData");
+        if (!pastRequests){
+            pastRequests = convertMessageRequestStringToRequestArray(editText)
+        }
         storeDataInLocalStorage(pastRequests, "requestData");
     }
     console.log("neuer post")

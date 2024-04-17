@@ -4,6 +4,7 @@ import {
     getDataFromLocalStorage,
     storeDataInLocalStorage
 } from "../../logic/helpers/helper-functions";
+import {convertRequestArrayToMessageString} from "../../logic/helpers/table-helper";
 
 export function showRequestPopup() {
     console.log("show request popup");
@@ -38,6 +39,10 @@ export function showRequestPopup() {
     });
     renderTableRows();
 
+    $(".addBunkerAnfrage").on("click", function () {
+        const result = convertRequestArrayToMessageString(getDataFromLocalStorage<requestData[]>('requestData'));
+        $("#message").val(result);
+    });
 
 }
 
@@ -53,58 +58,147 @@ function renderTableRows(): void {
                                     <th style="padding-left: 10px; padding-right: 10px">bis <span style="font-size: 0.8em;">(optional)</span></th>
                                     <th style="padding-left: 10px; padding-right: 10px">Löschen</th></tr>`;
     requestDataArray.forEach((requestRow, index) => {
-        console.log(Object.keys(requestRow).length)
         Object.values(requestRow).forEach((value) => {
             if (value === undefined) {
                 console.log("value is undefined");
             }
-            console.log(value);
         });
-        console.log(requestRow);
         returnHtml += `<tr style='margin=2px;'><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.coords) {
             returnHtml += `<span style="font-size: 1.2em; font-weight: bold;">${requestRow.coords}</span>`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.amount) {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" value="${requestRow.amount}">`;
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" class="amountInput" value="${requestRow.amount}">`;
         } else {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" value="">`;
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" class="amountInput" value="">`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.playerName) {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" value="${requestRow.playerName}">`;
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="${requestRow.playerName}">`;
         } else {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" value="">`;
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="">`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.comment) {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" value="${requestRow.comment}">`;
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="${requestRow.comment}">`;
         } else {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" value="">`;
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="">`;
         }
 
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.dateFrom) {
             let dateFrom = convertEpochToDate(requestRow.dateFrom);
-            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateFromInput${index}" value="${dateFrom}">`;
+            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateFromInput${index}" class="dateFromInput" value="${dateFrom}">`;
         } else {
-            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateFromInput${index}" value="">`;
+            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateFromInput${index}" class="dateFromInput" value="">`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.dateUntil) {
             let dateUntil = convertEpochToDate(requestRow.dateUntil);
-            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateUntilInput${index}" value="${dateUntil}">`;
+            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateUntilInput${index}" class="dateUntilInput" value="${dateUntil}">`;
         } else {
-            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateUntilInput${index}" value="">`;
+            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateUntilInput${index}" class="dateUntilInput" value="">`;
         }
+        returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
+        returnHtml += `<button style="background: url(https://dsde.innogamescdn.com/asset/c045337f/graphic/delete.png); width: 20px; height: 20px;  border: none" class="deleteRequest" id="deleteRequest${index}"></button>`;
         returnHtml += "</td></tr>";
     })
-
-
     $(".requestContent").append(returnHtml);
-}
 
+    $(".deleteRequest").on("click", function () {
+        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+        let coords = $(this).closest('tr').children('td:first').text();
+        let index = requestDataArray.findIndex(request => request.coords === coords);
+        if (index !== -1) {
+            requestDataArray.splice(index, 1);
+            storeDataInLocalStorage(requestDataArray, 'requestData');
+            renderTableRows();
+        }
+    });
+
+    $(".amountInput").on("click", function () {
+        $(this).val("");
+    });
+
+    $(".playerNameInput").on("click", function () {
+        $(this).val("");
+    });
+
+    $(".commentInput").on("click", function () {
+        $(this).val("");
+    });
+
+    $(".amountInput").on("focusout", function () {
+        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+        let coords = $(this).closest('tr').children('td:first').text();
+        let index = requestDataArray.findIndex(request => request.coords === coords);
+        if (index !== -1) {
+            requestDataArray[index].amount = Number($(this).val());
+            storeDataInLocalStorage(requestDataArray, 'requestData');
+        }
+        // Füllen Sie alle anderen leeren Textboxen mit dem Wert
+        let value = String($(this).val());
+        $(".amountInput").each(function() {
+            if ($(this).val() === "") {
+                $(this).val(value);
+                let coords = $(this).closest('tr').children('td:first').text();
+                let index = requestDataArray.findIndex(request => request.coords === coords);
+                if (index !== -1) {
+                    requestDataArray[index].amount = Number(value);
+                    storeDataInLocalStorage(requestDataArray, 'requestData');
+                }
+            }
+        });
+    });
+
+    $(".playerNameInput").on("focusout", function () {
+        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+        let coords = $(this).closest('tr').children('td:first').text();
+        let index = requestDataArray.findIndex(request => request.coords === coords);
+        if (index !== -1) {
+            requestDataArray[index].playerName = String($(this).val());
+            storeDataInLocalStorage(requestDataArray, 'requestData');
+        }
+        // Füllen Sie alle anderen leeren Textboxen mit dem Wert
+        let value = String($(this).val());
+        $(".playerNameInput").each(function() {
+            if ($(this).val() === "") {
+                $(this).val(value);
+                let coords = $(this).closest('tr').children('td:first').text();
+                let index = requestDataArray.findIndex(request => request.coords === coords);
+                if (index !== -1) {
+                    requestDataArray[index].playerName = String(value);
+                    storeDataInLocalStorage(requestDataArray, 'requestData');
+                }
+            }
+        });
+    });
+
+    $(".commentInput").on("focusout", function () {
+        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+        let coords = $(this).closest('tr').children('td:first').text();
+        let index = requestDataArray.findIndex(request => request.coords === coords);
+        if (index !== -1) {
+            requestDataArray[index].comment = String($(this).val());
+            storeDataInLocalStorage(requestDataArray, 'requestData');
+        }
+        // Füllen Sie alle anderen leeren Textboxen mit dem Wert
+        let value = String($(this).val());
+        $(".commentInput").each(function() {
+            if ($(this).val() === "") {
+                $(this).val(value);
+                let coords = $(this).closest('tr').children('td:first').text();
+                let index = requestDataArray.findIndex(request => request.coords === coords);
+                if (index !== -1) {
+                    requestDataArray[index].comment = String(value);
+                    storeDataInLocalStorage(requestDataArray, 'requestData');
+                }
+            }
+        });
+    });
+
+}
 
 function getFilteredInput(input: string) {
     console.log("getFilteredInput");

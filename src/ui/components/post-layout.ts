@@ -64,5 +64,9 @@ export function postLayout() {
     $("#addBearbeitung").on("click", function () {
         console.log("bearbeitung eintragen")
     })
+    $("input[name=send]").on("click", function () {
+        let emptyRequestData: requestData[] = [] as requestData[];
+        storeDataInLocalStorage(emptyRequestData, "requestData");
+    });
 
 }

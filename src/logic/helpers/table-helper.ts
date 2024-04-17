@@ -35,3 +35,19 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
     }
     return requests;
 }
+
+export function convertRequestArrayToMessageString(requests: requestData[]): string {
+    // Array to hold the lines
+    let lines: string[] = [];
+
+    // Iterate over each requestData object
+    for (const request of requests) {
+        // Create the line
+        let line = `${request.coords} ${request.amount} "${request.playerName || ''}"${request.comment || ''}"${request.dateFrom || ''}"${request.dateUntil || ''}`;
+        // Add the line to the array
+        lines.push(line);
+    }
+
+    // Join the lines with a newline character
+    return lines.join('\n');
+}

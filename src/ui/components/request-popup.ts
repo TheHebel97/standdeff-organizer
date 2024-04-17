@@ -42,6 +42,8 @@ export function showRequestPopup() {
     $(".addBunkerAnfrage").on("click", function () {
         const result = convertRequestArrayToMessageString(getDataFromLocalStorage<requestData[]>('requestData'));
         $("#message").val(result);
+        //close popup
+        $("#dbInfo_popup_box").remove();
     });
 
 }
@@ -196,6 +198,15 @@ function renderTableRows(): void {
                 }
             }
         });
+    });
+
+    $(".dateFromInput").on("focusout", function () {
+
+
+    });
+
+    $(".dateUntilInput").on("focusout", function () {
+
     });
 
 }

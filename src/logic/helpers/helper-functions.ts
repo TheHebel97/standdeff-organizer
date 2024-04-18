@@ -50,11 +50,17 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
 }
 
 export function convertEpochToDate(epoch: number): string {
-    return new Date(epoch * 1000).toISOString().substring(0, 10);
+    // Convert the epoch to milliseconds and create a new Date object
+    let date = new Date(epoch * 1000);
+    // Format the date and time in the 'YYYY-MM-DDTHH:mm' format
+    return date.toISOString().substring(0, 16);
 }
 
 export function convertDateToEpoch(date: string): number {
-    return new Date(date).getTime() / 1000;
+    // Create a new Date object from the date string
+    let datetime = new Date(date);
+    // Get the time in milliseconds and convert it to seconds
+    return datetime.getTime() / 1000;
 }
 
 

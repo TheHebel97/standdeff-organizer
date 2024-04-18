@@ -202,24 +202,40 @@ function renderTableRows(): void {
     });
 
     $(".dateFromInput").on("change", function () {
-        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
-        let coords = $(this).closest('tr').children('td:first').text();
-        let index = requestDataArray.findIndex(request => request.coords === coords);
-        if (index !== -1) {
-            requestDataArray[index].dateFrom = convertDateToEpoch(String($(this).val()));
-            storeDataInLocalStorage(requestDataArray, 'requestData');
+    let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+    let coords = $(this).closest('tr').children('td:first').text();
+    let index = requestDataArray.findIndex(request => request.coords === coords);
+    if (index !== -1) {
+        let dateFrom = convertDateToEpoch(String($(this).val()));
+        let dateUntil = requestDataArray[index].dateUntil;
+        if (dateUntil && dateFrom >= dateUntil) {
+            $(this).css("background-color", "red");
+            $(this).val("");
+            return;
         }
-    });
+        $(this).css("background-color", "#EAD5AA");
+        requestDataArray[index].dateFrom = dateFrom;
+        storeDataInLocalStorage(requestDataArray, 'requestData');
+    }
+});
 
-    $(".dateUntilInput").on("change", function () {
-        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
-        let coords = $(this).closest('tr').children('td:first').text();
-        let index = requestDataArray.findIndex(request => request.coords === coords);
-        if (index !== -1) {
-            requestDataArray[index].dateUntil = convertDateToEpoch(String($(this).val()));
-            storeDataInLocalStorage(requestDataArray, 'requestData');
+$(".dateUntilInput").on("change", function () {
+    let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+    let coords = $(this).closest('tr').children('td:first').text();
+    let index = requestDataArray.findIndex(request => request.coords === coords);
+    if (index !== -1) {
+        let dateUntil = convertDateToEpoch(String($(this).val()));
+        let dateFrom = requestDataArray[index].dateFrom;
+        if (dateFrom && dateFrom >= dateUntil) {
+            $(this).css("background-color", "red");
+            $(this).val("");
+            return;
         }
-    });
+        $(this).css("background-color", "#EAD5AA");
+        requestDataArray[index].dateUntil = dateUntil;
+        storeDataInLocalStorage(requestDataArray, 'requestData');
+    }
+});
 
 }
 

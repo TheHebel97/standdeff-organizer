@@ -1,5 +1,6 @@
 import {requestData} from "../../types/types";
 import {
+    convertDateToEpoch,
     convertEpochToDate,
     getDataFromLocalStorage,
     storeDataInLocalStorage
@@ -91,16 +92,16 @@ function renderTableRows(): void {
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.dateFrom) {
             let dateFrom = convertEpochToDate(requestRow.dateFrom);
-            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateFromInput${index}" class="dateFromInput" value="${dateFrom}">`;
+            returnHtml += `<input type="datetime-local" style="background-color:#EAD5AA; border: none;" id="dateFromInput${index}" class="dateFromInput" value="${dateFrom}">`;
         } else {
-            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateFromInput${index}" class="dateFromInput" value="">`;
+            returnHtml += `<input type="datetime-local" style="background-color:#EAD5AA; border: none;" id="dateFromInput${index}" class="dateFromInput" value="">`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.dateUntil) {
             let dateUntil = convertEpochToDate(requestRow.dateUntil);
-            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateUntilInput${index}" class="dateUntilInput" value="${dateUntil}">`;
+            returnHtml += `<input type="datetime-local" style="background-color:#EAD5AA; border: none;" id="dateUntilInput${index}" class="dateUntilInput" value="${dateUntil}">`;
         } else {
-            returnHtml += `<input type="date" style="background-color:#EAD5AA; border: none;" id="dateUntilInput${index}" class="dateUntilInput" value="">`;
+            returnHtml += `<input type="datetime-local" style="background-color:#EAD5AA; border: none;" id="dateUntilInput${index}" class="dateUntilInput" value="">`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         returnHtml += `<button style="background: url(https://dsde.innogamescdn.com/asset/c045337f/graphic/delete.png); width: 20px; height: 20px;  border: none" class="deleteRequest" id="deleteRequest${index}"></button>`;
@@ -141,7 +142,7 @@ function renderTableRows(): void {
         }
         // Füllen Sie alle anderen leeren Textboxen mit dem Wert
         let value = String($(this).val());
-        $(".amountInput").each(function() {
+        $(".amountInput").each(function () {
             if ($(this).val() === "") {
                 $(this).val(value);
                 let coords = $(this).closest('tr').children('td:first').text();
@@ -164,7 +165,7 @@ function renderTableRows(): void {
         }
         // Füllen Sie alle anderen leeren Textboxen mit dem Wert
         let value = String($(this).val());
-        $(".playerNameInput").each(function() {
+        $(".playerNameInput").each(function () {
             if ($(this).val() === "") {
                 $(this).val(value);
                 let coords = $(this).closest('tr').children('td:first').text();
@@ -187,7 +188,7 @@ function renderTableRows(): void {
         }
         // Füllen Sie alle anderen leeren Textboxen mit dem Wert
         let value = String($(this).val());
-        $(".commentInput").each(function() {
+        $(".commentInput").each(function () {
             if ($(this).val() === "") {
                 $(this).val(value);
                 let coords = $(this).closest('tr').children('td:first').text();
@@ -200,13 +201,24 @@ function renderTableRows(): void {
         });
     });
 
-    $(".dateFromInput").on("focusout", function () {
-
-
+    $(".dateFromInput").on("change", function () {
+        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+        let coords = $(this).closest('tr').children('td:first').text();
+        let index = requestDataArray.findIndex(request => request.coords === coords);
+        if (index !== -1) {
+            requestDataArray[index].dateFrom = convertDateToEpoch(String($(this).val()));
+            storeDataInLocalStorage(requestDataArray, 'requestData');
+        }
     });
 
-    $(".dateUntilInput").on("focusout", function () {
-
+    $(".dateUntilInput").on("change", function () {
+        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+        let coords = $(this).closest('tr').children('td:first').text();
+        let index = requestDataArray.findIndex(request => request.coords === coords);
+        if (index !== -1) {
+            requestDataArray[index].dateUntil = convertDateToEpoch(String($(this).val()));
+            storeDataInLocalStorage(requestDataArray, 'requestData');
+        }
     });
 
 }
@@ -218,12 +230,12 @@ function getFilteredInput(input: string) {
     let resultArray: string[] = [];
     console.log(inputArray);
     inputArray.forEach((line, index) => {
-        if(coordsPattern.test(line)) {
+        if (coordsPattern.test(line)) {
             console.log("line is valid");
             resultArray.push(line);
         }
     });
-$("#textAreaKoords").val("");
+    $("#textAreaKoords").val("");
     return resultArray;
 }
 

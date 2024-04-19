@@ -1,3 +1,5 @@
+import {sdThreadData} from "../../types/types";
+
 export function storeDataInLocalStorage<T>(data: T, key: string) {
         let newData:any;
         const type = typeof data;
@@ -26,12 +28,13 @@ export function getDataFromLocalStorage<T>(key: string) :T {
         return isStringValidJson(storedData) ? JSON.parse(storedData) : storedData as T;
 }
 
-export function addThreadIdToLocalStorage(currentThreadId: string | null, postId: string | null) {
-    let threadIds: { [key: string]: string }  = getDataFromLocalStorage("threadIds") || {};
+export function addThreadIdToLocalStorage(currentThreadId: string | null, postId: string | null, threadName: string | null, forumName: string | null) {
+    let threadIds: sdThreadData[] = getDataFromLocalStorage("threadIds") || [];
 
-    if (currentThreadId !== null && postId !== null) {
-        if (!threadIds.hasOwnProperty(currentThreadId)) {
-            threadIds[currentThreadId] = postId;
+    if (currentThreadId !== null && postId !== null && threadName !== null && forumName !== null) {
+        const existingThread = threadIds.find(thread => thread.threadId === currentThreadId);
+        if (!existingThread) {
+            threadIds.push({threadId: currentThreadId, editPostId: postId, threadName: threadName, forumName: forumName});
             storeDataInLocalStorage(threadIds, "threadIds")
         } else {
             console.error("thread id is already in thread ids")
@@ -44,9 +47,14 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
         if (postId === null) {
             console.error("post id is null")
         }
+        if (threadName === null) {
+            console.error("thread name is null")
+        }
+        if (forumName === null) {
+            console.error("forum name is null")
+        }
         return;
     }
-
 }
 
 export function convertEpochToDate(epoch: number): string {

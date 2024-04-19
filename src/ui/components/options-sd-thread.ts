@@ -8,8 +8,10 @@ export function addSdOptions(currentThreadId: string | null){
     $(".thread_answer").parent().parent().append(addThreadELem)
     $(".addThread").on("click", function () {
         const edit_post_id = $(".post > a").attr("name")
+        const thread_name: string | null = $(".clearfix > table").first().find("h2").text();
+        const forum_name: string | null = $(".forum-container").find(".selected").text().trim();
         if (edit_post_id !== undefined) {
-            addThreadIdToLocalStorage(currentThreadId, edit_post_id);
+            addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name);
             console.log(getDataFromLocalStorage("threadIds"))
             $(".addThread").remove()
             $("#tooltip").css({

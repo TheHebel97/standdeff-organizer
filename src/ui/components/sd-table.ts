@@ -1,7 +1,8 @@
 import {editSdPost} from "./edit-sd-post";
 import {postLayout} from "./post-layout";
+import {sdThreadData} from "../../types/types";
 
-export function sdTable(threadIds: { [key: string]: string }) {
+export function sdTable(threadIds: sdThreadData[]) {
     console.log("visualisierung der sd tabelle")
 //visuell anzeigen, dass es sich um die sd tabelle handelt
     const sdTableTitle = `<span style="color: #002bff; font-size: x-small"> (SD Tabelle)</span>`
@@ -12,7 +13,7 @@ export function sdTable(threadIds: { [key: string]: string }) {
     const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
     const edit_post_id: string | null = urlParams.get('edit_post_id');
     const currentThreadId: string | null = urlParams.get('thread_id') || ""
-    if (edit_post_id === threadIds[currentThreadId]) {
+    if (edit_post_id === threadIds.find(thread => thread.threadId === currentThreadId)?.editPostId) {
         editSdPost();
         return;
     }

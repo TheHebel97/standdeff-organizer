@@ -7,6 +7,7 @@ import {isUserForumMod} from "../logic/helpers/tw-helper";
 import {addSdOptions} from "./components/options-sd-thread";
 import {addSdPopup} from "./components/first-start-thread-popup";
 import {sdTable} from "./components/sd-table";
+import {sdThreadData} from "../types/types";
 
 
 export function viewThread() {
@@ -18,8 +19,10 @@ export function viewThread() {
         console.log("new thread data found")
         storeDataInLocalStorage(false, "newThread")
         const edit_post_id: string | undefined = $(".post > a").attr("name")
+        const thread_name: string | null = $(".clearfix > table").first().find("h2").text();
+        const forum_name: string | null = $(".forum-container").find(".selected").text().trim();
         if (edit_post_id !== undefined) {
-            addThreadIdToLocalStorage(currentThreadId, edit_post_id);
+            addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name);
             console.log(getDataFromLocalStorage("threadIds"))
         } else {
             console.error("edit_post_id is undefined")
@@ -29,11 +32,11 @@ export function viewThread() {
     }
 
 // auslesen der ThreadIds aus dem localstorage um zu verifizieren, dass es sich um eine SD Tabelle handelt
-    let threadIds: { [key: string]: string } = getDataFromLocalStorage("threadIds");
+    let threadIds: sdThreadData[] = getDataFromLocalStorage("threadIds");
     console.log(threadIds)
     if (threadIds !== undefined && currentThreadId !== null) {
         console.log("thread ids found")
-        if (threadIds.hasOwnProperty(currentThreadId)) {
+        if (threadIds.find(thread => thread.threadId === currentThreadId)) {
             sdTable(threadIds);
         } else {
             addSdOptions(currentThreadId);

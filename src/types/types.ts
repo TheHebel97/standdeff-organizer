@@ -84,3 +84,10 @@ export interface requestData {
     dateFrom: number | undefined;
     dateUntil: number | undefined;
 }
+
+export interface sdThreadData {
+    threadId: string;
+    editPostId: string;
+    threadName: string;
+    forumName: string;
+}

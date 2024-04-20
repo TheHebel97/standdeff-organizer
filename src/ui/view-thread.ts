@@ -18,11 +18,13 @@ export function viewThread() {
     if (getDataFromLocalStorage("newThread") === true) {
         console.log("new thread data found")
         storeDataInLocalStorage(false, "newThread")
+        const urlParams = new URLSearchParams(window.location.search);
         const edit_post_id: string | undefined = $(".post > a").attr("name")
         const thread_name: string | null = $(".clearfix > table").first().find("h2").text();
         const forum_name: string | null = $(".forum-container").find(".selected").text().trim();
+        const forum_id = urlParams.get('forum_id');
         if (edit_post_id !== undefined) {
-            addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name);
+            addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name, forum_id);
             console.log(getDataFromLocalStorage("threadIds"))
         } else {
             console.error("edit_post_id is undefined")

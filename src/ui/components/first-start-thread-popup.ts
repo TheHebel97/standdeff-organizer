@@ -26,11 +26,13 @@ export function addSdPopup(currentThreadId: string | null){
     if(!getDataFromLocalStorage("hideFistStartPopup")){
         $('#ds_body')[0].insertAdjacentHTML('beforeend', popupBoxNewThread)
         $("#safeThreadAsSd").on("click", function () {
+            const urlParams = new URLSearchParams(window.location.search);
             const edit_post_id = $(".post > a").attr("name")
             const thread_name: string | null = $(".clearfix > table").first().find("h2").text();
             const forum_name: string | null = $(".forum-container").find(".selected").text().trim();
+            const forum_id= urlParams.get('forum_id');
             if (edit_post_id !== undefined) {
-                addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name);
+                addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name, forum_id);
                 console.log(getDataFromLocalStorage("threadIds"))
                 $("#dbInfo_popup_box").remove()
             } else {

@@ -90,4 +90,16 @@ export interface sdThreadData {
     editPostId: string;
     threadName: string;
     forumName: string;
+    forumId: string;
+}
+
+export interface sdSettings {
+    firstStartPopup: boolean;
+    automateMassenUt: boolean;
+    sdGroupId: string;
+}
+
+export interface groupData {
+    id: string;
+    name: string;
 }

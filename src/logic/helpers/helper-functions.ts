@@ -1,47 +1,54 @@
-import {sdSettings, sdThreadData} from "../../types/types";
+import {ThreadData, Threads} from "../../types/types";
+import {LocalStorageService} from "../local-storage-service";
 
-export function storeDataInLocalStorage<T>(data: T, key: string) {
-    let newData: any;
-    const type = typeof data;
-    if (type === undefined) {
-        console.error("Error storing data in GM: data is undefined");
-        return;
-    }
-    if (type === "object" || Array.isArray(data)) {
-        newData = JSON.stringify(data);
-    }
-    if (type === "string" || type === "number" || type === "boolean") {
-        newData = data;
-    }
-    localStorage.setItem(key, newData);
-}
 
-export function getDataFromLocalStorage<T>(key: string): T {
-
-    const storedData: string | null = localStorage.getItem(key);
-    let result: T;
-    if (storedData === null) {
-        console.error("Error getting data from GM: data is null");
-        return undefined as unknown as T;
-    }
-
-    return isStringValidJson(storedData) ? JSON.parse(storedData) : storedData as T;
-}
+// export function storeDataInLocalStorage<T>(data: T, key: string) {
+//     let newData: any;
+//     const type = typeof data;
+//     if (type === undefined) {
+//         console.error("Error storing data in GM: data is undefined");
+//         return;
+//     }
+//     if (type === "object" || Array.isArray(data)) {
+//         newData = JSON.stringify(data);
+//     }
+//     if (type === "string" || type === "number" || type === "boolean") {
+//         newData = data;
+//     }
+//     localStorage.setItem(key, newData);
+// }
+//
+// export function getDataFromLocalStorage<T>(key: string): T {
+//
+//     const storedData: string | null = localStorage.getItem(key);
+//     let result: T;
+//     if (storedData === null) {
+//         console.error("Error getting data from GM: data is null");
+//         return undefined as unknown as T;
+//     }
+//
+//     return isStringValidJson(storedData) ? JSON.parse(storedData) : storedData as T;
+// }
 
 export function addThreadIdToLocalStorage(currentThreadId: string | null, postId: string | null, threadName: string | null, forumName: string | null, forumId: string | null) {
-    let threadIds: sdThreadData[] = getDataFromLocalStorage("threadIds") || [];
+    const localStorageService = LocalStorageService.getInstance();
+
+    let threads: Threads = localStorageService.getAllThreads;
 
     if (currentThreadId !== null && postId !== null && threadName !== null && forumName !== null && forumId !== null) {
-        const existingThread = threadIds.find(thread => thread.threadId === currentThreadId);
+        const existingThread = threads[currentThreadId]!==undefined;
         if (!existingThread) {
-            threadIds.push({
-                threadId: currentThreadId,
-                editPostId: postId,
+            let threadData : ThreadData = {
                 threadName: threadName,
                 forumName: forumName,
-                forumId: forumId
-            });
-            storeDataInLocalStorage(threadIds, "threadIds")
+                forumId: forumId,
+                sdPostId: postId,
+                activeBunkerInquiry: [],
+                stateOfSdTable: [],
+                packetSent: []
+            }
+
+            localStorageService.addThread(currentThreadId, threadData);
         } else {
             console.error("thread id is already in thread ids")
             return;
@@ -76,20 +83,6 @@ export function convertDateToEpoch(date: string): number {
     // Get the time in milliseconds and convert it to seconds
     return datetime.getTime() / 1000;
 }
-
-export function saveSetting(sdSettings: sdSettings) {
-    storeDataInLocalStorage(sdSettings, "sdSettings")
-}
-
-export function getSetting(): sdSettings {
-    return getDataFromLocalStorage("sdSettings") || {
-        firstStartPopup: true,
-        automateMassenUt: false,
-        sdGroupId: "nicht gesetzt"
-    };
-
-}
-
 
 //private helper functions
 function isStringValidJson(str: string) {

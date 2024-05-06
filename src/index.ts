@@ -15,12 +15,13 @@
 
 import {getCurrentScriptContext} from "./logic/helpers/tw-helper";
 import {setupScriptUI} from "./ui/script-ui-logic";
+import {LocalStorageService} from "./logic/local-storage-service";
 
 (function () {
     //load when document is ready
     $(function () {
-
-        let currentScriptContext:string = getCurrentScriptContext();
+        const localStorageService = LocalStorageService.getInstance();
+        let currentScriptContext: string = getCurrentScriptContext();
         console.log("standdeff-organizer will be loaded in " + currentScriptContext);
         setupScriptUI(currentScriptContext);
     });

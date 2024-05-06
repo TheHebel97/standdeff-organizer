@@ -1,13 +1,14 @@
 import {isUserForumMod} from "../../logic/helpers/tw-helper";
 import {showRequestPopup} from "./request-popup";
 import {convertMessageRequestStringToRequestArray} from "../../logic/helpers/table-helper";
-import {getDataFromLocalStorage, storeDataInLocalStorage} from "../../logic/helpers/helper-functions";
-import {requestData} from "../../types/types";
+import {sdInquiry} from "../../types/types";
+import {LocalStorageService} from "../../logic/local-storage-service";
 
 export function postLayout() {
     console.log("post layout");
-
+    const localStorageService = LocalStorageService.getInstance();
     const urlParams = new URLSearchParams(window.location.search);
+    const currentThreadId = urlParams.get("thread_id")||"";
 
     if (!isUserForumMod()) {
         console.log("user is not forum mod and text area is present")
@@ -35,14 +36,14 @@ export function postLayout() {
 
         console.log("bearbeiten eines posts, der nicht die sd tabelle ist")
         let editText: String = String($("#message").val());
-        let pastRequests: requestData[] = getDataFromLocalStorage<requestData[]>("requestData") || [] as requestData[];
-        let newRequests: requestData[] = convertMessageRequestStringToRequestArray(editText) || [] as requestData[];
+        let pastRequests: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId) || [] as sdInquiry[];
+        let newRequests: sdInquiry[] = convertMessageRequestStringToRequestArray(editText) || [] as sdInquiry[];
 
 // Merge pastRequests and newRequests
         pastRequests = [...pastRequests, ...newRequests];
 
 // Remove duplicates based on coords
-        let uniqueRequests: requestData[] = [];
+        let uniqueRequests: sdInquiry[] = [];
         let map = new Map();
 
         for (let request of pastRequests) {
@@ -51,8 +52,7 @@ export function postLayout() {
                 uniqueRequests.push(request);
             }
         }
-
-        storeDataInLocalStorage(uniqueRequests, "requestData");
+        localStorageService.setSdInquiry(currentThreadId, uniqueRequests);
     }
     console.log("neuer post")
 
@@ -65,8 +65,8 @@ export function postLayout() {
         console.log("bearbeitung eintragen")
     })
     $("input[name=send]").on("click", function () {
-        let emptyRequestData: requestData[] = [] as requestData[];
-        storeDataInLocalStorage(emptyRequestData, "requestData");
+        let emptyRequestData: sdInquiry[] = [] as sdInquiry[];
+        localStorageService.setSdInquiry(currentThreadId, emptyRequestData);
     });
 
 }

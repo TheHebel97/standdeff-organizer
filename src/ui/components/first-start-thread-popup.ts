@@ -1,10 +1,10 @@
 import {
     addThreadIdToLocalStorage,
-    getDataFromLocalStorage,
-    storeDataInLocalStorage
 } from "../../logic/helpers/helper-functions";
+import {LocalStorageService} from "../../logic/local-storage-service";
 
 export function addSdPopup(currentThreadId: string | null){
+    const localStorageService = LocalStorageService.getInstance();
     console.log("no thread ids found")
 
 
@@ -23,7 +23,7 @@ export function addSdPopup(currentThreadId: string | null){
                         <div class='fader'></div>
                     </div>
     `
-    if(!getDataFromLocalStorage("hideFistStartPopup")){
+    if(localStorageService.getFirstStartPopup){
         $('#ds_body')[0].insertAdjacentHTML('beforeend', popupBoxNewThread)
         $("#safeThreadAsSd").on("click", function () {
             const urlParams = new URLSearchParams(window.location.search);
@@ -33,7 +33,7 @@ export function addSdPopup(currentThreadId: string | null){
             const forum_id= urlParams.get('forum_id');
             if (edit_post_id !== undefined) {
                 addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name, forum_id);
-                console.log(getDataFromLocalStorage("threadIds"))
+                console.log(localStorageService.getAllThreads)
                 $("#dbInfo_popup_box").remove()
             } else {
                 console.error("edit_post_id is undefined")
@@ -41,7 +41,7 @@ export function addSdPopup(currentThreadId: string | null){
 
         });
         $("#hideFuturePopup").on("click", function () {
-            storeDataInLocalStorage(true, "hideFistStartPopup")
+            localStorageService.setFirstStartPopup = false;
             $("#dbInfo_popup_box").remove()
         });
     }

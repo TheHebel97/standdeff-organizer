@@ -1,4 +1,4 @@
-import {addThreadIdToLocalStorage, getDataFromLocalStorage} from "../../logic/helpers/helper-functions";
+import {addThreadIdToLocalStorage} from "../../logic/helpers/helper-functions";
 
 export function addSdOptions(currentThreadId: string | null){
     console.log("thread id is not in thread ids")
@@ -14,7 +14,6 @@ export function addSdOptions(currentThreadId: string | null){
         const forum_id= urlParams.get('forum_id');
         if (edit_post_id !== undefined) {
             addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name, forum_id);
-            console.log(getDataFromLocalStorage("threadIds"))
             $(".addThread").remove()
             $("#tooltip").css({
                 "display": "none",

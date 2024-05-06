@@ -1,7 +1,8 @@
 import {groupData} from "../types/types";
-import {storeDataInLocalStorage} from "../logic/helpers/helper-functions";
+import {LocalStorageService} from "../logic/local-storage-service";
 
 export function displayMassUt() {
+
     console.log("standdeff-organizer loaded in mass-ut");
     storeGroupData();
 }
@@ -11,6 +12,7 @@ export function displayMassUt() {
 function storeGroupData() {
     const groupData :groupData[] = [];
     $(document).ready(function() {
+        const localStorageService = LocalStorageService.getInstance();
         // Your code here
         $(".vis_item").find("a").each(function () {
             const groupId = $(this).attr("data-group-id");
@@ -21,7 +23,7 @@ function storeGroupData() {
             }
             console.error("group id or group name is undefined")
         });
-        storeDataInLocalStorage(groupData, "groupData")
+        localStorageService.setGroupData = groupData;
     });
 
 }

@@ -1,9 +1,10 @@
-import {storeDataInLocalStorage} from "../logic/helpers/helper-functions";
 import {isUserForumMod} from "../logic/helpers/tw-helper";
+import {LocalStorageService} from "../logic/local-storage-service";
 
 export function createNewTable() {
+    const localStorageService = LocalStorageService.getInstance();
     console.log("standdeff-organizer loaded in new_thread");
-    storeDataInLocalStorage(false, "newThread")
+    localStorageService.setNewThread = true;
 
     $(".clearfix > form > input[value=Senden]").on("mouseenter", function () {
         // @ts-ignore
@@ -51,6 +52,7 @@ export function createNewTable() {
 }
 
 function newThread() {
+    const localStorageService = LocalStorageService.getInstance();
     let troopArray = [];
     // @ts-ignore
     let spear = $("#inputSpear").val().split(",")
@@ -61,7 +63,8 @@ function newThread() {
     troopArray.push(spear, sword, bow);
     let paketText = createPaketString(troopArray)
     $(".clearfix > form > input[value=Senden]").on("click", function () {
-        storeDataInLocalStorage(true, "newThread")
+        localStorageService.setNewThread = false;
+
     });
     let text = `[b]SD Tabelle Paketsystem[/b]
 

@@ -1,23 +1,23 @@
 import {
     addThreadIdToLocalStorage,
-    getDataFromLocalStorage,
-    storeDataInLocalStorage
 } from "../logic/helpers/helper-functions";
 import {isUserForumMod} from "../logic/helpers/tw-helper";
 import {addSdOptions} from "./components/options-sd-thread";
 import {addSdPopup} from "./components/first-start-thread-popup";
 import {sdTable} from "./components/sd-table";
-import {sdThreadData} from "../types/types";
+import {Threads} from "../types/types";
+import {LocalStorageService} from "../logic/local-storage-service";
 
 
 export function viewThread() {
+    const localStorageService = LocalStorageService.getInstance();
     console.log("standdeff-organizer loaded in view_thread");
     const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
-    const currentThreadId: string | null = urlParams.get('thread_id');
+    const currentThreadId: string = urlParams.get('thread_id') || "";
     //wenn zuvor ein neuer SD Thread erstellt wurde, ist der Boolen in newThread true
-    if (getDataFromLocalStorage("newThread") === true) {
+    if (localStorageService.getNewThread) {
         console.log("new thread data found")
-        storeDataInLocalStorage(false, "newThread")
+        localStorageService.setNewThread = false;
         const urlParams = new URLSearchParams(window.location.search);
         const edit_post_id: string | undefined = $(".post > a").attr("name")
         const thread_name: string | null = $(".clearfix > table").first().find("h2").text();
@@ -25,7 +25,7 @@ export function viewThread() {
         const forum_id = urlParams.get('forum_id');
         if (edit_post_id !== undefined) {
             addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name, forum_id);
-            console.log(getDataFromLocalStorage("threadIds"))
+            console.log(localStorageService.getAllThreads)
         } else {
             console.error("edit_post_id is undefined")
         }
@@ -34,16 +34,18 @@ export function viewThread() {
     }
 
 // auslesen der ThreadIds aus dem localstorage um zu verifizieren, dass es sich um eine SD Tabelle handelt
-    let threadIds: sdThreadData[] = getDataFromLocalStorage("threadIds");
-    console.log(threadIds)
-    if (threadIds !== undefined && currentThreadId !== null) {
+    let threads: Threads = localStorageService.getAllThreads;
+    console.log(threads)
+    if (threads[currentThreadId] !== null) {
         console.log("thread ids found")
-        if (threadIds.find(thread => thread.threadId === currentThreadId)) {
-            sdTable(threadIds);
-        } else {
-            addSdOptions(currentThreadId);
-        }
+
+        sdTable(threads);
     } else {
-        addSdPopup(currentThreadId);
+        if (Object.keys(threads).length === 0) {
+            addSdPopup(currentThreadId);
+        }
+        addSdOptions(currentThreadId);
     }
+
+
 }

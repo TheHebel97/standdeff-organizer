@@ -1,6 +1,7 @@
 import {Unit} from "./tw-types";
 
-export interface requestData {
+//noch renamen
+export type sdInquiry = {
     coords: string;
     amount: number;
     playerName: string | undefined;
@@ -9,27 +10,52 @@ export interface requestData {
     dateUntil: number | undefined;
 }
 
-export interface sdThreadData {
-    threadId: string;
-    editPostId: string;
+export type ThreadData = {
     threadName: string;
     forumName: string;
     forumId: string;
+    sdPostId: string;
+    activeBunkerInquiry: sdInquiry[];
+    stateOfSdTable: rowSdTable[];
+    packetSent: packetSent[];
+
 }
 
-export interface sdSettings {
-    firstStartPopup: boolean;
-    automateMassenUt: boolean;
-    sdGroupId: string;
+export type generalSettings = {
+    newThread: boolean,
+    firstStartPopup: boolean,
+    automateMassenUt: boolean,
+    sdGroupId: string,
+    groupData: groupData[]
 }
 
-export interface groupData {
+export type groupData = {
     id: string;
     name: string;
 }
 
-interface LocalStorageData {
-    newThread: boolean;
-    settings: sdSettings;
-    groupData: groupData[];
+export type rowSdTable = {
+    internalId: number;
+    coords: string;
+    startAmount: number;
+    leftAmount: number;
+    playerName: string;
+    comment: string;
+    dateFrom: number;
+    dateUntil: number;
+}
+
+export type packetSent = {
+    internalId: number;
+    coords: string;
+    amount: number;
+}
+
+export type Threads = {
+    [threadId: string]: ThreadData
+}
+
+export type LocalStorageData = {
+    generalSettings: generalSettings,
+    threads: Threads
 }

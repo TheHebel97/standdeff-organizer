@@ -1,13 +1,17 @@
-import {requestData} from "../../types/types";
+
 import {
     convertDateToEpoch,
-    convertEpochToDate,
-    getDataFromLocalStorage,
-    storeDataInLocalStorage
+    convertEpochToDate
 } from "../../logic/helpers/helper-functions";
 import {convertRequestArrayToMessageString} from "../../logic/helpers/table-helper";
+import {sdInquiry} from "../../types/types";
+import {LocalStorageService} from "../../logic/local-storage-service";
 
 export function showRequestPopup() {
+    const localStorageService = LocalStorageService.getInstance();
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentThreadId = urlParams.get("thread_id")||"";
+
     console.log("show request popup");
     // requestData-Objekt aus dem LocalStorage abrufen
 
@@ -41,7 +45,7 @@ export function showRequestPopup() {
     renderTableRows();
 
     $(".addBunkerAnfrage").on("click", function () {
-        const result = convertRequestArrayToMessageString(getDataFromLocalStorage<requestData[]>('requestData'));
+        const result = convertRequestArrayToMessageString(localStorageService.getSdInquiry(currentThreadId));
         $("#message").val(result);
         //close popup
         $("#dbInfo_popup_box").remove();
@@ -51,8 +55,11 @@ export function showRequestPopup() {
 
 
 function renderTableRows(): void {
+    const localStorageService = LocalStorageService.getInstance();
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentThreadId = urlParams.get("thread_id")||"";
     $(".requestContent").empty();
-    let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+    let requestDataArray: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
     let returnHtml: string = `<tr style='margin=2px;'><th style="padding-left: 10px; padding-right: 10px">Koordinate</th>
                                     <th style="padding-left: 10px; padding-right: 10px">Pakete</th>
                                     <th style="padding-left: 10px; padding-right: 10px">Spieler <span style="font-size: 0.8em;">(optional)</span></th>
@@ -110,12 +117,12 @@ function renderTableRows(): void {
     $(".requestContent").append(returnHtml);
 
     $(".deleteRequest").on("click", function () {
-        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+        let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
         let coords = $(this).closest('tr').children('td:first').text();
-        let index = requestDataArray.findIndex(request => request.coords === coords);
+        let index = sdInquiryCollection.findIndex(request => request.coords === coords);
         if (index !== -1) {
-            requestDataArray.splice(index, 1);
-            storeDataInLocalStorage(requestDataArray, 'requestData');
+            sdInquiryCollection.splice(index, 1);
+            localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
             renderTableRows();
         }
     });
@@ -133,12 +140,12 @@ function renderTableRows(): void {
     });
 
     $(".amountInput").on("focusout", function () {
-        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+        let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
         let coords = $(this).closest('tr').children('td:first').text();
-        let index = requestDataArray.findIndex(request => request.coords === coords);
+        let index = sdInquiryCollection.findIndex(request => request.coords === coords);
         if (index !== -1) {
-            requestDataArray[index].amount = Number($(this).val());
-            storeDataInLocalStorage(requestDataArray, 'requestData');
+            sdInquiryCollection[index].amount = Number($(this).val());
+            localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
         }
         // Füllen Sie alle anderen leeren Textboxen mit dem Wert
         let value = String($(this).val());
@@ -146,22 +153,22 @@ function renderTableRows(): void {
             if ($(this).val() === "") {
                 $(this).val(value);
                 let coords = $(this).closest('tr').children('td:first').text();
-                let index = requestDataArray.findIndex(request => request.coords === coords);
+                let index = sdInquiryCollection.findIndex(request => request.coords === coords);
                 if (index !== -1) {
-                    requestDataArray[index].amount = Number(value);
-                    storeDataInLocalStorage(requestDataArray, 'requestData');
+                    sdInquiryCollection[index].amount = Number(value);
+                    localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
                 }
             }
         });
     });
 
     $(".playerNameInput").on("focusout", function () {
-        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+        let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
         let coords = $(this).closest('tr').children('td:first').text();
-        let index = requestDataArray.findIndex(request => request.coords === coords);
+        let index = sdInquiryCollection.findIndex(request => request.coords === coords);
         if (index !== -1) {
-            requestDataArray[index].playerName = String($(this).val());
-            storeDataInLocalStorage(requestDataArray, 'requestData');
+            sdInquiryCollection[index].playerName = String($(this).val());
+            localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
         }
         // Füllen Sie alle anderen leeren Textboxen mit dem Wert
         let value = String($(this).val());
@@ -169,22 +176,22 @@ function renderTableRows(): void {
             if ($(this).val() === "") {
                 $(this).val(value);
                 let coords = $(this).closest('tr').children('td:first').text();
-                let index = requestDataArray.findIndex(request => request.coords === coords);
+                let index = sdInquiryCollection.findIndex(request => request.coords === coords);
                 if (index !== -1) {
-                    requestDataArray[index].playerName = String(value);
-                    storeDataInLocalStorage(requestDataArray, 'requestData');
+                    sdInquiryCollection[index].playerName = String(value);
+                    localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
                 }
             }
         });
     });
 
     $(".commentInput").on("focusout", function () {
-        let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+        let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
         let coords = $(this).closest('tr').children('td:first').text();
-        let index = requestDataArray.findIndex(request => request.coords === coords);
+        let index = sdInquiryCollection.findIndex(request => request.coords === coords);
         if (index !== -1) {
-            requestDataArray[index].comment = String($(this).val());
-            storeDataInLocalStorage(requestDataArray, 'requestData');
+            sdInquiryCollection[index].comment = String($(this).val());
+            localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
         }
         // Füllen Sie alle anderen leeren Textboxen mit dem Wert
         let value = String($(this).val());
@@ -192,48 +199,48 @@ function renderTableRows(): void {
             if ($(this).val() === "") {
                 $(this).val(value);
                 let coords = $(this).closest('tr').children('td:first').text();
-                let index = requestDataArray.findIndex(request => request.coords === coords);
+                let index = sdInquiryCollection.findIndex(request => request.coords === coords);
                 if (index !== -1) {
-                    requestDataArray[index].comment = String(value);
-                    storeDataInLocalStorage(requestDataArray, 'requestData');
+                    sdInquiryCollection[index].comment = String(value);
+                    localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
                 }
             }
         });
     });
 
     $(".dateFromInput").on("change", function () {
-    let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+    let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
     let coords = $(this).closest('tr').children('td:first').text();
-    let index = requestDataArray.findIndex(request => request.coords === coords);
+    let index = sdInquiryCollection.findIndex(request => request.coords === coords);
     if (index !== -1) {
         let dateFrom = convertDateToEpoch(String($(this).val()));
-        let dateUntil = requestDataArray[index].dateUntil;
+        let dateUntil = sdInquiryCollection[index].dateUntil;
         if (dateUntil && dateFrom >= dateUntil) {
             $(this).css("background-color", "red");
             $(this).val("");
             return;
         }
         $(this).css("background-color", "#EAD5AA");
-        requestDataArray[index].dateFrom = dateFrom;
-        storeDataInLocalStorage(requestDataArray, 'requestData');
+        sdInquiryCollection[index].dateFrom = dateFrom;
+        localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
     }
 });
 
 $(".dateUntilInput").on("change", function () {
-    let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
+    let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
     let coords = $(this).closest('tr').children('td:first').text();
-    let index = requestDataArray.findIndex(request => request.coords === coords);
+    let index = sdInquiryCollection.findIndex(request => request.coords === coords);
     if (index !== -1) {
         let dateUntil = convertDateToEpoch(String($(this).val()));
-        let dateFrom = requestDataArray[index].dateFrom;
+        let dateFrom = sdInquiryCollection[index].dateFrom;
         if (dateFrom && dateFrom >= dateUntil) {
             $(this).css("background-color", "red");
             $(this).val("");
             return;
         }
         $(this).css("background-color", "#EAD5AA");
-        requestDataArray[index].dateUntil = dateUntil;
-        storeDataInLocalStorage(requestDataArray, 'requestData');
+        sdInquiryCollection[index].dateUntil = dateUntil;
+        localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
     }
 });
 
@@ -256,11 +263,15 @@ function getFilteredInput(input: string) {
 }
 
 function addNewRequestsToArray(input: string[]) {
-    let requestDataArray: requestData[] = getDataFromLocalStorage<requestData[]>('requestData');
-    console.log(requestDataArray);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentThreadId = urlParams.get("thread_id")||"";
+    const localStorageService = LocalStorageService.getInstance();
+    let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
+    console.log(sdInquiryCollection);
     input.forEach((line) => {
         let [coords, amount, ...optionalData] = line.split(' ', 3);
-        let request: requestData = {
+        let request: sdInquiry = {
             coords: coords,
             amount: Number(amount),
             playerName: optionalData[1] || undefined,
@@ -268,10 +279,10 @@ function addNewRequestsToArray(input: string[]) {
             dateFrom: Number(optionalData[3]) || undefined,
             dateUntil: Number(optionalData[4]) || undefined
         };
-        requestDataArray.push(request);
+        sdInquiryCollection.push(request);
     });
-    console.log(requestDataArray);
-    storeDataInLocalStorage(requestDataArray, 'requestData');
+    console.log(sdInquiryCollection);
+    localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
 
 }
 

@@ -1,64 +1,146 @@
-import {sdSettings, groupData, LocalStorageData, requestData} from "../types/types";
+import {generalSettings, groupData, LocalStorageData, sdInquiry, ThreadData, Threads} from "../types/types";
 
 
-class LocalStorageService {
-    private _data: LocalStorageData;
+export class LocalStorageService {
+    private _localStorageData: LocalStorageData;
+    private static instance: LocalStorageService;
 
-    constructor(private storage: Storage) {
-        this._data = this.getDataFromLocalStorage('localStorageData') || this.initializeDefaultData();
-    }
-
-    get newThread(): boolean {
-        this.loadDataFromLocalStorage();
-        return this._data.newThread;
-    }
-
-    set newThread(value: boolean) {
-        this._data.newThread = value;
-        this.updateLocalStorage();
-    }
-
-    get settings(): sdSettings {
-        this.loadDataFromLocalStorage();
-        return this._data.settings;
-    }
-
-    set settings(value: sdSettings) {
-        this._data.settings = value;
-        this.updateLocalStorage();
-    }
-
-    get groupData(): groupData[] {
-        this.loadDataFromLocalStorage();
-        return this._data.groupData;
-    }
-
-    set groupData(value: groupData[]) {
-        this._data.groupData = value;
-        this.updateLocalStorage();
-    }
-
-
-    private getDataFromLocalStorage(key: string): LocalStorageData | null {
-        const data = this.storage.getItem(key);
-        return data ? JSON.parse(data) : null;
-    }
-
-    private updateLocalStorage(): void {
-        this.storage.setItem('localStorageData', JSON.stringify(this._data));
-    }
-
-    private loadDataFromLocalStorage(): void {
-        const data = this.getDataFromLocalStorage('localStorageData') || this.initializeDefaultData();
-        this._data = data;
-    }
-
-    private initializeDefaultData(): LocalStorageData {
-        return {
-            newThread: false,
-            settings: {firstStartPopup: false, automateMassenUt: false, sdGroupId: ''},
-            groupData: [],
+    constructor() {
+        const initData = localStorage.getItem("standdeff-organizer");
+        if (initData !== null) {
+            this._localStorageData = JSON.parse(initData);
+            return;
+        }
+        this._localStorageData = {
+            generalSettings: {
+                newThread: false,
+                firstStartPopup: true,
+                automateMassenUt: false,
+                sdGroupId: "nicht gesetzt",
+                groupData: []
+            },
             threads: {}
-        };
+        }
+        this.storeDataInLocalStorage(this._localStorageData);
     }
+
+    private isStringValidJson(str: string) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            console.error("Error parsing string to JSON: " + str);
+            return false;
+        }
+        return true;
+    }
+
+    private storeDataInLocalStorage(data: LocalStorageData) {
+        localStorage.setItem("standdeff-organizer", JSON.stringify(data));
+    }
+
+    private updateFromLocalStorage() {
+        let data: string | null = localStorage.getItem("standdeff-organizer");
+        if (data === null) {
+            console.error("No data found in LocalStorage for key: " + "standdeff-organizer");
+        }
+        if (data !== null && this.isStringValidJson(data)) {
+            this._localStorageData = JSON.parse(data);
+        }
+    }
+
+    public static getInstance(): LocalStorageService {
+        if (!LocalStorageService.instance) {
+            LocalStorageService.instance = new LocalStorageService();
+        }
+        return LocalStorageService.instance;
+    }
+
+
+    public get getNewThread(): boolean {
+        this.updateFromLocalStorage();
+        return this._localStorageData.generalSettings.newThread;
+    }
+
+    public set setNewThread(value: boolean) {
+        this._localStorageData.generalSettings.newThread = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public get getFirstStartPopup(): boolean {
+        this.updateFromLocalStorage();
+        return this._localStorageData.generalSettings.firstStartPopup;
+    }
+
+    public set setFirstStartPopup(value: boolean) {
+        this._localStorageData.generalSettings.firstStartPopup = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public get getAutomateMassenUt(): boolean {
+        this.updateFromLocalStorage();
+        return this._localStorageData.generalSettings.automateMassenUt;
+    }
+
+    public set setAutomateMassenUt(value: boolean) {
+        this._localStorageData.generalSettings.automateMassenUt = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public get getSdGroupId(): string {
+        this.updateFromLocalStorage();
+        return this._localStorageData.generalSettings.sdGroupId;
+    }
+
+    public set setSdGroupId(value: string) {
+        this._localStorageData.generalSettings.sdGroupId = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public get getGroupData(): groupData[] {
+        this.updateFromLocalStorage();
+        return this._localStorageData.generalSettings.groupData;
+    }
+
+    public set setGroupData(value: groupData[]) {
+        this._localStorageData.generalSettings.groupData = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public getThreadData(id: string): ThreadData | undefined {
+        this.updateFromLocalStorage();
+        return this._localStorageData.threads[id];
+    }
+
+    public setThreadData(id: string, value: ThreadData) {
+        this._localStorageData.threads[id] = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public get getAllThreads(): Threads {
+        this.updateFromLocalStorage();
+        return this._localStorageData.threads;
+    }
+
+    public addThread(id:string, value: ThreadData) {
+        this._localStorageData.threads[id] = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+
+    }
+
+    public deleteThread(id: string) {
+        delete this._localStorageData.threads[id];
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public getSdInquiry(id: string): sdInquiry[] {
+        this.updateFromLocalStorage();
+        return this._localStorageData.threads[id].activeBunkerInquiry;
+    }
+
+    public setSdInquiry(id: string, value: sdInquiry[]) {
+        this._localStorageData.threads[id].activeBunkerInquiry = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+
 }

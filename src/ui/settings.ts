@@ -1,16 +1,13 @@
-import {groupData, sdSettings, sdThreadData} from "../types/types";
-import {
-    getDataFromLocalStorage,
-    getSetting,
-    saveSetting,
-    storeDataInLocalStorage
-} from "../logic/helpers/helper-functions";
+import {groupData, Threads} from "../types/types";
+
+import {LocalStorageService} from "../logic/local-storage-service";
+
+const localStorageService = LocalStorageService.getInstance();
+
 
 export function displaySettings() {
     console.log("standdeff-organizer loaded in settings");
-    let sdSettings: sdSettings = getSetting()
-    const colorRed = "#8d0100";
-    const colorGreen = "#0e7a0e";
+
     const settingsHtml = `<table class="vis settings" width="100%" style="margin-top: 15px">
   <tbody>
   <tr>
@@ -75,7 +72,7 @@ export function displaySettings() {
 
     $("#dialog-sync").parent().append(settingsHtml);
     //setzen des ui je nach settings:
-    if (sdSettings.firstStartPopup) {
+    if (localStorageService.getFirstStartPopup) {
         $("#first-start-popup").val("An");
         $("#first-start-popup").css("background", "#0e7a0e");
     } else {
@@ -83,7 +80,7 @@ export function displaySettings() {
         $("#first-start-popup").css("background", "#8d0100");
     }
 
-    if (sdSettings.automateMassenUt) {
+    if (localStorageService.getAutomateMassenUt) {
         $("#automate-massen-ut").val("An");
         $("#automate-massen-ut").css("background", "#0e7a0e");
 
@@ -93,7 +90,7 @@ export function displaySettings() {
     }
 
     // Laden der Gruppendaten aus dem lokalen Speicher
-    let groupData: groupData[] = getDataFromLocalStorage("groupData");
+    let groupData: groupData[] = localStorageService.getGroupData;
     console.log("groupData: ", groupData);
 
 // Überprüfen, ob Gruppendaten vorhanden sind
@@ -108,62 +105,64 @@ export function displaySettings() {
         // Ersetzen des Texteingabefelds durch das Dropdown-Menü
         $("#sd-group-id").replaceWith(dropdown);
 
-        if(sdSettings.sdGroupId !== "0"){
-            $("#sd-group-id").val(sdSettings.sdGroupId);
+        if (localStorageService.getSdGroupId !== "0") {
+            $("#sd-group-id").val(localStorageService.getSdGroupId);
             $("#sd-group-id").css("background", "#0e7a0e");
         }
     }
 
 
     // Laden der Thread-IDs aus dem lokalen Speicher
-    let threadIds: sdThreadData[] = getDataFromLocalStorage("threadIds");
+    //let threadIds: sdThreadData[] = getDataFromLocalStorage("threadIds");
+    let threads: Threads = localStorageService.getAllThreads;
 
 // Extrahieren des Basis-URL-Teils aus der aktuellen URL
     let baseUrl = window.location.origin + window.location.pathname;
 
 // Überprüfen, ob Thread-IDs vorhanden sind
-    if (threadIds) {
+    if (threads) {
         // Durchlaufen jeder Thread-ID
-        threadIds.forEach(threadData => {
-            // Erstellen des vollständigen Links für den Thread
-            let threadLink = `${baseUrl}?village=3130&screen=forum&screenmode=view_thread&forum_id=${threadData.forumId}&thread_id=${threadData.threadId}`;
+        Object.entries(threads).forEach(([threadId, threadData]) => {
+             // Erstellen des vollständigen Links für den Thread
+             let threadLink = `${baseUrl}?village=3130&screen=forum&screenmode=view_thread&forum_id=${threadData.forumId}&thread_id=${threadId}`;
 
-            // Erstellen einer neuen Tabellenzeile für den Thread
-            let row = `<tr>
-            <td>
-                <span style="font-size: larger; font-weight: bold">${threadData.forumName}</span> -
-                <a href="${threadLink}">
-                    ${threadData.threadName}
-                </a>
-            </td>
-            <td style="text-align: center;"><button style="background: url(https://dsde.innogamescdn.com/asset/c045337f/graphic/delete.png); width: 20px; height: 20px;  border: none" class="delete-thread" data-thread-id="${threadData.threadId}"></button></td>
-        </tr>`;
+             // Erstellen einer neuen Tabellenzeile für den Thread
+             let row = `<tr>
+             <td>
+                 <span style="font-size: larger; font-weight: bold">${threadData.forumName}</span> -
+                 <a href="${threadLink}">
+                     ${threadData.threadName}
+                 </a>
+             </td>
+             <td style="text-align: center;"><button style="background: url(https://dsde.innogamescdn.com/asset/c045337f/graphic/delete.png); width: 20px; height: 20px;  border: none" class="delete-thread" data-thread-id="${threadId}"></button></td>
+         </tr>`;
 
-            // Hinzufügen der Tabellenzeile zum tbody-Element
-            $("#activeSdThreads").append(row);
+             // Hinzufügen der Tabellenzeile zum tbody-Element
+             $("#activeSdThreads").append(row);
         });
     }
 
     //setzen der listener
 
     // Event-Listener für die Löschen-Buttons hinzufügen
-    $(".delete-thread").on("click", function() {
+    $(".delete-thread").on("click", function () {
         // Thread-ID des zu löschenden Threads abrufen
         let threadIdToDelete = $(this).data("thread-id");
 
         // Thread-IDs aus dem LocalStorage abrufen
-        let threadIds: sdThreadData[] = getDataFromLocalStorage("threadIds");
+        let threadIds: Threads = localStorageService.getAllThreads;
+
+        localStorageService.deleteThread(threadIdToDelete);
 
         // Den zu löschenden Thread aus den Thread-IDs entfernen
-        threadIds = threadIds.filter(threadData => threadData.threadId !== threadIdToDelete);
+        //threadIds = threadIds.filter(threadData => threadData.threadId !== threadIdToDelete);
 
         // Die aktualisierten Thread-IDs im LocalStorage speichern
-        storeDataInLocalStorage(threadIds, "threadIds");
+        //storeDataInLocalStorage(threadIds, "threadIds");
 
         // Die Tabellenzeile des gelöschten Threads entfernen
         $(this).parent().parent().remove();
     });
-
 
 
     $("#first-start-popup").on("click", function () {
@@ -172,14 +171,13 @@ export function displaySettings() {
         if (value === "An") {
             $(this).val("Aus");
             $("#first-start-popup").css("background", "#8d0100");
-            sdSettings.firstStartPopup = false;
+            localStorageService.setFirstStartPopup = false;
 
         } else {
             $(this).val("An");
             $("#first-start-popup").css("background", "#0e7a0e");
-            sdSettings.firstStartPopup = true;
+            localStorageService.setFirstStartPopup = true;
         }
-        saveSetting(sdSettings);
     });
 
     $("#automate-massen-ut").on("click", function () {
@@ -188,25 +186,22 @@ export function displaySettings() {
         if (value === "An") {
             $(this).val("Aus");
             $("#automate-massen-ut").css("background", "#8d0100");
-            sdSettings.automateMassenUt = false;
+            localStorageService.setAutomateMassenUt = false;
 
         } else {
             $(this).val("An");
             $("#automate-massen-ut").css("background", "#0e7a0e");
-            sdSettings.automateMassenUt = true;
+            localStorageService.setAutomateMassenUt = true;
         }
-        saveSetting(sdSettings);
     });
 
     $("#sd-group-id").on("change", function () {
         if ($(this).val() !== "0") {
-            sdSettings.sdGroupId = String($(this).val());
+            localStorageService.setSdGroupId = String($(this).val());
             $(this).css("background", "#0e7a0e");
-            saveSetting(sdSettings);
             return;
         }
-        sdSettings.sdGroupId = "0";
+        localStorageService.setSdGroupId = "0";
         $(this).css("background", "#8d0100");
-        saveSetting(sdSettings);
     });
 }

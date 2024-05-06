@@ -1,11 +1,11 @@
-import {requestData} from "../../types/types";
+import {sdInquiry} from "../../types/types";
 
-export function convertMessageRequestStringToRequestArray(messageString: String): requestData[] {
+export function convertMessageRequestStringToRequestArray(messageString: String): sdInquiry[] {
     // Split the messageString into lines
     const lines = messageString.split('\n');
 
     // Array to hold the requestData objects
-    let requests: requestData[] = [];
+    let requests: sdInquiry[] = [];
 
     // Iterate over each line
     //evtl auch mit regex
@@ -21,7 +21,7 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
         // Split the optional data at the delimiter "
         optionalData = optionalData[0]?.split('"') || [];
         // Create the requestData object
-        let request: requestData = {
+        let request: sdInquiry = {
             coords: coords,
             amount: Number(amount),
             playerName: optionalData[1] || undefined,
@@ -36,7 +36,7 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
     return requests;
 }
 
-export function convertRequestArrayToMessageString(requests: requestData[]): string {
+export function convertRequestArrayToMessageString(requests: sdInquiry[]): string {
     // Array to hold the lines
     let lines: string[] = [];
 

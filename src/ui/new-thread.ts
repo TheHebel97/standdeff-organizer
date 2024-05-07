@@ -94,6 +94,26 @@ Das SD Skript besteht seit dem Update aus mehreren Bereichen:
   ->über den Button "Bunker Anfragen" wird eine neue Anfrage erstellt. Diese wird innerhalb einem UI bearbeitet.
   ->über den Button "Bearbeitung eintragen" werden die bisher bearbeiteten Anfragen in das Nachrichtenfenster eingetragen.
 
+
+Handling ohne das Skript: (wieso auch immer)
+[b]Beispiele: [/b]
+- anfordern:
+[code]
+567|123 200"TheHebel97"ohne den Bunker front rip""
+897|123 2"-EDM"2 Pakete für Bruder Marwin""
+234|123 444 "alt_f4 " mauer_f4""
+345|123 1 "ma.exe"""
+345|123 1""""
+  [/code]
+- bearbeiten:
+ [code] id5 20
+  2 20
+  1 70Pakete
+  1abcdefg20
+  1 done
+  [/code]
+
+
 [spoiler=Wissenswertes für SFs]
 Moin SFs:
 - base64cache Spoiler ignorieren und nicht bearbeiten

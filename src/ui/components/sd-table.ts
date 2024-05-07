@@ -19,7 +19,10 @@ export function sdTable(threads: Threads) {
     }
     if ($("#message").length) { //wenn textarea vorhanden
         postLayout();
+        return; // wenn textarea vorhanden, dann sd tabelle nicht visuell anhand den darunterleigenden posts anpassen
     }
+    //display sd zeugs für alle nutzer
+    //if admin or mod dann zu löschende Posts selecten und
 
 
 }

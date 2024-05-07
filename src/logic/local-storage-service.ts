@@ -56,6 +56,7 @@ export class LocalStorageService {
     }
 
 
+    // generalSettings getter and setter
     public get getNewThread(): boolean {
         this.updateFromLocalStorage();
         return this._localStorageData.generalSettings.newThread;
@@ -106,6 +107,7 @@ export class LocalStorageService {
         this.storeDataInLocalStorage(this._localStorageData);
     }
 
+    // threads getter and setter
     public getThreadData(id: string): ThreadData | undefined {
         this.updateFromLocalStorage();
         return this._localStorageData.threads[id];
@@ -140,6 +142,11 @@ export class LocalStorageService {
     public setSdInquiry(id: string, value: sdInquiry[]) {
         this._localStorageData.threads[id].activeBunkerInquiry = value;
         this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public getSdPostId(id: string): string {
+        this.updateFromLocalStorage();
+        return this._localStorageData.threads[id].sdPostId;
     }
 
 

@@ -1,4 +1,4 @@
-import {ThreadData, Threads} from "../../types/types";
+import {rowSdTable, ThreadData, Threads} from "../../types/types";
 import {LocalStorageService} from "../local-storage-service";
 
 
@@ -84,14 +84,20 @@ export function convertDateToEpoch(date: string): number {
     return datetime.getTime() / 1000;
 }
 
-//private helper functions
-function isStringValidJson(str: string) {
-    try {
-        JSON.parse(str);
-    } catch (e) {
-        console.error("Error parsing string to JSON: " + str);
-        return false;
-    }
-    return true;
+export function parseSdPosts() :rowSdTable[]{
+    const localStorageService = LocalStorageService.getInstance();
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentThreadId = urlParams.get("thread_id") || "";
+    const sdPostId = localStorageService.getSdPostId(currentThreadId);
+
+    let result: rowSdTable[] = [];
+
+    // Get the post container
+
+
+    // alle anfragen in array
+    // duplikate rausfiltern ( kleinere menge angefordert wird verworfen)
+
+    return [] as rowSdTable[];
 }
 

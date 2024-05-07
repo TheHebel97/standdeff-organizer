@@ -22,7 +22,8 @@ export function viewThread() {
         const edit_post_id: string | undefined = $(".post > a").attr("name")
         const thread_name: string | null = $(".clearfix > table").first().find("h2").text();
         const forum_name: string | null = $(".forum-container").find(".selected").text().trim();
-        const forum_id = urlParams.get('forum_id');
+        // @ts-ignore
+        const forum_id: string | null = $(".forum.selected").find("a").attr("href").match(/forum_id=\d+/)[0].split("=")[1] || null;
         if (edit_post_id !== undefined) {
             addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name, forum_id);
             console.log(localStorageService.getAllThreads)

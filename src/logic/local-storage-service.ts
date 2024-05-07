@@ -16,7 +16,7 @@ export class LocalStorageService {
                 newThread: false,
                 firstStartPopup: true,
                 automateMassenUt: false,
-                sdGroupId: "nicht gesetzt",
+                sdGroupId: "0",
                 groupData: []
             },
             threads: {}

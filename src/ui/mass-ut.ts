@@ -13,10 +13,9 @@ function storeGroupData() {
     const groupData :groupData[] = [];
     $(document).ready(function() {
         const localStorageService = LocalStorageService.getInstance();
-        // Your code here
-        $(".vis_item").find("a").each(function () {
+        $(".vis_item").find(".group-menu-item").each(function () {
             const groupId = $(this).attr("data-group-id");
-            const groupName = $(this).text().slice(1, -1);
+            const groupName = $(this).text().trim().slice(1, -1);
             if (groupId !== undefined && groupName !== undefined){
                 groupData.push({id: groupId, name: groupName});
                 return;

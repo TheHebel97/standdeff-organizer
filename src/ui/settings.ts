@@ -94,7 +94,7 @@ export function displaySettings() {
     console.log("groupData: ", groupData);
 
 // Überprüfen, ob Gruppendaten vorhanden sind
-    if (groupData) {
+    if (groupData.length > 0) {
         // Erstellen eines Dropdown-Menüs mit den Gruppendaten
         let dropdown = '<select id="sd-group-id" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">';
         groupData.forEach(group => {

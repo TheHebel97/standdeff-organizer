@@ -4,7 +4,7 @@ import {LocalStorageService} from "../logic/local-storage-service";
 export function createNewTable() {
     const localStorageService = LocalStorageService.getInstance();
     console.log("standdeff-organizer loaded in new_thread");
-    localStorageService.setNewThread = true;
+    localStorageService.setNewThread = false;
 
     $(".clearfix > form > input[value=Senden]").on("mouseenter", function () {
         // @ts-ignore
@@ -63,7 +63,7 @@ function newThread() {
     troopArray.push(spear, sword, bow);
     let paketText = createPaketString(troopArray)
     $(".clearfix > form > input[value=Senden]").on("click", function () {
-        localStorageService.setNewThread = false;
+        localStorageService.setNewThread = true;
 
     });
     let text = `[b]SD Tabelle Paketsystem[/b]

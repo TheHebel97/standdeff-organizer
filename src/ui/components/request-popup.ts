@@ -1,4 +1,3 @@
-
 import {
     convertDateToEpoch,
     convertEpochToDate
@@ -10,7 +9,7 @@ import {LocalStorageService} from "../../logic/local-storage-service";
 export function showRequestPopup() {
     const localStorageService = LocalStorageService.getInstance();
     const urlParams = new URLSearchParams(window.location.search);
-    const currentThreadId = urlParams.get("thread_id")||"";
+    const currentThreadId = urlParams.get("thread_id") || "";
 
     console.log("show request popup");
     // requestData-Objekt aus dem LocalStorage abrufen
@@ -57,7 +56,7 @@ export function showRequestPopup() {
 function renderTableRows(): void {
     const localStorageService = LocalStorageService.getInstance();
     const urlParams = new URLSearchParams(window.location.search);
-    const currentThreadId = urlParams.get("thread_id")||"";
+    const currentThreadId = urlParams.get("thread_id") || "";
     $(".requestContent").empty();
     let requestDataArray: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
     let returnHtml: string = `<tr style='margin=2px;'><th style="padding-left: 10px; padding-right: 10px">Koordinate</th>
@@ -79,22 +78,22 @@ function renderTableRows(): void {
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.amount) {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" class="amountInput" value="${requestRow.amount}">`;
+            returnHtml += `<input type="number" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" class="amountInput" value="${requestRow.amount}">`;
         } else {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" class="amountInput" value="">`;
+            returnHtml += `<input type="number" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" class="amountInput" value="">`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.playerName) {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="${requestRow.playerName}">`;
-        } else {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="">`;
-        }
-        returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
-        if (requestRow.comment) {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="${requestRow.comment}">`;
-        } else {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="">`;
-        }
+    returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="${requestRow.playerName}">`;
+} else {
+    returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="">`;
+}
+returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
+if (requestRow.comment) {
+    returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="${requestRow.comment}">`;
+} else {
+    returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="">`;
+}
 
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.dateFrom) {
@@ -209,41 +208,62 @@ function renderTableRows(): void {
     });
 
     $(".dateFromInput").on("change", function () {
-    let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
-    let coords = $(this).closest('tr').children('td:first').text();
-    let index = sdInquiryCollection.findIndex(request => request.coords === coords);
-    if (index !== -1) {
-        let dateFrom = convertDateToEpoch(String($(this).val()));
-        let dateUntil = sdInquiryCollection[index].dateUntil;
-        if (dateUntil && dateFrom >= dateUntil) {
-            $(this).css("background-color", "red");
-            $(this).val("");
-            return;
+        let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
+        let coords = $(this).closest('tr').children('td:first').text();
+        let index = sdInquiryCollection.findIndex(request => request.coords === coords);
+        if (index !== -1) {
+            let dateFrom = convertDateToEpoch(String($(this).val()));
+            let dateUntil = sdInquiryCollection[index].dateUntil;
+            if (dateUntil && dateFrom >= dateUntil) {
+                $(this).css("background-color", "red");
+                $(this).val("");
+                return;
+            }
+            $(this).css("background-color", "#EAD5AA");
+            sdInquiryCollection[index].dateFrom = dateFrom;
+            localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
         }
-        $(this).css("background-color", "#EAD5AA");
-        sdInquiryCollection[index].dateFrom = dateFrom;
-        localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
-    }
-});
+    });
 
-$(".dateUntilInput").on("change", function () {
-    let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
-    let coords = $(this).closest('tr').children('td:first').text();
-    let index = sdInquiryCollection.findIndex(request => request.coords === coords);
-    if (index !== -1) {
-        let dateUntil = convertDateToEpoch(String($(this).val()));
-        let dateFrom = sdInquiryCollection[index].dateFrom;
-        if (dateFrom && dateFrom >= dateUntil) {
-            $(this).css("background-color", "red");
-            $(this).val("");
-            return;
+    $(".dateUntilInput").on("change", function () {
+        let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
+        let coords = $(this).closest('tr').children('td:first').text();
+        let index = sdInquiryCollection.findIndex(request => request.coords === coords);
+        if (index !== -1) {
+            let dateUntil = convertDateToEpoch(String($(this).val()));
+            let dateFrom = sdInquiryCollection[index].dateFrom;
+            if (dateFrom && dateFrom >= dateUntil) {
+                $(this).css("background-color", "red");
+                $(this).val("");
+                return;
+            }
+            $(this).css("background-color", "#EAD5AA");
+            sdInquiryCollection[index].dateUntil = dateUntil;
+            localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
         }
-        $(this).css("background-color", "#EAD5AA");
-        sdInquiryCollection[index].dateUntil = dateUntil;
-        localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
-    }
-});
+    });
 
+    $(".playerNameInput").on("input", function () {
+        handleInput(this);
+
+    });
+
+    $(".commentInput").on("input", function () {
+        handleInput(this);
+    });
+
+}
+
+function handleInput(htmlElement: HTMLElement) {
+    let input :string = String($(htmlElement).val());
+    let pattern = /^[a-zA-Z0-9_]*$/;
+    if (input!==null &&!pattern.test(input)) {
+        let subString = input.substring(0,input.length - 1);
+        $(htmlElement).css("background-color", "red");
+        $(htmlElement).val(subString);
+        return;
+    }
+    $(htmlElement).css("background-color", "#EAD5AA");
 }
 
 function getFilteredInput(input: string) {
@@ -265,7 +285,7 @@ function getFilteredInput(input: string) {
 function addNewRequestsToArray(input: string[]) {
 
     const urlParams = new URLSearchParams(window.location.search);
-    const currentThreadId = urlParams.get("thread_id")||"";
+    const currentThreadId = urlParams.get("thread_id") || "";
     const localStorageService = LocalStorageService.getInstance();
     let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
     console.log(sdInquiryCollection);

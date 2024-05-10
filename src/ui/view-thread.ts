@@ -1,5 +1,5 @@
 import {
-    addThreadIdToLocalStorage, parseSdPosts,
+    addThreadIdToLocalStorage,
 } from "../logic/helpers/helper-functions";
 import {isUserForumMod} from "../logic/helpers/tw-helper";
 import {addSdOptions} from "./components/options-sd-thread";
@@ -7,6 +7,7 @@ import {addSdPopup} from "./components/first-start-thread-popup";
 import {sdTable} from "./components/sd-table";
 import {parseReturn, Threads} from "../types/types";
 import {LocalStorageService} from "../logic/local-storage-service";
+import {parseSdPosts} from "../logic/helpers/table-helper";
 
 
 export function viewThread() {

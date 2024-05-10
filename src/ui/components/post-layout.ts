@@ -3,7 +3,6 @@ import {showRequestPopup} from "./request-popup";
 import {convertMessageRequestStringToRequestArray} from "../../logic/helpers/table-helper";
 import {parseReturn, sdInquiry} from "../../types/types";
 import {LocalStorageService} from "../../logic/local-storage-service";
-import {parseSdPosts} from "../../logic/helpers/helper-functions";
 
 export function postLayout(parsedPosts: parseReturn) {
     console.log("parsed posts in view thread")

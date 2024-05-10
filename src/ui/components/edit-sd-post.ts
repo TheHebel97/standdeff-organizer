@@ -1,6 +1,5 @@
 import {LocalStorageService} from "../../logic/local-storage-service";
 import {packages, parseReturn, rowSdTable, sdInquiry} from "../../types/types";
-import {parseSdPosts} from "../../logic/helpers/helper-functions";
 
 export function editSdPost(parsedPosts: parseReturn) {
     console.log("Sd tabellen bearbeitenmodus")

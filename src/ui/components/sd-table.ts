@@ -1,7 +1,7 @@
 import {editSdPost} from "./edit-sd-post";
 import {postLayout} from "./post-layout";
 import {packages, parseReturn, rowSdTable, sdInquiry, Threads} from "../../types/types";
-import {parseSdPosts} from "../../logic/helpers/helper-functions";
+
 
 export function sdTable(threads: Threads, parsedPosts: parseReturn) {
     console.log("visualisierung der sd tabelle")

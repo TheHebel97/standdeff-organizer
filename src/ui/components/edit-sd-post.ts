@@ -2,7 +2,7 @@ import {LocalStorageService} from "../../logic/local-storage-service";
 import {packages, parseReturn, rowSdTable, sdInquiry} from "../../types/types";
 import {parseSdPosts} from "../../logic/helpers/helper-functions";
 
-export function editSdPost() {
+export function editSdPost(parsedPosts: parseReturn) {
     console.log("Sd tabellen bearbeitenmodus")
     //only sf mod can edit sd table
     const localStorageService = LocalStorageService.getInstance();
@@ -14,17 +14,17 @@ export function editSdPost() {
     const updateBtn = `<a class="updateSDTabelle" style="cursor: pointer">Update SD Tabelle</a>`
     $("a[name='" + sdPostId + "']").parent().find(".postheader_right").append(updateBtn);
 
-    $(".updateSDTabelle").on("click", updateSdTable)
-    let parsedPosts: parseReturn = parseSdPosts()
-    console.log("parsed posts in edit")
-    console.log(parsedPosts)
+    $(".updateSDTabelle").on("click", function () {
+        updateSdTable(parsedPosts)
+    })
+
 
 
 
 }
 
 
-function updateSdTable() {
+function updateSdTable(parsedPosts: parseReturn) {
     console.log("update sd table")
     //ablauf:
     //parsen des textes der sd tabelle

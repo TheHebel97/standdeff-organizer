@@ -1,10 +1,13 @@
 import {isUserForumMod} from "../../logic/helpers/tw-helper";
 import {showRequestPopup} from "./request-popup";
 import {convertMessageRequestStringToRequestArray} from "../../logic/helpers/table-helper";
-import {sdInquiry} from "../../types/types";
+import {parseReturn, sdInquiry} from "../../types/types";
 import {LocalStorageService} from "../../logic/local-storage-service";
+import {parseSdPosts} from "../../logic/helpers/helper-functions";
 
-export function postLayout() {
+export function postLayout(parsedPosts: parseReturn) {
+    console.log("parsed posts in view thread")
+    console.log(parsedPosts) //parsed posts in view thread // für die darstellung der sd tabelle
     console.log("post layout");
     const localStorageService = LocalStorageService.getInstance();
     const urlParams = new URLSearchParams(window.location.search);

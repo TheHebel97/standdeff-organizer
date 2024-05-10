@@ -36,8 +36,6 @@ export function viewThread() {
 
 // auslesen der ThreadIds aus dem localstorage um zu verifizieren, dass es sich um eine SD Tabelle handelt
     let threads: Threads = localStorageService.getAllThreads;
-    console.log("hier")
-    console.log(threads)
     if (threads[currentThreadId] !== undefined) {
         console.log("thread ids found")
 

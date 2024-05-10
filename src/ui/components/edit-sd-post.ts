@@ -20,8 +20,6 @@ export function editSdPost() {
     console.log(parsedPosts)
 
 
-    //let parsedTable: rowSdTable[] = parseSdTableRows()
-
 
 }
 

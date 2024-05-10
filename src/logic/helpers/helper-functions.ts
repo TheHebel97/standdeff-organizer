@@ -154,7 +154,7 @@ export function parseSdPosts(): parseReturn {
                     if (oldVal === "done" || oldVal === undefined) {
                         return;
                     }
-                    let newVal = oldVal + parseInt(packagesMatch[2]);
+                    let newVal = parseInt(oldVal) + parseInt(packagesMatch[2]);
                     packagesSent.set(packagesMatch[1], newVal.toString());
                     return;
                 }
@@ -166,12 +166,6 @@ export function parseSdPosts(): parseReturn {
 
 
     });
-    console.log("end-----------------")
-    console.log(packagesSent)
-    console.log(inquiries)
-
-    // alle anfragen in array
-    // duplikate rausfiltern ( kleinere menge angefordert wird verworfen)
     return [inquiries, packagesSent, postIds];
 }
 

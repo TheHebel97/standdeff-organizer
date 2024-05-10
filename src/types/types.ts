@@ -26,9 +26,10 @@ export type ThreadData = {
     forumName: string;
     forumId: string;
     sdPostId: string;
-    activeBunkerInquiry: sdInquiry[];
-    stateOfSdTable: sdTableData;
-    packages: packages;
+    bunkerInquiryCache: sdInquiry[];
+    stateOfSdTable: sdTableState;
+    packagesSent: packages;
+    updatedPostIds: string[];
 
 }
 
@@ -41,12 +42,14 @@ export type sdInquiry = {
     dateUntil: number | undefined;
 }
 
-export type sdTableData = {
-    [internalId: string]: rowSdTable
+export type newInquiry = Map<string, sdInquiry>
+
+export type sdTableState = {
+    [coords: coordinates]: rowSdTable
 }
 export type rowSdTable = {
-    internalId: number;
-    coords: string;
+    villageId: number,
+    sdId: string;
     startAmount: number;
     leftAmount: number;
     playerName: string;
@@ -55,13 +58,12 @@ export type rowSdTable = {
     dateUntil: number;
 }
 
-export type packages = {
-    [internalId: string]: packageSent
+export type packages = Map<string, string>
 
-}
-export type packageSent = {
-    amount: number;
-}
+
+export type coordinates = `${number}|${number}`;
+
+export type parseReturn = [newInquiry, packages, string[]]
 
 
 

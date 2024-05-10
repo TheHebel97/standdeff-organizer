@@ -136,11 +136,11 @@ export class LocalStorageService {
 
     public getSdInquiry(id: string): sdInquiry[] {
         this.updateFromLocalStorage();
-        return this._localStorageData.threads[id].activeBunkerInquiry;
+        return this._localStorageData.threads[id].bunkerInquiryCache;
     }
 
     public setSdInquiry(id: string, value: sdInquiry[]) {
-        this._localStorageData.threads[id].activeBunkerInquiry = value;
+        this._localStorageData.threads[id].bunkerInquiryCache = value;
         this.storeDataInLocalStorage(this._localStorageData);
     }
 

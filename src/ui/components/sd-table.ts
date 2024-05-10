@@ -1,6 +1,7 @@
 import {editSdPost} from "./edit-sd-post";
 import {postLayout} from "./post-layout";
-import {Threads} from "../../types/types";
+import {packages, parseReturn, rowSdTable, sdInquiry, Threads} from "../../types/types";
+import {parseSdPosts} from "../../logic/helpers/helper-functions";
 
 export function sdTable(threads: Threads) {
     console.log("visualisierung der sd tabelle")
@@ -23,6 +24,9 @@ export function sdTable(threads: Threads) {
     }
     //display sd zeugs für alle nutzer
     //if admin or mod dann zu löschende Posts selecten und
+    let parsedPosts: parseReturn = parseSdPosts()
+    console.log("parsed posts in view thread")
+    console.log(parsedPosts)
 
 
 }

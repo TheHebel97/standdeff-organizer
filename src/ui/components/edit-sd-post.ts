@@ -1,5 +1,5 @@
 import {LocalStorageService} from "../../logic/local-storage-service";
-import {rowSdTable} from "../../types/types";
+import {packages, parseReturn, rowSdTable, sdInquiry} from "../../types/types";
 import {parseSdPosts} from "../../logic/helpers/helper-functions";
 
 export function editSdPost() {
@@ -15,9 +15,10 @@ export function editSdPost() {
     $("a[name='" + sdPostId + "']").parent().find(".postheader_right").append(updateBtn);
 
     $(".updateSDTabelle").on("click", updateSdTable)
-    let parsedPosts: rowSdTable[] = parseSdPosts()
-    console.log("parsed posts")
+    let parsedPosts: parseReturn = parseSdPosts()
+    console.log("parsed posts in edit")
     console.log(parsedPosts)
+
 
     //let parsedTable: rowSdTable[] = parseSdTableRows()
 

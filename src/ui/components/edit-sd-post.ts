@@ -1,7 +1,8 @@
 import {LocalStorageService} from "../../logic/local-storage-service";
-import {packages, parseReturn, rowSdTable, sdInquiry} from "../../types/types";
+import {packages, updateData, rowSdTable, sdInquiry, sdState, sdTableState} from "../../types/types";
+import {calculateSdTableState, parseEditSdTableData} from "../../logic/helpers/table-helper";
 
-export function editSdPost(parsedPosts: parseReturn) {
+export function editSdPost(updateData: updateData) {
     console.log("Sd tabellen bearbeitenmodus")
     //only sf mod can edit sd table
     const localStorageService = LocalStorageService.getInstance();
@@ -14,24 +15,32 @@ export function editSdPost(parsedPosts: parseReturn) {
     $("a[name='" + sdPostId + "']").parent().find(".postheader_right").append(updateBtn);
 
     $(".updateSDTabelle").on("click", function () {
-        updateSdTable(parsedPosts)
+        updateSdTable(updateData)
     })
-
-
 
 
 }
 
 
-function updateSdTable(parsedPosts: parseReturn) {
-    console.log("update sd table")
-    //ablauf:
-    //parsen des textes der sd tabelle
-    //daten davon erheben
-    //base64 code der geupdateten posts auslesen
-    //posts entsprechend einfärben
-    //parsen der restlichen posts
-    //erstellen der datentypen für neueBunker und bearbeitungen // auch im großen objekt
+function updateSdTable(updateData: updateData) { // hier wird mir kinda schlecht
+    const tablePattern = /\[table]([\s\S]*)\[\/table]/;
+    const cachePattern = /\[spoiler=base64cache]([\s\S]*?)\[\/spoiler]/;
+    const rawSdPostText = String($("#message").val());
+    const table = rawSdPostText.match(tablePattern);
+    const cache = rawSdPostText.match(cachePattern);
+
+    if (table === null || cache === null) {
+        console.error("Table or Cache not found")
+        return;
+    }
+
+    let sdState: sdState = parseEditSdTableData(table[1], cache[0])
+    console.log("sdState")
+    console.log(sdState)
+    console.log("parsedPosts")
+    console.log(updateData)
+
+    calculateSdTableState(updateData, sdState)
     //mit tabelle verrechnen
     //base64 code updaten
     //hier drin alles flüchtig speichern

@@ -1,4 +1,4 @@
-import {parseReturn, sdInquiry} from "../../types/types";
+import {newInquiry, updateData, rowSdTable, sdInquiry, sdState, sdTableState, postData} from "../../types/types";
 import {LocalStorageService} from "../local-storage-service";
 
 export function convertMessageRequestStringToRequestArray(messageString: String): sdInquiry[] {
@@ -53,7 +53,7 @@ export function convertRequestArrayToMessageString(requests: sdInquiry[]): strin
     return lines.join('\n');
 }
 
-export function parseSdPosts(): parseReturn {
+export function parseSdPosts(): updateData {
     const localStorageService = LocalStorageService.getInstance();
     const urlParams = new URLSearchParams(window.location.search);
     const currentThreadId = urlParams.get("thread_id") || "";
@@ -61,9 +61,8 @@ export function parseSdPosts(): parseReturn {
 
 
     let coordVilIdMap = new Map<string, number>();
-    let packagesSent = new Map<string, string>();
-    let inquiries = new Map<string, sdInquiry>();
-    let postIds: string[] = [];
+
+    let updateData: updateData = new Map<string, postData>();
 
     //parse all village links on page to get the village id and store into map
     $(".village_anchor").each((index, element) => {
@@ -82,12 +81,13 @@ export function parseSdPosts(): parseReturn {
     const newInquiryRegex = /(\d{3}\|\d{3})\)\sK\d+\s+(\d+)\s+["|“](.+)?["|“](.+)?["|“](\d+)?["|“](\d+)?/; // hier die anführungszeichen für mac hinzufügen todo:
     const packagesSentRegex = /(\d+)\s(\d+|done)/; // evtl noch optimieren todo:
     $(".post").each((index, element) => {
-
+        let packagesSent = new Map<string, string>();
+        let inquiries = new Map<string, sdInquiry>();
         let finished = false; // for skipping the signature
         if ($(element).find("a").first().attr("name") === sdPostId) { // or already updated and not deleted todo:
             return; // skip sd thread id
         }
-        const postId = $(element).find("a").first().attr("name")||"";
+        const postId = $(element).find("a").first().attr("name") || "";
         const postContent = $(element).find(".text").text();
         const postContentSplit = postContent.split("\n");
 
@@ -130,9 +130,68 @@ export function parseSdPosts(): parseReturn {
 
             }
         })
-        postIds.push(postId);
+        updateData.set(postId, {inquiries: inquiries, packages: packagesSent});
 
 
     });
-    return [inquiries, packagesSent, postIds];
+    return updateData;
+}
+
+export function parseEditSdTableData(tableText: string, cacheText: string): sdState {
+    console.log("parseSdTableData")
+    const villageIdPattern = /target=(\d+)/;
+    const playerPattern = /[player]([a-zA-Z0-9.]+)[/player]/;
+    let sdTableState = new Map<string, rowSdTable>();
+    tableText.split("[*]").forEach((line) => {
+        const cells = line.split("[|]")
+        if (cells.length < 5) {
+            return;
+        }
+        cells[8] = cells[8].match(villageIdPattern)?.[1] || "";
+        cells[4] = cells[4].replace(/\[player]/, "").replace(/\[\/player]/, "");
+        sdTableState.set(cells[1], {
+            villageId: parseInt(cells[8]),
+            sdId: cells[0],
+            startAmount: parseInt(cells[2]),
+            leftAmount: parseInt(cells[3]),
+            playerName: cells[4],
+            comment: cells[5],
+            dateFrom: parseInt(cells[6]),
+            dateUntil: parseInt(cells[7])
+        });
+    })
+
+    let cache = cacheText.replace(/\[spoiler=base64cache]/, "").replace(/\[\/spoiler]/, "").split(",");
+
+    return [sdTableState, cache];
+}
+
+export function calculateSdTableState(updateData: updateData, sdState: sdState): sdState {
+
+    //const [inquiries, packagesSent, postIds] = updateData;
+    const [sdTableState, postCache] = sdState;
+    let newSdTableState;
+    console.log("calculateSdTableState")
+    console.log(updateData)
+    console.log("--")
+    console.log(sdState)
+    console.log("------")
+    //denke so:
+    //1. iterate over all postIds in updateData and remove those which are in the cache
+    // summarize all left inquiries and packages for each villageId
+    // update table State with updated data
+    updateData.forEach((postData, postId) => {
+        if(postCache.includes(postId)){
+            console.log("post already updated")
+            return;
+        }
+        postCache.push(postId);
+        console.log("postid")
+        console.log(postId)
+        console.log("postdata")
+        console.log(postData)
+    });
+
+
+    return [sdState[0], postCache] as sdState;
 }

@@ -1,4 +1,4 @@
-import {ThreadData, Threads} from "../../types/types";
+import {rowSdTable, ThreadData, Threads} from "../../types/types";
 import {LocalStorageService} from "../local-storage-service";
 
 export function addThreadIdToLocalStorage(currentThreadId: string | null, postId: string | null, threadName: string | null, forumName: string | null, forumId: string | null) {
@@ -15,7 +15,7 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
                 forumId: forumId,
                 sdPostId: postId,
                 bunkerInquiryCache: [],
-                stateOfSdTable: {},
+                stateOfSdTable: new Map<string, rowSdTable>(),
                 packagesSent: new Map<string, string>(),
                 updatedPostIds: []
             }

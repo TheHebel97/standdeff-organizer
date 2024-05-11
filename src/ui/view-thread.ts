@@ -5,7 +5,7 @@ import {isUserForumMod} from "../logic/helpers/tw-helper";
 import {addSdOptions} from "./components/options-sd-thread";
 import {addSdPopup} from "./components/first-start-thread-popup";
 import {sdTable} from "./components/sd-table";
-import {parseReturn, Threads} from "../types/types";
+import {updateData, Threads} from "../types/types";
 import {LocalStorageService} from "../logic/local-storage-service";
 import {parseSdPosts} from "../logic/helpers/table-helper";
 
@@ -39,11 +39,11 @@ export function viewThread() {
     let threads: Threads = localStorageService.getAllThreads;
     if (threads[currentThreadId] !== undefined) {
         console.log("thread ids found")
-        let parsedPosts: parseReturn = parseSdPosts()
+        let updateData: updateData = parseSdPosts()
         console.log("parsed posts in edit")
-        console.log(parsedPosts)
+        console.log(updateData)
 
-        sdTable(threads, parsedPosts);
+        sdTable(threads, updateData);
     } else {
         if (Object.keys(threads).length === 0) {
             addSdPopup(currentThreadId);

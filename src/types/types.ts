@@ -44,9 +44,10 @@ export type sdInquiry = {
 
 export type newInquiry = Map<string, sdInquiry>
 
-export type sdTableState = {
-    [coords: coordinates]: rowSdTable
-}
+export type sdState = [sdTableState, string[]]
+
+export type sdTableState = Map<string, rowSdTable>
+
 export type rowSdTable = {
     villageId: number,
     sdId: string;
@@ -63,7 +64,12 @@ export type packages = Map<string, string>
 
 export type coordinates = `${number}|${number}`;
 
-export type parseReturn = [newInquiry, packages, string[]]
+export type postData = {
+    inquiries: newInquiry,
+    packages: packages,
+}
+
+export type updateData = Map<string, postData> //inquiries, packages, postIds
 
 
 

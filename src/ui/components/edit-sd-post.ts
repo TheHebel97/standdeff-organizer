@@ -1,6 +1,6 @@
 import {LocalStorageService} from "../../logic/local-storage-service";
 import {packages, updateData, rowSdTable, sdInquiry, sdState, sdTableState} from "../../types/types";
-import {calculateSdTableState, parseEditSdTableData} from "../../logic/helpers/table-helper";
+import {calculateSdTableState, parseEditSdTableData, parseSdStateToTableString} from "../../logic/helpers/table-helper";
 
 export function editSdPost(updateData: updateData) {
     console.log("Sd tabellen bearbeitenmodus")
@@ -24,7 +24,7 @@ export function editSdPost(updateData: updateData) {
 
 function updateSdTable(updateData: updateData) { // hier wird mir kinda schlecht
     const tablePattern = /\[table]([\s\S]*)\[\/table]/;
-    const cachePattern = /\[spoiler=base64cache]([\s\S]*?)\[\/spoiler]/;
+    const cachePattern = /\[spoiler=postCache]([\s\S]*?)\[\/spoiler]/;
     const rawSdPostText = String($("#message").val());
     const table = rawSdPostText.match(tablePattern);
     const cache = rawSdPostText.match(cachePattern);
@@ -35,17 +35,17 @@ function updateSdTable(updateData: updateData) { // hier wird mir kinda schlecht
     }
 
     let sdState: sdState = parseEditSdTableData(table[1], cache[0])
-    console.log("sdState")
-    console.log(sdState)
-    console.log("parsedPosts")
-    console.log(updateData)
 
-    calculateSdTableState(updateData, sdState)
-    //mit tabelle verrechnen
-    //base64 code updaten
-    //hier drin alles flüchtig speichern
+    let newSdState:sdState = calculateSdTableState(updateData, sdState)
 
-    //1. Parsen des Textes der sd tabelle
+    let [tableText, cacheText] = parseSdStateToTableString(newSdState)
+
+    let updatedSdPostText = rawSdPostText.replace(tablePattern, `[table]
+    [**]ID[||]Dorfkoordinaten[||]angefordert[||][color=#8d0100]noch benötigt[/color] [||]Spieler[||]Bemerkung[||]ab[||]bis[||][color=#001c83]Massenutlink[/color][/**]${tableText}[/table]`);
+    updatedSdPostText = updatedSdPostText.replace(cachePattern, `${cacheText}`);
+    console.log("updated sd post text:")
+    $("#message").val(updatedSdPostText)
+
 }
 
 

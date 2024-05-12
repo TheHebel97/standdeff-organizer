@@ -42,14 +42,14 @@ export type sdInquiry = {
     dateUntil: number | undefined;
 }
 
-export type newInquiry = Map<string, sdInquiry>  // villageId , sdInquiry
+export type newInquiry = Map<number, sdInquiry>  // villageId , sdInquiry
 
 export type sdState = [sdTableState, string[]]
 
-export type sdTableState = Map<string, rowSdTable>
+export type sdTableState = Map<number, rowSdTable> //villageId, rowSdTable
 
 export type rowSdTable = {
-    villageId: number,
+    coords: string,
     sdId: string;
     startAmount: number;
     leftAmount: number;

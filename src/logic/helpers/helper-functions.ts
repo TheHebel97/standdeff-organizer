@@ -15,7 +15,7 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
                 forumId: forumId,
                 sdPostId: postId,
                 bunkerInquiryCache: [],
-                stateOfSdTable: new Map<string, rowSdTable>(),
+                stateOfSdTable: new Map<number, rowSdTable>(),
                 packagesSent: new Map<string, string>(),
                 updatedPostIds: []
             }

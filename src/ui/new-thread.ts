@@ -116,14 +116,14 @@ Handling ohne das Skript: (wieso auch immer)
 
 [spoiler=Wissenswertes für SFs]
 Moin SFs:
-- base64cache Spoiler ignorieren und nicht bearbeiten
+- postCache Spoiler ignorieren und nicht bearbeiten
 - nun muss jeder im Stamm das entsprechende Skript installieren um von den Neuerungen zu profitieren (gl beim einrichten xD)
 - das automatische Ausfüllen innerhalb Massenut muss in den Settings explizit aktiviert werden
 - Gruppen werden beim erstmaligen Öffnen von Massen UT eingelesen, im Anschluss daran kann in den Settings ausgewählt werden, was die SD Gruppe ist
 - für die normalen Nutzer ist das Textfeld blockiert, dies kann durch einen Doppelklick entfernt werden. Das dient dazu, dass die Sd posts clean bleiben. Sozialer Overhead in der SD Tabelle ist nicht erwünscht.
 
 [/spoiler]
-[spoiler=base64cache]
+[spoiler=postCache]
 [/spoiler]
 [/spoiler]
 

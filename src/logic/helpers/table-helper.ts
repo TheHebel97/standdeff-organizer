@@ -1,4 +1,13 @@
-import {newInquiry, updateData, rowSdTable, sdInquiry, sdState, sdTableState, postData} from "../../types/types";
+import {
+    newInquiry,
+    updateData,
+    rowSdTable,
+    sdInquiry,
+    sdState,
+    sdTableState,
+    postData,
+    packages
+} from "../../types/types";
 import {LocalStorageService} from "../local-storage-service";
 
 export function convertMessageRequestStringToRequestArray(messageString: String): sdInquiry[] {
@@ -81,8 +90,8 @@ export function parseSdPosts(): updateData {
     const newInquiryRegex = /(\d{3}\|\d{3})\)\sK\d+\s+(\d+)\s+["|“](.+)?["|“](.+)?["|“](\d+)?["|“](\d+)?/; // hier die anführungszeichen für mac hinzufügen todo:
     const packagesSentRegex = /(\d+)\s(\d+|done)/; // evtl noch optimieren todo:
     $(".post").each((index, element) => {
-        let packagesSent = new Map<string, string>();
-        let inquiries = new Map<string, sdInquiry>();
+        let packagesSent: packages = new Map<string, string>();
+        let inquiries: newInquiry = new Map<number, sdInquiry>();
         let finished = false; // for skipping the signature
         if ($(element).find("a").first().attr("name") === sdPostId) { // or already updated and not deleted todo:
             return; // skip sd thread id
@@ -115,14 +124,14 @@ export function parseSdPosts(): updateData {
                     dateFrom: inquiryMatch[5] ? parseInt(inquiryMatch[5]) : undefined,
                     dateUntil: inquiryMatch[6] ? parseInt(inquiryMatch[6]) : undefined
                 }
-                inquiries.set(villageId.toString(), sdInquiry);
+                inquiries.set(villageId, sdInquiry);
             } else if (packagesMatch) {
                 if (packagesSent.has(packagesMatch[1])) {
                     let oldVal = packagesSent.get(packagesMatch[1]);
                     if (oldVal === "done" || oldVal === undefined) {
                         return;
                     }
-                    if(packagesMatch[2] === "done"){
+                    if (packagesMatch[2] === "done") {
                         packagesSent.set(packagesMatch[1], "done");
                         return;
                     }
@@ -142,10 +151,11 @@ export function parseSdPosts(): updateData {
 }
 
 export function parseEditSdTableData(tableText: string, cacheText: string): sdState {
-    console.log("parseSdTableData")
+
+
     const villageIdPattern = /target=(\d+)/;
     const playerPattern = /[player]([a-zA-Z0-9.]+)[/player]/;
-    let sdTableState = new Map<string, rowSdTable>();
+    let sdTableState = new Map<number, rowSdTable>();
     tableText.split("[*]").forEach((line) => {
         const cells = line.split("[|]")
         if (cells.length < 5) {
@@ -153,85 +163,163 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
         }
         cells[8] = cells[8].match(villageIdPattern)?.[1] || "";
         cells[4] = cells[4].replace(/\[player]/, "").replace(/\[\/player]/, "");
-        sdTableState.set(cells[1], {
-            villageId: parseInt(cells[8]),
+        const dateFrom = isNaN(parseInt(cells[6])) ? 0 : parseInt(cells[6]);
+        const dateUntil = isNaN(parseInt(cells[7])) ? 0 : parseInt(cells[7]);
+        sdTableState.set(parseInt(cells[8]), {
+            coords: cells[1].trim(),
             sdId: cells[0],
             startAmount: parseInt(cells[2]),
             leftAmount: parseInt(cells[3]),
             playerName: cells[4],
             comment: cells[5],
-            dateFrom: parseInt(cells[6]),
-            dateUntil: parseInt(cells[7])
+            dateFrom: dateFrom,
+            dateUntil: dateUntil
         });
     })
 
-    let cache = cacheText.replace(/\[spoiler=base64cache]/, "").replace(/\[\/spoiler]/, "").split(",");
+    let cache = cacheText.replace(/\[spoiler=postCache]/, "").replace(/\[\/spoiler]/, "").split(",");
 
     return [sdTableState, cache];
 }
 
 export function calculateSdTableState(updateData: updateData, sdState: sdState): sdState {
-
+    const localStorageService = LocalStorageService.getInstance();
+    //todo: get setting of "add up double requests"
+    const addUpSetting = true;
     //const [inquiries, packagesSent, postIds] = updateData;
     const [sdTableState, postCache] = sdState;
-    let newSdTableState;
-    console.log("calculateSdTableState")
-    console.log(updateData)
-    console.log("--")
-    console.log(sdState)
-    console.log("------")
+
     //denke so:
     //1. iterate over all postIds in updateData and remove those which are in the cache
     // summarize all left inquiries and packages for each villageId
     // update table State with updated data
     let updateDataWithoutCache: updateData = new Map();
+    let newPostCache: string[] = [];
 
     updateData.forEach((postData, postId) => {
         if (!postCache.includes(postId)) {
             updateDataWithoutCache.set(postId, postData);
-            postCache.push(postId);
         }
+        newPostCache.push(postId);
     });
-    console.log("updateDataWithoutCache")
-    console.log(updateDataWithoutCache)
 
     let summarizedData = {
-    inquiries: new Map<string, sdInquiry>(),
-    packagesSent: new Map<string, string>()
-};
+        inquiries: new Map<number, sdInquiry>(),
+        packagesSent: new Map<string, string>()
+    };
 
-updateDataWithoutCache.forEach((postData) => {
-    postData.inquiries.forEach((inquiry, villageId) => {
-        if (summarizedData.inquiries.has(villageId)) {
-            let existingInquiry = summarizedData.inquiries.get(villageId);
-            if (existingInquiry && existingInquiry.amount < inquiry.amount) {
+    updateDataWithoutCache.forEach((postData) => {
+        postData.inquiries.forEach((inquiry, villageId) => {
+            if (summarizedData.inquiries.has(villageId)) {
+                let existingInquiry = summarizedData.inquiries.get(villageId);
+                if (existingInquiry && existingInquiry.amount < inquiry.amount) {
+                    summarizedData.inquiries.set(villageId, inquiry);
+                }
+            } else {
                 summarizedData.inquiries.set(villageId, inquiry);
             }
-        } else {
-            summarizedData.inquiries.set(villageId, inquiry);
-        }
-    });
+        });
 
-    postData.packages.forEach((packageSent, sdId) => {
-        if (summarizedData.packagesSent.has(sdId)) {
-            let existingPackage = summarizedData.packagesSent.get(sdId);
-            if (existingPackage !== "done") {
-                let newPackage = packageSent === "done" ? "done" : (parseInt(existingPackage || "0") + parseInt(packageSent)).toString();
-                summarizedData.packagesSent.set(sdId, newPackage);
-            }else{
+        postData.packages.forEach((packageSent, sdId) => {
+            if (summarizedData.packagesSent.has(sdId)) {
+                let existingPackage = summarizedData.packagesSent.get(sdId);
+                if (existingPackage !== "done") {
+                    let newPackage = packageSent === "done" ? "done" : (parseInt(existingPackage || "0") + parseInt(packageSent)).toString();
+                    summarizedData.packagesSent.set(sdId, newPackage);
+                } else {
+                    summarizedData.packagesSent.set(sdId, packageSent);
+                }
+            } else {
                 summarizedData.packagesSent.set(sdId, packageSent);
             }
-        } else {
-            summarizedData.packagesSent.set(sdId, packageSent);
-        }
+        });
     });
-});
 
-console.log(summarizedData)
+
+    console.log(summarizedData)
+    console.log("sdTableState")
+    console.log(sdTableState)
+
+    summarizedData.inquiries.forEach((inquiry, villageId) => {
+        if (sdTableState.has(villageId)) {
+            if (addUpSetting) {
+                let existingRow = sdTableState.get(villageId);
+                if (existingRow) {
+                    let newLeftAmount = existingRow.leftAmount + inquiry.amount;
+                    let newStartAmount = existingRow.startAmount + inquiry.amount;
+                    sdTableState.set(villageId, {
+                        ...existingRow,
+                        startAmount: newStartAmount,
+                        leftAmount: newLeftAmount
+                    });
+                }
+            }
+        } else {
+            sdTableState.set(villageId, {
+                coords: inquiry.coords,
+                sdId: String(sdTableState.size + 1),
+                startAmount: inquiry.amount,
+                leftAmount: inquiry.amount,
+                playerName: inquiry.playerName || "",
+                comment: inquiry.comment || "",
+                dateFrom: inquiry.dateFrom || 0,
+                dateUntil: inquiry.dateUntil || 0
+            });
+
+        }
+    })
+
+    console.log("sdTableState after update")
+    console.log(sdTableState)
+
+    summarizedData.packagesSent.forEach((amount, sdId) => {
+        let matchingEntry = Array.from(sdTableState.entries()).find(([villageId, row]) => row.sdId === sdId);
+        if (matchingEntry) {
+            let [villageId, row] = matchingEntry;
+            row.leftAmount -= amount === "done" ? row.leftAmount : parseInt(amount);
+            sdTableState.set(villageId, row);
+        } else {
+            console.error(`no matching sdTableRowEntry found for package Id: ${sdId} -> I will ignore it :)`)
+
+        }
+
+
+    });
+    console.log("sdTableState after package update")
+    console.log(sdTableState)
+
+    //clean up sdTableState and delete everything with leftAmount = 0 // hier logging von fertigen anfragen einbauen wenn gewünscht :)
+    let newId=1;
+    sdTableState.forEach((row, villageId) => {
+        if (row.leftAmount === 0) {
+            sdTableState.delete(villageId);
+            newId--;
+        }
+        row.sdId = String(newId);
+        newId++;
+    });
+    console.log("sdTableState after cleanup")
+    console.log(sdTableState, newPostCache)
 
 
 // Jetzt können Sie newUpdateData weiterverarbeiten
 
 
-    return [sdState[0], postCache] as sdState;
+    return [sdTableState, newPostCache] as sdState;
 }
+
+export function parseSdStateToTableString(sdState: sdState): [string, string] {
+    const [sdTableState, cache] = sdState;
+    let tableString = "";
+    sdTableState.forEach((row, villageId) => {
+        tableString += `[*]${row.sdId}[|]${" "+row.coords+" "}[|]${row.startAmount}[|]${row.leftAmount}[|][player]${row.playerName}[/player][|]${row.comment}[|]${row.dateFrom}[|]${row.dateUntil}[|][url=${generateMassUtLink(villageId)}]Massenutlink[/url][/*]\n`;
+    });
+    let cacheString = `[spoiler=postCache]${cache.join(",")}[/spoiler]`;
+    return [tableString, cacheString];
+}
+
+function generateMassUtLink(villageId: number): string {
+    const world = game_data.world;
+    return `https://${world}.die-staemme.de/game.php?village=0&screen=place&mode=call&target=${villageId}`;
+}
+

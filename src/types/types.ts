@@ -42,7 +42,7 @@ export type sdInquiry = {
     dateUntil: number | undefined;
 }
 
-export type newInquiry = Map<string, sdInquiry>
+export type newInquiry = Map<string, sdInquiry>  // villageId , sdInquiry
 
 export type sdState = [sdTableState, string[]]
 
@@ -59,7 +59,7 @@ export type rowSdTable = {
     dateUntil: number;
 }
 
-export type packages = Map<string, string>
+export type packages = Map<string, string> //internalSdId, amount
 
 
 export type coordinates = `${number}|${number}`;

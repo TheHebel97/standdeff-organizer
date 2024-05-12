@@ -122,6 +122,10 @@ export function parseSdPosts(): updateData {
                     if (oldVal === "done" || oldVal === undefined) {
                         return;
                     }
+                    if(packagesMatch[2] === "done"){
+                        packagesSent.set(packagesMatch[1], "done");
+                        return;
+                    }
                     let newVal = parseInt(oldVal) + parseInt(packagesMatch[2]);
                     packagesSent.set(packagesMatch[1], newVal.toString());
                     return;
@@ -180,17 +184,53 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
     //1. iterate over all postIds in updateData and remove those which are in the cache
     // summarize all left inquiries and packages for each villageId
     // update table State with updated data
+    let updateDataWithoutCache: updateData = new Map();
+
     updateData.forEach((postData, postId) => {
-        if(postCache.includes(postId)){
-            console.log("post already updated")
-            return;
+        if (!postCache.includes(postId)) {
+            updateDataWithoutCache.set(postId, postData);
+            postCache.push(postId);
         }
-        postCache.push(postId);
-        console.log("postid")
-        console.log(postId)
-        console.log("postdata")
-        console.log(postData)
     });
+    console.log("updateDataWithoutCache")
+    console.log(updateDataWithoutCache)
+
+    let summarizedData = {
+    inquiries: new Map<string, sdInquiry>(),
+    packagesSent: new Map<string, string>()
+};
+
+updateDataWithoutCache.forEach((postData) => {
+    postData.inquiries.forEach((inquiry, villageId) => {
+        if (summarizedData.inquiries.has(villageId)) {
+            let existingInquiry = summarizedData.inquiries.get(villageId);
+            if (existingInquiry && existingInquiry.amount < inquiry.amount) {
+                summarizedData.inquiries.set(villageId, inquiry);
+            }
+        } else {
+            summarizedData.inquiries.set(villageId, inquiry);
+        }
+    });
+
+    postData.packages.forEach((packageSent, sdId) => {
+        if (summarizedData.packagesSent.has(sdId)) {
+            let existingPackage = summarizedData.packagesSent.get(sdId);
+            if (existingPackage !== "done") {
+                let newPackage = packageSent === "done" ? "done" : (parseInt(existingPackage || "0") + parseInt(packageSent)).toString();
+                summarizedData.packagesSent.set(sdId, newPackage);
+            }else{
+                summarizedData.packagesSent.set(sdId, packageSent);
+            }
+        } else {
+            summarizedData.packagesSent.set(sdId, packageSent);
+        }
+    });
+});
+
+console.log(summarizedData)
+
+
+// Jetzt können Sie newUpdateData weiterverarbeiten
 
 
     return [sdState[0], postCache] as sdState;

@@ -289,7 +289,7 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
     console.log(sdTableState)
 
     //clean up sdTableState and delete everything with leftAmount = 0 // hier logging von fertigen anfragen einbauen wenn gewünscht :)
-    let newId=1;
+    let newId = 1;
     sdTableState.forEach((row, villageId) => {
         if (row.leftAmount === 0) {
             sdTableState.delete(villageId);
@@ -301,10 +301,6 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
     console.log("sdTableState after cleanup")
     console.log(sdTableState, newPostCache)
 
-
-// Jetzt können Sie newUpdateData weiterverarbeiten
-
-
     return [sdTableState, newPostCache] as sdState;
 }
 
@@ -312,7 +308,7 @@ export function parseSdStateToTableString(sdState: sdState): [string, string] {
     const [sdTableState, cache] = sdState;
     let tableString = "";
     sdTableState.forEach((row, villageId) => {
-        tableString += `[*]${row.sdId}[|]${" "+row.coords+" "}[|]${row.startAmount}[|]${row.leftAmount}[|][player]${row.playerName}[/player][|]${row.comment}[|]${row.dateFrom}[|]${row.dateUntil}[|][url=${generateMassUtLink(villageId)}]Massenutlink[/url][/*]\n`;
+        tableString += `[*]${row.sdId}[|]${" " + row.coords + " "}[|]${row.startAmount}[|]${row.leftAmount}[|][player]${row.playerName}[/player][|]${row.comment}[|]${row.dateFrom}[|]${row.dateUntil}[|][url=${generateMassUtLink(villageId)}]Massenutlink[/url][/*]\n`;
     });
     let cacheString = `[spoiler=postCache]${cache.join(",")}[/spoiler]`;
     return [tableString, cacheString];
@@ -321,5 +317,55 @@ export function parseSdStateToTableString(sdState: sdState): [string, string] {
 function generateMassUtLink(villageId: number): string {
     const world = game_data.world;
     return `https://${world}.die-staemme.de/game.php?village=0&screen=place&mode=call&target=${villageId}`;
+}
+
+
+export function parseTableHtmlElemToSdState(tableBodyElem: any): sdTableState {
+    let sdTableState = new Map<number, rowSdTable>();
+
+    tableBodyElem.find("tr").each((index: number, row: any) => {
+        //skip the first
+        if (index === 0) {
+            return;
+        }
+        //build up rowSdTable
+
+        let rowSdTableArray: any[] = [];
+        $(row).find("td").each((index: number, cell: any) => {
+            rowSdTableArray.push($(cell));
+        })
+        let coords = parseTwCoordsToCoords(rowSdTableArray[1].text().trim());
+        let villageId = parseTwLinkToVillageId(rowSdTableArray[8]);
+        let rowSdTable: rowSdTable = {
+            coords: coords,
+            sdId: rowSdTableArray[0].text().trim(),
+            startAmount: parseInt(rowSdTableArray[2].text().trim()),
+            leftAmount: parseInt(rowSdTableArray[3].text().trim()),
+            playerName: rowSdTableArray[4].text().trim(),
+            comment: rowSdTableArray[5].text().trim(),
+            dateFrom: parseInt(rowSdTableArray[6].text().trim()),
+            dateUntil: parseInt(rowSdTableArray[7].text().trim())
+
+        };
+        sdTableState.set(villageId, rowSdTable);
+    });
+
+
+    return sdTableState;
+}
+
+
+function parseTwCoordsToCoords(coords: string): string {
+    const coordsPattern = /\d{3}\|\d{3}/g;
+    const found = coords.match(coordsPattern)
+    return found ? found[found.length - 1] : "";
+}
+
+
+function parseTwLinkToVillageId(linkElem: string): number {
+    const link = $(linkElem).find("a").attr("href") || "";
+    const villageIdPattern = /target=(\d+)/;
+    const found = link.match(villageIdPattern);
+    return found ? parseInt(found[1]) : 0;
 }
 

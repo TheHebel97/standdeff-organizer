@@ -3,6 +3,7 @@ import {postLayout} from "./post-layout";
 import {packages, updateData, rowSdTable, sdInquiry, Threads} from "../../types/types";
 import {LocalStorageService} from "../../logic/local-storage-service";
 import {isUserForumMod} from "../../logic/helpers/tw-helper";
+import {parseTableHtmlElemToSdState} from "../../logic/helpers/table-helper";
 
 
 export function sdTable(threads: Threads, updateData: updateData) {
@@ -18,13 +19,32 @@ export function sdTable(threads: Threads, updateData: updateData) {
     const edit_post_id: string | null = urlParams.get('edit_post_id');
     const currentThreadId: string = urlParams.get('thread_id') || ""
     if (edit_post_id === threads[currentThreadId]?.sdPostId) {
+        console.log("edit mode")
         editSdPost(updateData);
         return;
     }
     if ($("#message").length) { //wenn textarea vorhanden
+        console.log("textarea vorhanden")
         postLayout(updateData);
         return; // wenn textarea vorhanden, dann sd tabelle nicht visuell anhand den darunterleigenden posts anpassen
+        return; // wenn textarea vorhanden, dann sd tabelle nicht visuell anhand den darunterleigenden posts anpassen
     }
+
+    console.log("--------------------")
+    const sdTablePost = $("a[name='" + threads[currentThreadId].sdPostId + "']").parent()
+    console.log(sdTablePost)
+    const sdTableBody = $(sdTablePost).find("table").find("tbody")
+    console.log(sdTableBody)
+
+    if(sdTableBody.length === 0){
+        console.error("sd table body not found")
+        return;
+    }
+
+    let sdTableState = parseTableHtmlElemToSdState(sdTableBody)
+    console.log(sdTableState)
+    localStorageService.setSdTableState(currentThreadId, sdTableState)
+    console.log(localStorageService.getSdTableState(currentThreadId))
     //display sd zeugs für alle nutzer
     //if admin or mod dann zu löschende Posts selecten und
 

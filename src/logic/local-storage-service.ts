@@ -1,4 +1,4 @@
-import {generalSettings, groupData, LocalStorageData, sdInquiry, ThreadData, Threads} from "../types/types";
+import {generalSettings, groupData, LocalStorageData, rowSdTable, sdInquiry, ThreadData, Threads} from "../types/types";
 
 
 export class LocalStorageService {
@@ -35,7 +35,15 @@ export class LocalStorageService {
     }
 
     private storeDataInLocalStorage(data: LocalStorageData) {
-        localStorage.setItem("standdeff-organizer", JSON.stringify(data));
+        console.log("storing data in local storage")
+console.log(data)
+        let test = JSON.stringify(data);
+        try{
+            localStorage.setItem("standdeff-organizer", test);
+        }catch(e){
+            console.error("Error storing data in LocalStorage: " + e);
+        }
+
     }
 
     private updateFromLocalStorage() {
@@ -147,6 +155,18 @@ export class LocalStorageService {
     public getSdPostId(id: string): string {
         this.updateFromLocalStorage();
         return this._localStorageData.threads[id].sdPostId;
+    }
+
+    public getSdTableState(id: string): Map<number, rowSdTable> {
+        return this._localStorageData.threads[id].stateOfSdTable;
+    }
+
+    public setSdTableState(id: string, value: Map<number, rowSdTable>) {
+        console.log("setting sd table state")
+        console.log(value)
+        this._localStorageData.threads[id].stateOfSdTable = value;
+        console.log(this._localStorageData)
+        this.storeDataInLocalStorage(this._localStorageData);
     }
 
 

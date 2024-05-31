@@ -1,10 +1,7 @@
 import {Unit} from "./tw-types";
 
 
-export type LocalStorageData = {
-    generalSettings: generalSettings,
-    threads: Threads
-}
+
 
 export type generalSettings = {
     newThread: boolean,

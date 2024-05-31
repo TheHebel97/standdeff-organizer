@@ -1,4 +1,5 @@
-import {generalSettings, groupData, LocalStorageData, rowSdTable, sdInquiry, ThreadData, Threads} from "../types/types";
+import {groupData, rowSdTable, sdInquiry, ThreadData, Threads} from "../types/types";
+import {LocalStorageData} from "../types/localStorageTypes";
 
 
 export class LocalStorageService {
@@ -36,11 +37,11 @@ export class LocalStorageService {
 
     private storeDataInLocalStorage(data: LocalStorageData) {
         console.log("storing data in local storage")
-console.log(data)
+        console.log(data)
         let test = JSON.stringify(data);
-        try{
+        try {
             localStorage.setItem("standdeff-organizer", test);
-        }catch(e){
+        } catch (e) {
             console.error("Error storing data in LocalStorage: " + e);
         }
 
@@ -115,26 +116,86 @@ console.log(data)
         this.storeDataInLocalStorage(this._localStorageData);
     }
 
-    // threads getter and setter
     public getThreadData(id: string): ThreadData | undefined {
         this.updateFromLocalStorage();
-        return this._localStorageData.threads[id];
+        let lsThreadData = this._localStorageData.threads[id];
+        if (!lsThreadData) {
+            return undefined;
+        }
+        return {
+            threadName: lsThreadData.threadName,
+            forumName: lsThreadData.forumName,
+            forumId: lsThreadData.forumId,
+            sdPostId: lsThreadData.sdPostId,
+            bunkerInquiryCache: lsThreadData.bunkerInquiryCache,
+            stateOfSdTable: new Map(lsThreadData.stateOfSdTable),
+            packagesSent: new Map(lsThreadData.packagesSent),
+            updatedPostIds: lsThreadData.updatedPostIds
+        };
     }
 
     public setThreadData(id: string, value: ThreadData) {
-        this._localStorageData.threads[id] = value;
+        // Convert the Map to an Array before storing it
+        let stateOfSdTable = Array.from(value.stateOfSdTable.entries());
+        let packagesSent = Array.from(value.packagesSent.entries());
+
+        // Create a new lsThreadData object with the converted data
+        this._localStorageData.threads[id] = {
+            threadName: value.threadName,
+            forumName: value.forumName,
+            forumId: value.forumId,
+            sdPostId: value.sdPostId,
+            bunkerInquiryCache: value.bunkerInquiryCache,
+            stateOfSdTable: stateOfSdTable,
+            packagesSent: packagesSent,
+            updatedPostIds: value.updatedPostIds
+        };
         this.storeDataInLocalStorage(this._localStorageData);
     }
 
     public get getAllThreads(): Threads {
         this.updateFromLocalStorage();
-        return this._localStorageData.threads;
+        let threads: Threads = {};
+        console.log(this._localStorageData.threads)
+        for (let id in this._localStorageData.threads) {
+            let lsThreadData = this._localStorageData.threads[id];
+            if (lsThreadData) {
+                // Convert the Array back to a Map when retrieving it
+                let stateOfSdTable = new Map(lsThreadData.stateOfSdTable);
+                let packagesSent = new Map(lsThreadData.packagesSent);
+                // Create a new ThreadData object with the converted data
+                threads[id] = {
+                    threadName: lsThreadData.threadName,
+                    forumName: lsThreadData.forumName,
+                    forumId: lsThreadData.forumId,
+                    sdPostId: lsThreadData.sdPostId,
+                    bunkerInquiryCache: lsThreadData.bunkerInquiryCache,
+                    stateOfSdTable: stateOfSdTable,
+                    packagesSent: packagesSent,
+                    updatedPostIds: lsThreadData.updatedPostIds
+                };
+            }
+        }
+        return threads;
     }
 
-    public addThread(id:string, value: ThreadData) {
-        this._localStorageData.threads[id] = value;
-        this.storeDataInLocalStorage(this._localStorageData);
+    public addThread(id: string, value: ThreadData) {
+        // Convert the Map to an Array before storing it
+        let stateOfSdTable = Array.from(value.stateOfSdTable.entries());
+        let packagesSent = Array.from(value.packagesSent.entries());
 
+        // Create a new lsThreadData object with the converted data
+        this._localStorageData.threads[id] = {
+            threadName: value.threadName,
+            forumName: value.forumName,
+            forumId: value.forumId,
+            sdPostId: value.sdPostId,
+            bunkerInquiryCache: value.bunkerInquiryCache,
+            stateOfSdTable: stateOfSdTable,
+            packagesSent: packagesSent,
+            updatedPostIds: value.updatedPostIds
+        };
+        this.storeDataInLocalStorage(this._localStorageData);
     }
 
     public deleteThread(id: string) {
@@ -157,16 +218,19 @@ console.log(data)
         return this._localStorageData.threads[id].sdPostId;
     }
 
-    public getSdTableState(id: string): Map<number, rowSdTable> {
-        return this._localStorageData.threads[id].stateOfSdTable;
-    }
-
     public setSdTableState(id: string, value: Map<number, rowSdTable>) {
         console.log("setting sd table state")
         console.log(value)
-        this._localStorageData.threads[id].stateOfSdTable = value;
+        // Convert the Map to an Array before storing it
+        this._localStorageData.threads[id].stateOfSdTable = Array.from(value.entries());
         console.log(this._localStorageData)
         this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public getSdTableState(id: string): Map<number, rowSdTable> {
+        this.updateFromLocalStorage();
+        // Convert the Array back to a Map when retrieving it
+        return new Map(this._localStorageData.threads[id].stateOfSdTable);
     }
 
 

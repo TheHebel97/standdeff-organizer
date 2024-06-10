@@ -1,9 +1,9 @@
 import {editSdPost} from "./edit-sd-post";
 import {postLayout} from "./post-layout";
-import {packages, updateData, rowSdTable, sdInquiry, Threads} from "../../types/types";
+import {packages, updateData, rowSdTable, sdInquiry, Threads, newInquiry} from "../../types/types";
 import {LocalStorageService} from "../../logic/local-storage-service";
 import {isUserForumMod} from "../../logic/helpers/tw-helper";
-import {parseTableHtmlElemToSdState} from "../../logic/helpers/table-helper";
+import {displayUpdatedSdTable, parseTableHtmlElemToSdState} from "../../logic/helpers/table-helper";
 
 
 export function sdTable(threads: Threads, updateData: updateData) {
@@ -32,19 +32,52 @@ export function sdTable(threads: Threads, updateData: updateData) {
 
     console.log("--------------------")
     const sdTablePost = $("a[name='" + threads[currentThreadId].sdPostId + "']").parent()
-    console.log(sdTablePost)
     const sdTableBody = $(sdTablePost).find("table").find("tbody")
-    console.log(sdTableBody)
+    const postCache = $(sdTablePost).find("input[value=postCache]").siblings().find("span").text()
+    let postCacheSplit: any;
+    if (postCache.length > 2) {
+        postCacheSplit = postCache.split(",")
+    }
+    // delete every map member of the updateData that is not in the postCache
+    for (let key of postCacheSplit) {
+        updateData.delete(key);
+    }
 
-    if(sdTableBody.length === 0){
+
+    if (sdTableBody.length === 0) {
         console.error("sd table body not found")
         return;
     }
 
     let sdTableState = parseTableHtmlElemToSdState(sdTableBody)
-    console.log(sdTableState)
     localStorageService.setSdTableState(currentThreadId, sdTableState)
     console.log(localStorageService.getSdTableState(currentThreadId))
+    //Schandfleck des typings, quasi weiße flagge gehisst -.-
+    let inquiriesMap: Map<string, any> = new Map();
+    let packagesMap: Map<string, any> = new Map();
+    updateData.forEach((value, key) => {
+        inquiriesMap.set(key, value.inquiries);
+        packagesMap.set(key, value.packages);
+    });
+
+    //feat: an diesem Punkt kann die tabelle noch erweitert werden für zB neue Bunker anfragen // optional
+    //erstmal werden aber nur bearbeitungen angezeigt
+
+    let packagesToUpdate: Map<string, any> = new Map();
+    packagesMap.forEach((value, key) => {  // key = post id // value = packages (multiple)
+        value.forEach((amount:string, id:string) => {
+            if (packagesToUpdate.has(id)) {
+                let existingAmount = packagesToUpdate.get(id);
+                packagesToUpdate.set(id, parseInt(existingAmount) + parseInt(amount));
+            } else {
+                packagesToUpdate.set(id, parseInt(amount));
+            }
+        });
+    })
+    console.log(packagesToUpdate)
+    localStorageService.setPackagesSent(currentThreadId, packagesToUpdate)
+
+    displayUpdatedSdTable()
     //display sd zeugs für alle nutzer
     //if admin or mod dann zu löschende Posts selecten und
 
@@ -63,3 +96,6 @@ export function sdTable(threads: Threads, updateData: updateData) {
     }
 
 }
+
+
+

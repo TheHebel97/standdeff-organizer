@@ -138,8 +138,6 @@ export class LocalStorageService {
         // Convert the Map to an Array before storing it
         let stateOfSdTable = Array.from(value.stateOfSdTable.entries());
         let packagesSent = Array.from(value.packagesSent.entries());
-
-        // Create a new lsThreadData object with the converted data
         this._localStorageData.threads[id] = {
             threadName: value.threadName,
             forumName: value.forumName,
@@ -156,7 +154,6 @@ export class LocalStorageService {
     public get getAllThreads(): Threads {
         this.updateFromLocalStorage();
         let threads: Threads = {};
-        console.log(this._localStorageData.threads)
         for (let id in this._localStorageData.threads) {
             let lsThreadData = this._localStorageData.threads[id];
             if (lsThreadData) {
@@ -183,8 +180,6 @@ export class LocalStorageService {
         // Convert the Map to an Array before storing it
         let stateOfSdTable = Array.from(value.stateOfSdTable.entries());
         let packagesSent = Array.from(value.packagesSent.entries());
-
-        // Create a new lsThreadData object with the converted data
         this._localStorageData.threads[id] = {
             threadName: value.threadName,
             forumName: value.forumName,
@@ -219,19 +214,23 @@ export class LocalStorageService {
     }
 
     public setSdTableState(id: string, value: Map<number, rowSdTable>) {
-        console.log("setting sd table state")
-        console.log(value)
-        // Convert the Map to an Array before storing it
         this._localStorageData.threads[id].stateOfSdTable = Array.from(value.entries());
-        console.log(this._localStorageData)
         this.storeDataInLocalStorage(this._localStorageData);
     }
 
     public getSdTableState(id: string): Map<number, rowSdTable> {
         this.updateFromLocalStorage();
-        // Convert the Array back to a Map when retrieving it
         return new Map(this._localStorageData.threads[id].stateOfSdTable);
     }
 
+    public setPackagesSent(id: string, value: Map<string, string>) {
+        this._localStorageData.threads[id].packagesSent = Array.from(value.entries());
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public getPackagesSent(id: string): Map<string, string> {
+        this.updateFromLocalStorage();
+        return new Map(this._localStorageData.threads[id].packagesSent);
+    }
 
 }

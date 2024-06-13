@@ -63,21 +63,21 @@ export function sdTable(threads: Threads, updateData: updateData) {
     //feat: an diesem Punkt kann die tabelle noch erweitert werden für zB neue Bunker anfragen // optional
     //erstmal werden aber nur bearbeitungen angezeigt
 
-    let packagesToUpdate: Map<string, any> = new Map();
+    let packagesToUpdateFromPosts: Map<string, any> = new Map();
     packagesMap.forEach((value, key) => {  // key = post id // value = packages (multiple)
         value.forEach((amount:string, id:string) => {
-            if (packagesToUpdate.has(id)) {
-                let existingAmount = packagesToUpdate.get(id);
-                packagesToUpdate.set(id, parseInt(existingAmount) + parseInt(amount));
+            if (packagesToUpdateFromPosts.has(id)) {
+                let existingAmount = packagesToUpdateFromPosts.get(id);
+                packagesToUpdateFromPosts.set(id, parseInt(existingAmount) + parseInt(amount));
             } else {
-                packagesToUpdate.set(id, parseInt(amount));
+                packagesToUpdateFromPosts.set(id, parseInt(amount));
             }
         });
     })
-    console.log(packagesToUpdate)
-    localStorageService.setPackagesSent(currentThreadId, packagesToUpdate)
+    console.log(packagesToUpdateFromPosts)
+    //localStorageService.setPackagesSent(currentThreadId, packagesToUpdate)
 
-    displayUpdatedSdTable()
+    displayUpdatedSdTable(packagesToUpdateFromPosts)
     //display sd zeugs für alle nutzer
     //if admin or mod dann zu löschende Posts selecten und
 

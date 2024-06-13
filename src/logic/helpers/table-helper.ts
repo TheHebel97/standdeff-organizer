@@ -369,3 +369,69 @@ function parseTwLinkToVillageId(linkElem: string): number {
     return found ? parseInt(found[1]) : 0;
 }
 
+
+export function displayUpdatedSdTable(packagesToUpdate: Map<string, any>) {
+    const localStorageService = LocalStorageService.getInstance();
+    const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
+    const currentThreadId: string = urlParams.get('thread_id') || "";
+    let sentPackages = localStorageService.getPackagesSent(currentThreadId);
+    const sdPostId = localStorageService.getSdPostId(currentThreadId);
+    console.log(packagesToUpdate)
+    let result = $("a[name='" + sdPostId + "']").parent().find("table").find("tbody").find("tr").map((index, row) => {
+        let rowData: any = $(row).find("td").map((tdIndex, td) => $(td).text()).get();
+        rowData.push(row); // Add the current row element to the end of the array
+        return [rowData];
+    }).get();
+
+    console.log(result);
+
+
+    result.forEach((rowData: any[]) => {
+        // Die ID ist der erste Wert im rowData Array
+        let id = rowData[0];
+        // Überprüfe, ob die ID in packageToUpdate vorhanden ist
+        if (packagesToUpdate.has(id)) {
+            // Hole den zu aktualisierenden Wert
+            if (rowData[3] === "done") {
+                return;
+            }
+            let updateValue = parseInt(packagesToUpdate.get(id) || "0");
+            let oldValue = parseInt(rowData[3]);
+            let newVal = Math.max(0, oldValue - updateValue);
+            let addionalText = "";
+            if (sentPackages.has(id)) {
+                let sentAmount = sentPackages.get(id);
+                if (sentAmount === "done") {
+                    return;
+                }
+                if (sentAmount) {
+                    addionalText= " <span style='color:#FF0000;'>(-" + sentAmount + ")</span>";
+                }
+            }
+
+
+            // Nehmen Sie an, dass result Ihr Array ist und das letzte Element das gespeicherte tr-Element ist
+            let savedTr = result[id][9];
+            console.log("savedTr");
+            console.log(savedTr);
+
+
+// Finden Sie alle tr-Elemente auf der aktuellen Seite
+            $("a[name='" + sdPostId + "']").parent().find("table").find("tbody").find("tr").each((index, tr) => {
+                // Überprüfen Sie, ob das aktuelle tr-Element mit dem gespeicherten tr-Element übereinstimmt
+                if ($(tr).is(savedTr)) {
+                    // Das aktuelle tr-Element stimmt mit dem gespeicherten tr-Element überein
+                    // Sie können hier Code hinzufügen, um das tr-Element zu bearbeiten
+                    // Zum Beispiel, um den Text des ersten td-Elements zu ändern:
+                    $(tr).find("td").eq(3).text(newVal.toString());
+                    if(addionalText !== ""){
+                        $(tr).find("td").eq(3).append(addionalText);
+                    }
+                    console.log("Updated tr element with id: " + id);
+                    console.log(tr)
+                }
+            });
+        }
+    });
+}
+

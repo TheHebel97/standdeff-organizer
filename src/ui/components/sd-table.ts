@@ -3,10 +3,16 @@ import {postLayout} from "./post-layout";
 import {packages, updateData, rowSdTable, sdInquiry, Threads, newInquiry} from "../../types/types";
 import {LocalStorageService} from "../../logic/local-storage-service";
 import {isUserForumMod} from "../../logic/helpers/tw-helper";
-import {displayUpdatedSdTable, parseTableHtmlElemToSdState} from "../../logic/helpers/table-helper";
+import {
+    displayUpdatedSdTable,
+    parseSdPosts,
+    parseTableHtmlElemToSdState,
+    updateSentPackagesInSdTable
+} from "../../logic/helpers/table-helper";
 
 
-export function sdTable(threads: Threads, updateData: updateData) {
+export function sdTable(threads: Threads) {
+    let updateData: updateData = parseSdPosts()
     console.log("visualisierung der sd tabelle")
 //visuell anzeigen, dass es sich um die sd tabelle handelt
     const sdTableTitle = `<span style="color: #002bff; font-size: x-small"> (SD Tabelle)</span>`
@@ -65,7 +71,7 @@ export function sdTable(threads: Threads, updateData: updateData) {
 
     let packagesToUpdateFromPosts: Map<string, any> = new Map();
     packagesMap.forEach((value, key) => {  // key = post id // value = packages (multiple)
-        value.forEach((amount:string, id:string) => {
+        value.forEach((amount: string, id: string) => {
             if (packagesToUpdateFromPosts.has(id)) {
                 let existingAmount = packagesToUpdateFromPosts.get(id);
                 packagesToUpdateFromPosts.set(id, parseInt(existingAmount) + parseInt(amount));
@@ -74,6 +80,7 @@ export function sdTable(threads: Threads, updateData: updateData) {
             }
         });
     })
+    console.log("--");
     console.log(packagesToUpdateFromPosts)
     //localStorageService.setPackagesSent(currentThreadId, packagesToUpdate)
 
@@ -94,6 +101,19 @@ export function sdTable(threads: Threads, updateData: updateData) {
             })
         }
     }
+
+    window.addEventListener('storage', (event) => {
+        // Prüfen Sie den Schlüssel, der geändert wurde
+        console.log(event.key)
+        if (event.key === "standdeff-organizer") {
+            // Führen Sie Ihre Aktion aus
+            console.log('Der Wert von "standdeff-organizer" hat sich geändert!');
+            updateSentPackagesInSdTable();
+        }
+    });
+
+    localStorageService.setSdTableState(currentThreadId, sdTableState)
+
 
 }
 

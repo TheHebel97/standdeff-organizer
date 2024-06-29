@@ -39,11 +39,8 @@ export function viewThread() {
     let threads: Threads = localStorageService.getAllThreads;
     if (threads[currentThreadId] !== undefined) {
         console.log("thread ids found")
-        let updateData: updateData = parseSdPosts()
-        console.log("parsed posts in edit")
-        console.log(updateData)
 
-        sdTable(threads, updateData);
+        sdTable(threads);
     } else {
         if (Object.keys(threads).length === 0) {
             addSdPopup(currentThreadId);

@@ -86,8 +86,11 @@ export function sdTable(threads: Threads) {
     //localStorageService.setPackagesSent(currentThreadId, packagesToUpdate)
 
     displayUpdatedSdTable(packagesToUpdateFromPosts)
+    sdTableState = parseTableHtmlElemToSdState(sdTableBody)
+    localStorageService.setSdTableState(currentThreadId, sdTableState)
     //display sd zeugs für alle nutzer
     //if admin or mod dann zu löschende Posts selecten und
+    updateSentPackagesInSdTable();
     applySettingsToMassUtLink()
     if (isUserForumMod()) {
         const sdPostId = threads[currentThreadId].sdPostId;

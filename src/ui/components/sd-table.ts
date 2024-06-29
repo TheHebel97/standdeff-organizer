@@ -4,6 +4,7 @@ import {packages, updateData, rowSdTable, sdInquiry, Threads, newInquiry} from "
 import {LocalStorageService} from "../../logic/local-storage-service";
 import {isUserForumMod} from "../../logic/helpers/tw-helper";
 import {
+    applySettingsToMassUtLink,
     displayUpdatedSdTable,
     parseSdPosts,
     parseTableHtmlElemToSdState,
@@ -87,7 +88,7 @@ export function sdTable(threads: Threads) {
     displayUpdatedSdTable(packagesToUpdateFromPosts)
     //display sd zeugs für alle nutzer
     //if admin or mod dann zu löschende Posts selecten und
-
+    applySettingsToMassUtLink()
     if (isUserForumMod()) {
         const sdPostId = threads[currentThreadId].sdPostId;
         //find sd post

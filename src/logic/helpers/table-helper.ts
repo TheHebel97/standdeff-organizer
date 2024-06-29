@@ -419,7 +419,7 @@ export function displayUpdatedSdTable(packagesToUpdate: Map<string, any>) {
                     // Sie können hier Code hinzufügen, um das tr-Element zu bearbeiten
                     // Zum Beispiel, um den Text des ersten td-Elements zu ändern:
                     $(tr).find("td").eq(3).text(newVal.toString());
-                    if(addionalText !== ""){
+                    if (addionalText !== "") {
                         $(tr).find("td").eq(3).append(addionalText);
                     }
                 }
@@ -450,7 +450,7 @@ export function updateSentPackagesInSdTable() {
             let sentAmount = sentPackages.get(id);
             let addionalText = "";
             if (sentAmount) {
-                addionalText= " <span style='color:#FF0000;'>(-" + sentAmount + ")</span>";
+                addionalText = " <span style='color:#FF0000;'>(-" + sentAmount + ")</span>";
             }
             // Nehmen Sie an, dass result Ihr Array ist und das letzte Element das gespeicherte tr-Element ist
             let savedTr = result[id][9];
@@ -460,7 +460,7 @@ export function updateSentPackagesInSdTable() {
                     // Das aktuelle tr-Element stimmt mit dem gespeicherten tr-Element überein
                     // Sie können hier Code hinzufügen, um das tr-Element zu bearbeiten
                     // Zum Beispiel, um den Text des ersten td-Elements zu ändern:
-                    if(addionalText !== ""){
+                    if (addionalText !== "") {
                         $(tr).find("td").eq(3).append(addionalText);
                     }
                 }
@@ -468,6 +468,35 @@ export function updateSentPackagesInSdTable() {
         }
 
     });
+
+}
+
+
+export function applySettingsToMassUtLink() {
+    console.log("apply settings to mass ut link")
+    const localStorageService = LocalStorageService.getInstance();
+    const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
+    const currentThreadId: string = urlParams.get('thread_id') || "";
+    const automate = localStorageService.getAutomateMassenUt;
+    const sdGroupId = localStorageService.getSdGroupId;
+    const orderBy = localStorageService.getSortBy;
+    if (automate) {
+        console.log("automate mass ut")
+        let addionalLinkText = "&dir=0";
+        if(sdGroupId !== "")addionalLinkText +="&group="+sdGroupId;
+        if(orderBy !== "")addionalLinkText +="&order="+orderBy;
+
+
+        $(".bbcodetable").find("a[referrerpolicy^='no-ref']").each(function () {
+            let oldHref = $(this).attr('href');
+            if (oldHref) {
+                let newHref = oldHref + addionalLinkText;
+                $(this).attr('href', newHref);
+            }
+        });
+
+
+    }
 
 }
 

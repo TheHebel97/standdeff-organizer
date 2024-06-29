@@ -10,6 +10,7 @@ export type generalSettings = {
     firstStartPopup: boolean,
     automateMassenUt: boolean,
     sdGroupId: string,
+    sortBy: string,
     groupData: groupData[]
 }
 export type groupData = {

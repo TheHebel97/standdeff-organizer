@@ -18,6 +18,7 @@ export class LocalStorageService {
                 firstStartPopup: true,
                 automateMassenUt: false,
                 sdGroupId: "0",
+                sortBy: "",
                 groupData: []
             },
             threads: {}
@@ -83,6 +84,16 @@ export class LocalStorageService {
 
     public set setFirstStartPopup(value: boolean) {
         this._localStorageData.generalSettings.firstStartPopup = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public get getSortBy(): string {
+        this.updateFromLocalStorage();
+        return this._localStorageData.generalSettings.sortBy;
+    }
+
+    public set setSortBy(value: string) {
+        this._localStorageData.generalSettings.sortBy = value;
         this.storeDataInLocalStorage(this._localStorageData);
     }
 

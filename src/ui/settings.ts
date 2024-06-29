@@ -8,7 +8,7 @@ const localStorageService = LocalStorageService.getInstance();
 export function displaySettings() {
     console.log("standdeff-organizer loaded in settings");
 
-    let unitDropDownOptions :string= '<option value="default"></option>';
+    let unitDropDownOptions: string = '<option value="default"></option>';
     game_data.units.forEach(unit => {
         unitDropDownOptions += `<option value="${unit}">${unit}</option>`;
     })
@@ -42,6 +42,15 @@ export function displaySettings() {
           </td>
           <td>
             <input class="btn btn-confirm-no"  type="button" value="Aus" id="automate-massen-ut" style="width:75px;  background-color: #8d0100;color: #ffffff "/>
+          </td>
+
+        </tr>
+        <tr>
+          <td>
+            verhindere doppeltes Schicken:
+          </td>
+          <td>
+            <input class="btn btn-confirm-no"  type="button" value="An" id="prevent-duplicate-destination" style="width:75px;  background-color: #8d0100;color: #ffffff "/>
           </td>
 
         </tr>
@@ -112,7 +121,15 @@ export function displaySettings() {
         $("#automate-massen-ut").css("background", "#8d0100");
     }
 
-    if(localStorageService.getSortBy !== "default"){
+    if (localStorageService.getPreventDuplicateDestination) {
+        $("#prevent-duplicate-destination").val("An");
+        $("#prevent-duplicate-destination").css("background", "#0e7a0e");
+    } else {
+        $("#prevent-duplicate-destination").val("Aus");
+        $("#prevent-duplicate-destination").css("background", "#8d0100");
+    }
+
+    if (localStorageService.getSortBy !== "default") {
         $("#sd-sort-by").val(localStorageService.getSortBy);
         $("#sd-sort-by").css("background", "#0e7a0e");
     } else {
@@ -174,11 +191,11 @@ export function displaySettings() {
     if (threads) {
         // Durchlaufen jeder Thread-ID
         Object.entries(threads).forEach(([threadId, threadData]) => {
-             // Erstellen des vollständigen Links für den Thread
-             let threadLink = `${baseUrl}?village=3130&screen=forum&screenmode=view_thread&forum_id=${threadData.forumId}&thread_id=${threadId}`;
+            // Erstellen des vollständigen Links für den Thread
+            let threadLink = `${baseUrl}?village=3130&screen=forum&screenmode=view_thread&forum_id=${threadData.forumId}&thread_id=${threadId}`;
 
-             // Erstellen einer neuen Tabellenzeile für den Thread
-             let row = `<tr>
+            // Erstellen einer neuen Tabellenzeile für den Thread
+            let row = `<tr>
              <td>
                  <span style="font-size: larger; font-weight: bold">${threadData.forumName}</span> -
                  <a href="${threadLink}">
@@ -188,8 +205,8 @@ export function displaySettings() {
              <td style="text-align: center;"><button style="background: url(https://dsde.innogamescdn.com/asset/c045337f/graphic/delete.png); width: 20px; height: 20px;  border: none" class="delete-thread" data-thread-id="${threadId}"></button></td>
          </tr>`;
 
-             // Hinzufügen der Tabellenzeile zum tbody-Element
-             $("#activeSdThreads").append(row);
+            // Hinzufügen der Tabellenzeile zum tbody-Element
+            $("#activeSdThreads").append(row);
         });
     }
 
@@ -230,6 +247,21 @@ export function displaySettings() {
             localStorageService.setFirstStartPopup = true;
         }
     });
+    $("#prevent-duplicate-destination").on("click", function () {
+        const value = $(this).val();
+
+        if (value === "An") {
+            $(this).val("Aus");
+            $("#prevent-duplicate-destination").css("background", "#8d0100");
+            localStorageService.setPreventDuplicateDestination = false;
+
+        } else {
+            $(this).val("An");
+            $("#prevent-duplicate-destination").css("background", "#0e7a0e");
+            localStorageService.setPreventDuplicateDestination = true;
+        }
+    });
+
 
     $("#automate-massen-ut").on("click", function () {
         const value = $(this).val();

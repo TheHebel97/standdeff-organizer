@@ -10,6 +10,7 @@ export type generalSettings = {
     sdGroupId: string,
     sortBy: string,
     selectedTemplate: string,
+    preventDuplicateDestination: boolean,
     templateData: templateData[],
     groupData: groupData[]
 }

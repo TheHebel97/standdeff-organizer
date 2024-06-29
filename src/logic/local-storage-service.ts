@@ -20,6 +20,7 @@ export class LocalStorageService {
                 sdGroupId: "0",
                 sortBy: "",
                 selectedTemplate: "",
+                preventDuplicateDestination: true,
                 templateData: [],
                 groupData: []
             },
@@ -106,6 +107,16 @@ export class LocalStorageService {
 
     public set setAutomateMassenUt(value: boolean) {
         this._localStorageData.generalSettings.automateMassenUt = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public get getPreventDuplicateDestination(): boolean {
+        this.updateFromLocalStorage();
+        return this._localStorageData.generalSettings.preventDuplicateDestination;
+    }
+
+    public set setPreventDuplicateDestination(value: boolean) {
+        this._localStorageData.generalSettings.preventDuplicateDestination = value;
         this.storeDataInLocalStorage(this._localStorageData);
     }
 

@@ -8,6 +8,11 @@ const localStorageService = LocalStorageService.getInstance();
 export function displaySettings() {
     console.log("standdeff-organizer loaded in settings");
 
+    let unitDropDownOptions :string= '<option value="default"></option>';
+    game_data.units.forEach(unit => {
+        unitDropDownOptions += `<option value="${unit}">${unit}</option>`;
+    })
+
     const settingsHtml = `<table class="vis settings" width="100%" style="margin-top: 15px">
   <tbody>
   <tr>
@@ -41,6 +46,14 @@ export function displaySettings() {
 
         </tr>
         <tr>
+            <td>
+                sortieren nach:
+            </td>
+            <td>
+                <select id="sd-sort-by" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">`+unitDropDownOptions+`</select>
+            </td>
+</tr>
+        <tr>
           <td>
             SD verschicken Gruppen ID:
           </td>
@@ -49,6 +62,7 @@ export function displaySettings() {
           </td>
 
         </tr>
+        
         </tbody>
       </table>
 
@@ -87,6 +101,14 @@ export function displaySettings() {
     } else {
         $("#automate-massen-ut").val("Aus");
         $("#automate-massen-ut").css("background", "#8d0100");
+    }
+
+    if(localStorageService.getSortBy !== "default"){
+        $("#sd-sort-by").val(localStorageService.getSortBy);
+        $("#sd-sort-by").css("background", "#0e7a0e");
+    } else {
+        $("#sd-sort-by").val("default");
+        $("#sd-sort-by").css("background", "#8d0100");
     }
 
     // Laden der Gruppendaten aus dem lokalen Speicher
@@ -202,6 +224,16 @@ export function displaySettings() {
             return;
         }
         localStorageService.setSdGroupId = "0";
+        $(this).css("background", "#8d0100");
+    });
+
+    $("#sd-sort-by").on("change", function () {
+        if ($(this).val() !== "default") {
+            localStorageService.setSortBy = String($(this).val());
+            $(this).css("background", "#0e7a0e");
+            return;
+        }
+        localStorageService.setSortBy = "default";
         $(this).css("background", "#8d0100");
     });
 }

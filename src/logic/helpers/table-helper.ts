@@ -482,7 +482,7 @@ export function applySettingsToMassUtLink() {
     const orderBy = localStorageService.getSortBy;
     if (automate) {
         console.log("automate mass ut")
-        let addionalLinkText = "&dir=0";
+        let addionalLinkText = "&dir=0&sdTableId=" + currentThreadId;
         if(sdGroupId !== "")addionalLinkText +="&group="+sdGroupId;
         if(orderBy !== "")addionalLinkText +="&order="+orderBy;
 

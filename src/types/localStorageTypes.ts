@@ -11,13 +11,18 @@ export type generalSettings = {
     automateMassenUt: boolean,
     sdGroupId: string,
     sortBy: string,
+    selectedTemplate: string,
+    templateData: templateData[],
     groupData: groupData[]
 }
 export type groupData = {
     id: string;
     name: string;
 }
-
+export type templateData = {
+    id: string;
+    name: string;
+}
 export type lsThreads = {
     [threadId: string]: lsThreadData
 }

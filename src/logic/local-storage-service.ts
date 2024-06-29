@@ -1,4 +1,4 @@
-import {groupData, rowSdTable, sdInquiry, ThreadData, Threads} from "../types/types";
+import {groupData, rowSdTable, sdInquiry, ThreadData, Threads,templateData} from "../types/types";
 import {LocalStorageData} from "../types/localStorageTypes";
 
 
@@ -19,6 +19,8 @@ export class LocalStorageService {
                 automateMassenUt: false,
                 sdGroupId: "0",
                 sortBy: "",
+                selectedTemplate: "",
+                templateData: [],
                 groupData: []
             },
             threads: {}
@@ -124,6 +126,26 @@ export class LocalStorageService {
 
     public set setGroupData(value: groupData[]) {
         this._localStorageData.generalSettings.groupData = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public get getTemplateData(): templateData[] {
+        this.updateFromLocalStorage();
+        return this._localStorageData.generalSettings.templateData;
+    }
+
+    public set setTemplateData(value: templateData[]) {
+        this._localStorageData.generalSettings.templateData = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public get getSelectedTemplate(): string {
+        this.updateFromLocalStorage();
+        return this._localStorageData.generalSettings.selectedTemplate;
+    }
+
+    public set setSelectedTemplate(value: string) {
+        this._localStorageData.generalSettings.selectedTemplate = value;
         this.storeDataInLocalStorage(this._localStorageData);
     }
 

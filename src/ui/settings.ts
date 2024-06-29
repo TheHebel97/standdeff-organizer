@@ -50,7 +50,7 @@ export function displaySettings() {
                 sortieren nach:
             </td>
             <td>
-                <select id="sd-sort-by" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">`+unitDropDownOptions+`</select>
+                <select id="sd-sort-by" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">` + unitDropDownOptions + `</select>
             </td>
 </tr>
         <tr>
@@ -59,6 +59,15 @@ export function displaySettings() {
           </td>
           <td>
             <input type="number" value="0" id="sd-group-id" style="width:68px;  background-color: #8d0100; color: #ffffff"/>
+          </td>
+
+        </tr>
+        <tr>
+          <td>
+            SD Vorlagen ID:
+          </td>
+          <td>
+            <input type="number" value="0" id="sd-template-id" style="width:68px;  background-color: #8d0100; color: #ffffff"/>
           </td>
 
         </tr>
@@ -114,6 +123,7 @@ export function displaySettings() {
     // Laden der Gruppendaten aus dem lokalen Speicher
     let groupData: groupData[] = localStorageService.getGroupData;
     console.log("groupData: ", groupData);
+    let templateData: groupData[] = localStorageService.getTemplateData;
 
 // Überprüfen, ob Gruppendaten vorhanden sind
     if (groupData.length > 0) {
@@ -130,6 +140,25 @@ export function displaySettings() {
         if (localStorageService.getSdGroupId !== "0") {
             $("#sd-group-id").val(localStorageService.getSdGroupId);
             $("#sd-group-id").css("background", "#0e7a0e");
+        }
+    }
+
+    // Überprüfen, ob Template-Daten vorhanden sind
+    if (templateData.length > 0) {
+        // Erstellen eines Dropdown-Menüs mit den Template-Daten
+        let dropdown = '<select id="sd-template-id" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">';
+        dropdown += '<option value="">nicht gesetzt</option>';
+        templateData.forEach(template => {
+            dropdown += `<option value="${template.id}">${template.name}</option>`;
+        });
+        dropdown += '</select>';
+
+        // Ersetzen des Texteingabefelds durch das Dropdown-Menü
+        $("#sd-template-id").replaceWith(dropdown);
+
+        if (localStorageService.getSelectedTemplate !== "") {
+            $("#sd-template-id").val(localStorageService.getSelectedTemplate);
+            $("#sd-template-id").css("background", "#0e7a0e");
         }
     }
 
@@ -224,6 +253,16 @@ export function displaySettings() {
             return;
         }
         localStorageService.setSdGroupId = "0";
+        $(this).css("background", "#8d0100");
+    });
+
+    $("#sd-template-id").on("change", function () {
+        if ($(this).val() !== "0") {
+            localStorageService.setSelectedTemplate = String($(this).val());
+            $(this).css("background", "#0e7a0e");
+            return;
+        }
+        localStorageService.setSelectedTemplate = "0";
         $(this).css("background", "#8d0100");
     });
 

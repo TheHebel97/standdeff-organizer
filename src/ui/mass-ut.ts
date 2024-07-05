@@ -69,7 +69,7 @@ export function displayMassUt() {
             })
 
             $("#place_call_form_submit").on("click", function () {
-                $(this).prop('disabled', true);
+                //$(this).prop('disabled', true);
                 let checkedBoxes = $(".troop-request-selector:checked").length;
                 threadData?.packagesSent.set(sendingObj.sdId, String(checkedBoxes));
                 localStorageService.setThreadData(refererThreadId, threadData);

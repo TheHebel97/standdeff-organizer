@@ -399,16 +399,6 @@ export function displayUpdatedSdTable(packagesToUpdate: Map<string, any>) {
             let oldValue = parseInt(rowData[3]);
             let newVal = Math.max(0, oldValue - updateValue);
             let addionalText = "";
-            // if (sentPackages.has(id)) {
-            //     let sentAmount = sentPackages.get(id);
-            //     if (sentAmount === "done") {
-            //         return;
-            //     }
-            //     if (sentAmount) {
-            //         addionalText= " <span style='color:#FF0000;'>(-" + sentAmount + ")</span>";
-            //     }
-            // }
-
 
             // Nehmen Sie an, dass result Ihr Array ist und das letzte Element das gespeicherte tr-Element ist
             let savedTr = result[id][9];
@@ -450,7 +440,7 @@ export function updateSentPackagesInSdTable() {
             let sentAmount = sentPackages.get(id);
             let addionalText = "";
             if (sentAmount) {
-                addionalText = " <span style='color:#FF0000;'>(-" + sentAmount + ")</span>";
+                addionalText = " <span id='sent-info' style='color:#FF0000;'>(-" + sentAmount + ")</span>";
             }
             // Nehmen Sie an, dass result Ihr Array ist und das letzte Element das gespeicherte tr-Element ist
             let savedTr = result[id][9];

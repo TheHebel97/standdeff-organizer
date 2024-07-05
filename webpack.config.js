@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'development',  // Set mode to 'development' for easier debugging
+  mode: 'production',  // Set mode to 'development' for easier debugging
   entry: './src/index.ts',  // Entry point for the application (your main TypeScript file)
   module: {
     rules: [

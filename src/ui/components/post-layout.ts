@@ -64,6 +64,18 @@ export function postLayout(updateData: updateData) {
         console.log("past requests");
     })
     $("#addBearbeitung").on("click", function () {
+
+        $("input[name=send]").on("click", function () {
+            localStorageService.setPackagesSent(currentThreadId, new Map());
+        });
+
+        const packagesSent = localStorageService.getPackagesSent(currentThreadId)
+        let res = "";
+        packagesSent.forEach((value, key) => {
+            res += `${key} ${value}\n`
+        });
+
+        $("#message").val(res)
         console.log("bearbeitung eintragen")
     })
     $("input[name=send]").on("click", function () {

@@ -33,8 +33,7 @@ export function sdTable(threads: Threads) {
     if ($("#message").length) { //wenn textarea vorhanden
         console.log("textarea vorhanden")
         postLayout(updateData);
-        return; // wenn textarea vorhanden, dann sd tabelle nicht visuell anhand den darunterleigenden posts anpassen
-        return; // wenn textarea vorhanden, dann sd tabelle nicht visuell anhand den darunterleigenden posts anpassen
+         return; // wenn textarea vorhanden, dann sd tabelle nicht visuell anhand den darunterleigenden posts anpassen
     }
 
     console.log("--------------------")

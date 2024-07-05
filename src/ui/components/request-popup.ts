@@ -26,8 +26,8 @@ export function showRequestPopup() {
                                     
                                 </table>
                                 <hr style="margin-top: 15px; margin-bottom: 15px">
-                                <textarea class="textAreaKoords" id="textAreaKoords" style="background-color:#EAD5AA;" ></textarea>
-                                <input type="button" value="Hinzufügen" class="addBunkerAnfrage btn" style="">
+                                <textarea class="textAreaKoords" id="textAreaKoords" style="background-color:#EAD5AA;" placeholder="Koordinaten"></textarea>
+                                <input type="button" value="Bunker anfragen" class="addBunkerAnfrage btn" disabled style="float: right; margin-top: 15px">
                               </div>
                             </div>
                         </div>
@@ -44,11 +44,21 @@ export function showRequestPopup() {
     renderTableRows();
 
     $(".addBunkerAnfrage").on("click", function () {
-        const result = convertRequestArrayToMessageString(localStorageService.getSdInquiry(currentThreadId));
-        $("#message").val(result);
-        //close popup
-        $("#dbInfo_popup_box").remove();
-    });
+        let isEmpty = false;
+        $(".amountInput").each(function () {
+            if ($(this).val() === "") {
+                $(this).css("background-color", "red");
+                isEmpty = true;
+                return false; // break the loop
+            }
+        });
+        if (!isEmpty) {
+            const result = convertRequestArrayToMessageString(localStorageService.getSdInquiry(currentThreadId));
+            $("#message").val(result);
+            $("#dbInfo_popup_box").remove();
+        }
+
+    })
 
 }
 
@@ -66,6 +76,12 @@ function renderTableRows(): void {
                                     <th style="padding-left: 10px; padding-right: 10px">ab <span style="font-size: 0.8em;">(optional)</span></th>
                                     <th style="padding-left: 10px; padding-right: 10px">bis <span style="font-size: 0.8em;">(optional)</span></th>
                                     <th style="padding-left: 10px; padding-right: 10px">Löschen</th></tr>`;
+    if (requestDataArray.length === 0) {
+        $(".addBunkerAnfrage").prop("disabled", true);
+    } else {
+        $(".addBunkerAnfrage").prop("disabled", false);
+    }
+
     requestDataArray.forEach((requestRow, index) => {
         Object.values(requestRow).forEach((value) => {
             if (value === undefined) {
@@ -84,16 +100,16 @@ function renderTableRows(): void {
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.playerName) {
-    returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="${requestRow.playerName}">`;
-} else {
-    returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="">`;
-}
-returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
-if (requestRow.comment) {
-    returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="${requestRow.comment}">`;
-} else {
-    returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="">`;
-}
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="${requestRow.playerName}">`;
+        } else {
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="">`;
+        }
+        returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
+        if (requestRow.comment) {
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="${requestRow.comment}">`;
+        } else {
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="">`;
+        }
 
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.dateFrom) {
@@ -128,6 +144,7 @@ if (requestRow.comment) {
 
     $(".amountInput").on("click", function () {
         $(this).val("");
+        $(this).css("background-color", "#EAD5AA");
     });
 
     $(".playerNameInput").on("click", function () {
@@ -255,10 +272,10 @@ if (requestRow.comment) {
 }
 
 function handleInput(htmlElement: HTMLElement) {
-    let input :string = String($(htmlElement).val());
+    let input: string = String($(htmlElement).val());
     let pattern = /^[a-zA-Z0-9_]*$/;
-    if (input!==null &&!pattern.test(input)) {
-        let subString = input.substring(0,input.length - 1);
+    if (input !== null && !pattern.test(input)) {
+        let subString = input.substring(0, input.length - 1);
         $(htmlElement).css("background-color", "red");
         $(htmlElement).val(subString);
         return;

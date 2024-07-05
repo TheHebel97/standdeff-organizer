@@ -470,23 +470,20 @@ export function applySettingsToMassUtLink() {
     const automate = localStorageService.getAutomateMassenUt;
     const sdGroupId = localStorageService.getSdGroupId;
     const orderBy = localStorageService.getSortBy;
+    let addionalLinkText = "&dir=0&sdTableId=" + currentThreadId;
     if (automate) {
         console.log("automate mass ut")
-        let addionalLinkText = "&dir=0&sdTableId=" + currentThreadId;
-        if(sdGroupId !== "")addionalLinkText +="&group="+sdGroupId;
-        if(orderBy !== "")addionalLinkText +="&order="+orderBy;
 
-
-        $(".bbcodetable").find("a[referrerpolicy^='no-ref']").each(function () {
-            let oldHref = $(this).attr('href');
-            if (oldHref) {
-                let newHref = oldHref + addionalLinkText;
-                $(this).attr('href', newHref);
-            }
-        });
-
-
+        if (sdGroupId !== "") addionalLinkText += "&group=" + sdGroupId;
+        if (orderBy !== "") addionalLinkText += "&order=" + orderBy;
     }
+    $(".bbcodetable").find("a[referrerpolicy^='no-ref']").each(function () {
+        let oldHref = $(this).attr('href');
+        if (oldHref) {
+            let newHref = oldHref + addionalLinkText;
+            $(this).attr('href', newHref);
+        }
+    });
 
 }
 

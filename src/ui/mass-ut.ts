@@ -19,16 +19,18 @@ export function displayMassUt() {
             const destinationVillageId = urlParams.get('target');
             const selectedTemplate = localStorageService.getSelectedTemplate;
             //auswahl der passenden vorlage
-            $("select[name='template'] > option").each(function () {
-                let optionValue = $(this).val();
-                if (optionValue) {
-                    let optionObj = JSON.parse(String(optionValue));
-                    if (optionObj.id === selectedTemplate) {
-                        $(this).prop('selected', true);
-                        return false; // Beendet die each-Schleife, sobald das passende Element gefunden wurde
+            if (localStorageService.getAutomateMassenUt) {
+                $("select[name='template'] > option").each(function () {
+                    let optionValue = $(this).val();
+                    if (optionValue) {
+                        let optionObj = JSON.parse(String(optionValue));
+                        if (optionObj.id === selectedTemplate) {
+                            $(this).prop('selected', true);
+                            return false; // Beendet die each-Schleife, sobald das passende Element gefunden wurde
+                        }
                     }
-                }
-            });
+                });
+            }
 
             const sendingObj = threadData?.stateOfSdTable.get(Number(destinationVillageId)) || {} as rowSdTable;
             const alreadySentAmount = parseInt(String(threadData?.packagesSent.get(sendingObj?.sdId))) | 0;
@@ -36,7 +38,7 @@ export function displayMassUt() {
             console.log(alreadySentAmount)
             let packagesToSend = sendingObj.leftAmount - alreadySentAmount;
             //!(alreadySentAmount!==undefined && preventDuplicateDestination)
-            if ((alreadySentAmount > 0 && preventDuplicateDestination)||packagesToSend<0) {
+            if ((alreadySentAmount > 0 && preventDuplicateDestination) || packagesToSend < 0) {
                 packagesToSend = 0;
             }
 
@@ -47,9 +49,9 @@ export function displayMassUt() {
             });
             // check how many checkboxes are present
 
-            if($(".troop-request-selector").length<packagesToSend){
+            if ($(".troop-request-selector").length < packagesToSend) {
                 $("#place_call_select_all").trigger('click');
-            }else{
+            } else {
                 $(".troop-request-selector").each(function () {
                     if (packagesToSend > 0) {
                         $(this).trigger('click');
@@ -75,11 +77,6 @@ export function displayMassUt() {
                 localStorageService.setThreadData(refererThreadId, threadData);
                 console.log(packagesToSend)
             })
-
-
-
-
-
 
 
         }

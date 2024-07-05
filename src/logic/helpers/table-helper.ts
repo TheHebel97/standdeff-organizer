@@ -450,6 +450,13 @@ export function updateSentPackagesInSdTable() {
                     // Das aktuelle tr-Element stimmt mit dem gespeicherten tr-Element überein
                     // Sie können hier Code hinzufügen, um das tr-Element zu bearbeiten
                     // Zum Beispiel, um den Text des ersten td-Elements zu ändern:
+                    if($(tr).find("#sent-info").length > 0){
+                        if(sentAmount) {
+                            $(tr).find("#sent-info").text("(-"+sentAmount+")");
+                            return;
+                        }
+                    }
+
                     if (addionalText !== "") {
                         $(tr).find("td").eq(3).append(addionalText);
                     }

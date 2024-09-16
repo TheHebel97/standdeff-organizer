@@ -12,8 +12,6 @@
 // @grant        none
 // ==/UserScript==
 
-
-import {getCurrentScriptContext} from "./logic/helpers/tw-helper";
 import {setupScriptUI} from "./ui/script-ui-logic";
 import {LocalStorageService} from "./logic/local-storage-service";
 
@@ -25,6 +23,24 @@ import {LocalStorageService} from "./logic/local-storage-service";
         console.log("standdeff-organizer will be loaded in " + currentScriptContext);
         setupScriptUI(currentScriptContext);
     });
+
+    function getCurrentScriptContext() :string {
+        const urlParams = new URLSearchParams(window.location.search);
+        let screenParamValue = urlParams.get('screen');
+        let screenName:string = screenParamValue !== null ? screenParamValue : "";
+        if (screenName === "place") {
+            return screenName;
+        }
+        if (screenName === "forum") {
+            const modeParamValue = urlParams.get('mode')===null ? urlParams.get('screenmode') : urlParams.get('mode');
+            //const editModeParamValue = urlParams.get('edit_post_id');
+            return screenName + "-" + modeParamValue;
+        }
+        if(screenName === "settings"){
+            return screenName;
+        }
+        return "unknown";
+    }
 
 
 })();

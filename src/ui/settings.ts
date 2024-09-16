@@ -1,5 +1,4 @@
-import {groupData, Threads} from "../types/types";
-
+import {groupData, templateData, Threads} from "../types/types";
 import {LocalStorageService} from "../logic/local-storage-service";
 
 const localStorageService = LocalStorageService.getInstance();
@@ -61,7 +60,7 @@ export function displaySettings() {
             <td>
                 <select id="sd-sort-by" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">` + unitDropDownOptions + `</select>
             </td>
-</tr>
+      </tr>
         <tr>
           <td>
             SD verschicken Gruppen ID:
@@ -103,66 +102,52 @@ export function displaySettings() {
 </table>`;
 
     $("#content_value > table > tbody > tr > td:nth-child(2)").append(settingsHtml);
-    //setzen des ui je nach settings:
+    //colorize the buttons depending on the value of the setting
     if (localStorageService.getFirstStartPopup) {
-        $("#first-start-popup").val("An");
-        $("#first-start-popup").css("background", "#0e7a0e");
+        $("#first-start-popup").val("An").css("background", "#0e7a0e");
     } else {
-        $("#first-start-popup").val("Aus");
-        $("#first-start-popup").css("background", "#8d0100");
+        $("#first-start-popup").val("Aus").css("background", "#8d0100");
     }
 
     if (localStorageService.getAutomateMassenUt) {
-        $("#automate-massen-ut").val("An");
-        $("#automate-massen-ut").css("background", "#0e7a0e");
+        $("#automate-massen-ut").val("An").css("background", "#0e7a0e");
 
     } else {
-        $("#automate-massen-ut").val("Aus");
-        $("#automate-massen-ut").css("background", "#8d0100");
+        $("#automate-massen-ut").val("Aus").css("background", "#8d0100");
     }
 
     if (localStorageService.getPreventDuplicateDestination) {
-        $("#prevent-duplicate-destination").val("An");
-        $("#prevent-duplicate-destination").css("background", "#0e7a0e");
+        $("#prevent-duplicate-destination").val("An").css("background", "#0e7a0e");
     } else {
-        $("#prevent-duplicate-destination").val("Aus");
-        $("#prevent-duplicate-destination").css("background", "#8d0100");
+        $("#prevent-duplicate-destination").val("Aus").css("background", "#8d0100");
     }
 
     if (localStorageService.getSortBy !== "default") {
-        $("#sd-sort-by").val(localStorageService.getSortBy);
-        $("#sd-sort-by").css("background", "#0e7a0e");
+        $("#sd-sort-by").val(localStorageService.getSortBy).css("background", "#0e7a0e");
     } else {
-        $("#sd-sort-by").val("default");
-        $("#sd-sort-by").css("background", "#8d0100");
+        $("#sd-sort-by").val("default").css("background", "#8d0100");
     }
 
-    // Laden der Gruppendaten aus dem lokalen Speicher
+    // get group data from local storage
     let groupData: groupData[] = localStorageService.getGroupData;
     console.log("groupData: ", groupData);
-    let templateData: groupData[] = localStorageService.getTemplateData;
+    let templateData: templateData[] = localStorageService.getTemplateData;
 
-// Überprüfen, ob Gruppendaten vorhanden sind
     if (groupData.length > 0) {
-        // Erstellen eines Dropdown-Menüs mit den Gruppendaten
         let dropdown = '<select id="sd-group-id" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">';
         groupData.forEach(group => {
             dropdown += `<option value="${group.id}">${group.name}</option>`;
         });
         dropdown += '</select>';
 
-        // Ersetzen des Texteingabefelds durch das Dropdown-Menü
         $("#sd-group-id").replaceWith(dropdown);
 
         if (localStorageService.getSdGroupId !== "0") {
-            $("#sd-group-id").val(localStorageService.getSdGroupId);
-            $("#sd-group-id").css("background", "#0e7a0e");
+            $("#sd-group-id").val(localStorageService.getSdGroupId).css("background", "#0e7a0e");
         }
     }
 
-    // Überprüfen, ob Template-Daten vorhanden sind
     if (templateData.length > 0) {
-        // Erstellen eines Dropdown-Menüs mit den Template-Daten
         let dropdown = '<select id="sd-template-id" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">';
         dropdown += '<option value="">nicht gesetzt</option>';
         templateData.forEach(template => {
@@ -170,31 +155,21 @@ export function displaySettings() {
         });
         dropdown += '</select>';
 
-        // Ersetzen des Texteingabefelds durch das Dropdown-Menü
         $("#sd-template-id").replaceWith(dropdown);
 
         if (localStorageService.getSelectedTemplate !== "") {
-            $("#sd-template-id").val(localStorageService.getSelectedTemplate);
-            $("#sd-template-id").css("background", "#0e7a0e");
+            $("#sd-template-id").val(localStorageService.getSelectedTemplate).css("background", "#0e7a0e");
         }
     }
 
-
-    // Laden der Thread-IDs aus dem lokalen Speicher
-    //let threadIds: sdThreadData[] = getDataFromLocalStorage("threadIds");
     let threads: Threads = localStorageService.getAllThreads;
 
-// Extrahieren des Basis-URL-Teils aus der aktuellen URL
     let baseUrl = window.location.origin + window.location.pathname;
 
-// Überprüfen, ob Thread-IDs vorhanden sind
     if (threads) {
-        // Durchlaufen jeder Thread-ID
         Object.entries(threads).forEach(([threadId, threadData]) => {
-            // Erstellen des vollständigen Links für den Thread
             let threadLink = `${baseUrl}?village=3130&screen=forum&screenmode=view_thread&forum_id=${threadData.forumId}&thread_id=${threadId}`;
 
-            // Erstellen einer neuen Tabellenzeile für den Thread
             let row = `<tr>
              <td>
                  <span style="font-size: larger; font-weight: bold">${threadData.forumName}</span> -
@@ -205,30 +180,17 @@ export function displaySettings() {
              <td style="text-align: center;"><button style="background: url(https://dsde.innogamescdn.com/asset/c045337f/graphic/delete.png); width: 20px; height: 20px;  border: none" class="delete-thread" data-thread-id="${threadId}"></button></td>
          </tr>`;
 
-            // Hinzufügen der Tabellenzeile zum tbody-Element
             $("#activeSdThreads").append(row);
         });
     }
 
-    //setzen der listener
+    //listener
 
-    // Event-Listener für die Löschen-Buttons hinzufügen
     $(".delete-thread").on("click", function () {
-        // Thread-ID des zu löschenden Threads abrufen
         let threadIdToDelete = $(this).data("thread-id");
-
-        // Thread-IDs aus dem LocalStorage abrufen
-        let threadIds: Threads = localStorageService.getAllThreads;
 
         localStorageService.deleteThread(threadIdToDelete);
 
-        // Den zu löschenden Thread aus den Thread-IDs entfernen
-        //threadIds = threadIds.filter(threadData => threadData.threadId !== threadIdToDelete);
-
-        // Die aktualisierten Thread-IDs im LocalStorage speichern
-        //storeDataInLocalStorage(threadIds, "threadIds");
-
-        // Die Tabellenzeile des gelöschten Threads entfernen
         $(this).parent().parent().remove();
     });
 
@@ -240,7 +202,6 @@ export function displaySettings() {
             $(this).val("Aus");
             $("#first-start-popup").css("background", "#8d0100");
             localStorageService.setFirstStartPopup = false;
-
         } else {
             $(this).val("An");
             $("#first-start-popup").css("background", "#0e7a0e");

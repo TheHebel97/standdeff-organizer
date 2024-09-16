@@ -106,12 +106,8 @@ function newThread() {
         row.push(spy[i] || "");
         troopArray.push(row);
     }
-    console.log(troopArray)
     troopArray = troopArray.filter(row => row.some(value => value !== ""));
-    console.log(troopArray)
     let paketText = createPaketHtml(troopArray)
-    console.log("asdasd")
-    console.log(paketText)
     $(".clearfix > form > input[value=Senden]").on("click", function () {
         localStorageService.setNewThread = true;
 

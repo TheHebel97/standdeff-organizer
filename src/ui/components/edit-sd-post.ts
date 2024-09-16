@@ -41,7 +41,7 @@ function updateSdTable(updateData: updateData) { // hier wird mir kinda schlecht
     let [tableText, cacheText] = parseSdStateToTableString(newSdState)
 
     let updatedSdPostText = rawSdPostText.replace(tablePattern, `[table]
-    [**]ID[||]Dorfkoordinaten[||]angefordert[||][color=#8d0100]noch benötigt[/color] [||]Spieler[||]Bemerkung[||]ab[||]bis[||][color=#001c83]Massenutlink[/color][/**]${tableText}[/table]`);
+    [**]ID[||]Dorfkoordinaten[||]Angefordert[||][color=#8d0100]Noch benötigt[/color] [||]Spieler[||]Bemerkung[||]Ab[||]Bis[||][color=#001c83]Massen UT-Link[/color][/**]${tableText}[/table]`);
     updatedSdPostText = updatedSdPostText.replace(cachePattern, `${cacheText}`);
     console.log("updated sd post text:")
     $("#message").val(updatedSdPostText)

@@ -308,7 +308,7 @@ export function parseSdStateToTableString(sdState: sdState): [string, string] {
     const [sdTableState, cache] = sdState;
     let tableString = "";
     sdTableState.forEach((row, villageId) => {
-        tableString += `[*]${row.sdId}[|]${" " + row.coords + " "}[|]${row.startAmount}[|]${row.leftAmount}[|][player]${row.playerName}[/player][|]${row.comment}[|]${row.dateFrom}[|]${row.dateUntil}[|][url=${generateMassUtLink(villageId)}]Massenutlink[/url][/*]\n`;
+        tableString += `[*]${row.sdId}[|]${" " + row.coords + " "}[|]${row.startAmount}[|]${row.leftAmount}[|][player]${row.playerName}[/player][|]${row.comment}[|]${row.dateFrom}[|]${row.dateUntil}[|][url=${generateMassUtLink(villageId)}]Massen UT-Link[/url][/*]\n`;
     });
     let cacheString = `[spoiler=postCache]${cache.join(",")}[/spoiler]`;
     return [tableString, cacheString];

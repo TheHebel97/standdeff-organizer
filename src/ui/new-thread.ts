@@ -69,7 +69,7 @@ function newThread() {
     let text = `[b]SD Tabelle Paketsystem[/b]
 
 [table]
-[**]ID[||]Dorfkoordinaten[||]angefordert[||][color=#8d0100]noch benötigt[/color] [||]Spieler[||]Bemerkung[||]ab[||]bis[||][color=#001c83]Massenutlink[/color][/**]
+[**]ID[||]Dorfkoordinaten[||]angefordert[||][color=#8d0100]noch benötigt[/color] [||]Spieler[||]Bemerkung[||]ab[||]bis[||][color=#001c83]Massen UT-Link[/color][/**]
 [/table]
 
 [b]1 Paket =[/b]

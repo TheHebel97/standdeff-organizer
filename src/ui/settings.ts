@@ -102,7 +102,7 @@ export function displaySettings() {
 
 </table>`;
 
-    $("#dialog-sync").parent().append(settingsHtml);
+    $("#content_value > table > tbody > tr > td:nth-child(2)").append(settingsHtml);
     //setzen des ui je nach settings:
     if (localStorageService.getFirstStartPopup) {
         $("#first-start-popup").val("An");

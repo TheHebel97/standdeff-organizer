@@ -12,7 +12,6 @@
 // @grant        none
 // ==/UserScript==
 
-import {LocalStorageService} from "./logic/local-storage-service";
 import {displayMassUt} from "./ui/mass-ut";
 import {viewThread} from "./ui/view-thread";
 import {createNewTable} from "./ui/new-thread";
@@ -21,22 +20,21 @@ import {displaySettings} from "./ui/settings";
 (function () {
     //load when document is ready
     $(function () {
-        const localStorageService = LocalStorageService.getInstance();
-        let currentScriptContext: string = getCurrentScriptContext();
-        console.log("standdeff-organizer will be loaded in " + currentScriptContext);
+        const currentScriptContext: string = getCurrentScriptContext();
+        console.log("standdeff-organizer will be loaded in context: " + currentScriptContext);
         setupScriptUI(currentScriptContext);
     });
 
     function getCurrentScriptContext() :string {
+        // returns the current context of the script as string
         const urlParams = new URLSearchParams(window.location.search);
-        let screenParamValue = urlParams.get('screen');
-        let screenName:string = screenParamValue !== null ? screenParamValue : "";
+        const screenParamValue = urlParams.get('screen');
+        const screenName:string = screenParamValue !== null ? screenParamValue : "";
         if (screenName === "place") {
             return screenName;
         }
         if (screenName === "forum") {
             const modeParamValue = urlParams.get('mode')===null ? urlParams.get('screenmode') : urlParams.get('mode');
-            //const editModeParamValue = urlParams.get('edit_post_id');
             return screenName + "-" + modeParamValue;
         }
         if(screenName === "settings"){
@@ -45,7 +43,8 @@ import {displaySettings} from "./ui/settings";
         return "unknown";
     }
 
-    function setupScriptUI(this: any, currentScriptContext: string) {
+    function setupScriptUI(currentScriptContext: string) {
+        // the four possible contexts are: place, forum-view_thread, forum-new_thread, settings
         if (currentScriptContext === "place") {
             displayMassUt();
         } else if (currentScriptContext === "forum-view_thread") {
@@ -55,9 +54,5 @@ import {displaySettings} from "./ui/settings";
         } else if (currentScriptContext === "settings") {
             displaySettings();
         }
-
-
     }
-
-
 })();

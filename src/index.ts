@@ -12,8 +12,11 @@
 // @grant        none
 // ==/UserScript==
 
-import {setupScriptUI} from "./ui/script-ui-logic";
 import {LocalStorageService} from "./logic/local-storage-service";
+import {displayMassUt} from "./ui/mass-ut";
+import {viewThread} from "./ui/view-thread";
+import {createNewTable} from "./ui/new-thread";
+import {displaySettings} from "./ui/settings";
 
 (function () {
     //load when document is ready
@@ -40,6 +43,20 @@ import {LocalStorageService} from "./logic/local-storage-service";
             return screenName;
         }
         return "unknown";
+    }
+
+    function setupScriptUI(this: any, currentScriptContext: string) {
+        if (currentScriptContext === "place") {
+            displayMassUt();
+        } else if (currentScriptContext === "forum-view_thread") {
+            viewThread();
+        } else if (currentScriptContext === "forum-new_thread") {
+            createNewTable();
+        } else if (currentScriptContext === "settings") {
+            displaySettings();
+        }
+
+
     }
 
 

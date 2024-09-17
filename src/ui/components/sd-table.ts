@@ -56,7 +56,9 @@ export function sdTable(threads: Threads) {
     // delete every map member of the updateData that is not in the postCache
     for (let key of postCacheSplit) {
         updateData.delete(key);
-        $("a[name='" + key + "']").parent().remove();
+        if (!isUserForumMod()) {
+            $("a[name='" + key + "']").parent().remove();
+        }
     }
 
 

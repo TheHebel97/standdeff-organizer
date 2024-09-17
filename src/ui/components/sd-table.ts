@@ -33,7 +33,16 @@ export function sdTable(threads: Threads) {
     if ($("#message").length) { //wenn textarea vorhanden
         console.log("textarea vorhanden")
         postLayout(updateData);
-         return; // wenn textarea vorhanden, dann sd tabelle nicht visuell anhand den darunterleigenden posts anpassen
+        // return; // wenn textarea vorhanden, dann sd tabelle nicht visuell anhand den darunterleigenden posts anpassen
+    }
+//removal of all options for non mods
+    if (!isUserForumMod()) {
+        $(".postheader_right").each((index, elem) => {
+            $(elem).children().each((index, elem) => {
+                const keywords = ["Zitat", "Bearbeiten"];
+                $(elem).text().split(" ").some(word => keywords.includes(word)) && $(elem).remove();
+            });
+        });
     }
 
     console.log("--------------------")

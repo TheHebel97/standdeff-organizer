@@ -10,7 +10,7 @@ export function postLayout(updateData: updateData) {
     console.log("post layout");
     const localStorageService = LocalStorageService.getInstance();
     const urlParams = new URLSearchParams(window.location.search);
-    const currentThreadId = urlParams.get("thread_id")||"";
+    const currentThreadId = urlParams.get("thread_id") || "";
 
     if (!isUserForumMod()) {
         console.log("user is not forum mod and text area is present")
@@ -26,12 +26,30 @@ export function postLayout(updateData: updateData) {
             $("#message").prop("readonly", false)
         });
     }
-
+    const finishedRequests = localStorageService.getPackagesSent(currentThreadId).size;
+    console.log(finishedRequests)
     const postLayout = `
 <input class="btn" type="button" value="Bunker anfragen" id="requestBunker">
 <input class="btn" type="button" value="Bearbeitung eintragen" id="addBearbeitung">`
     $("input[name=preview]").remove()
     $("input[name=send]").parent().prepend(postLayout)
+    if(finishedRequests > 0){
+        $("#addBearbeitung").after('<span class="notification-badge" id="notificationBadge">!</span>');
+// CSS für die Benachrichtigungszahl
+        const style = document.createElement('style');
+        style.innerHTML = `
+.notification-badge {
+  position: relative;
+  top: -10px;
+  right: 10px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  padding: 5px 10px;
+  font-size: 12px;
+}`;
+        document.head.appendChild(style);
+    }
 
 
     if (!urlParams.has("answer")) { // neuer post

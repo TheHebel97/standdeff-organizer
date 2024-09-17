@@ -285,14 +285,15 @@ function handleInput(htmlElement: HTMLElement) {
 
 function getFilteredInput(input: string) {
     console.log("getFilteredInput");
-    const coordsPattern = /^\d{3}\|\d{3}$/;
+    const coordsPattern = /\d{3}\|\d{3}/g;
     let inputArray: string[] = input.split("\n");
     let resultArray: string[] = [];
     console.log(inputArray);
-    inputArray.forEach((line, index) => {
-        if (coordsPattern.test(line)) {
+    inputArray.forEach((line) => {
+        let matches = line.match(coordsPattern);
+        if (matches) {
             console.log("line is valid");
-            resultArray.push(line);
+            resultArray.push(...matches);
         }
     });
     $("#textAreaKoords").val("");
@@ -318,9 +319,22 @@ function addNewRequestsToArray(input: string[]) {
         };
         sdInquiryCollection.push(request);
     });
+    sdInquiryCollection = removeDuplicatesByCoords(sdInquiryCollection);
     console.log(sdInquiryCollection);
     localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
 
+}
+
+function removeDuplicatesByCoords(collection: sdInquiry[]): sdInquiry[] {
+    const uniqueCoords = new Set();
+    return collection.filter(item => {
+        if (uniqueCoords.has(item.coords)) {
+            return false;
+        } else {
+            uniqueCoords.add(item.coords);
+            return true;
+        }
+    });
 }
 
 

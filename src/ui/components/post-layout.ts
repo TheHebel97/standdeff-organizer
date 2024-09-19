@@ -21,7 +21,7 @@ export function postLayout(updateData: updateData) {
             $("#message").prop("readonly", true)
             let element = $("#message")
             const styledElem = `<div class="hideUserInput" style="position: relative">
-                                                          <div id="messageCover" style="position: absolute; width: 614px; height: 220px; top:-16%; left: 0%; background-color: gray; opacity: 0.5"></div>
+                                                          <div id="messageCover" style="position: absolute; width: 614px; height: 220px; top:-16%; left: 0; background-color: gray; opacity: 0.5"></div>
                                                       </div>`
             $("#message").parent().append(styledElem)
             $(".hideUserInput").append(element)

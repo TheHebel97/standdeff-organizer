@@ -102,7 +102,7 @@ export function parseSdPosts(): updateData {
         const postContentSplit = postContent.split("\n");
 
 
-        postContentSplit.forEach((line, index) => {
+        postContentSplit.forEach((line) => {
             if (finished || line === "______________________________") {
                 finished = true;
                 return;
@@ -184,16 +184,8 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
 }
 
 export function calculateSdTableState(updateData: updateData, sdState: sdState): sdState {
-    const localStorageService = LocalStorageHelper.getInstance();
-    //todo: get setting of "add up double requests"
     const addUpSetting = true;
-    //const [inquiries, packagesSent, postIds] = updateData;
     const [sdTableState, postCache] = sdState;
-
-    //denke so:
-    //1. iterate over all postIds in updateData and remove those which are in the cache
-    // summarize all left inquiries and packages for each villageId
-    // update table State with updated data
     let updateDataWithoutCache: updateData = new Map();
     let newPostCache: string[] = [];
 
@@ -274,7 +266,7 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
     Log.info(sdTableState)
 
     summarizedData.packagesSent.forEach((amount, sdId) => {
-        let matchingEntry = Array.from(sdTableState.entries()).find(([villageId, row]) => row.sdId === sdId);
+        let matchingEntry = Array.from(sdTableState.entries()).find(([_, row]) => row.sdId === sdId);
         if (matchingEntry) {
             let [villageId, row] = matchingEntry;
             row.leftAmount -= amount === "done" ? row.leftAmount : parseInt(amount);

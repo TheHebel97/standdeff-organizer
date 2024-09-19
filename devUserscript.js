@@ -2,7 +2,7 @@
 // @name         Development Script
 // @version      0.1
 // @description  try to take over the world!
-// @author       You, Fine, Regenmantel
+// @author       You
 // @match        https://*.die-staemme.de/game.php?village=*&screen=place&*mode=call*
 // @match        https://*.die-staemme.de/game.php?*village=*&screen=forum*
 // @match        https://*.die-staemme.de/game.php?*village=*&screen=settings*

@@ -1,5 +1,5 @@
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
-import {packages, updateData, rowSdTable, sdInquiry, sdState, sdTableState} from "../../types/types";
+import { updateData, sdState} from "../../types/types";
 import {calculateSdTableState, parseEditSdTableData, parseSdStateToTableString} from "../../helpers/table-helper";
 import {Log} from "../../helpers/logging-helper";
 

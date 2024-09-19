@@ -1,8 +1,8 @@
 'use strict'
 const isDebug = true;
-const info =(msg:string | Object) => {
+const info =(...msg : any) => {
     if (isDebug) {
-        console.log(msg);
+        console.log(msg.join(" "));
     }
 }
 

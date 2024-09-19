@@ -1,8 +1,9 @@
 import {isUserForumMod} from "../../helpers/tw-helper";
 import {showRequestPopup} from "./request-popup";
-import {convertMessageRequestStringToRequestArray} from "../../helpers/table-helper";
+
 import {updateData, sdInquiry} from "../../types/types";
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
+import {Log} from "../../helpers/logging-helper";
 
 export function postLayout(updateData: updateData) {
 
@@ -54,28 +55,7 @@ export function postLayout(updateData: updateData) {
         }
 
 
-//     if (!urlParams.has("answer")) {
-//
-//         Log.info("bearbeiten eines posts, der nicht die sd tabelle ist")
-//         let editText: String = String($("#message").val());
-//         let pastRequests: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId) || [] as sdInquiry[];
-//         let newRequests: sdInquiry[] = convertMessageRequestStringToRequestArray(editText) || [] as sdInquiry[];
-//
-// // Merge pastRequests and newRequests
-//         pastRequests = [...pastRequests, ...newRequests];
-//
-// // Remove duplicates based on coords
-//         let uniqueRequests: sdInquiry[] = [];
-//         let map = new Map();
-//
-//         for (let request of pastRequests) {
-//             if (!map.has(request.coords)) {
-//                 map.set(request.coords, true);
-//                 uniqueRequests.push(request);
-//             }
-//         }
-//         localStorageService.setSdInquiry(currentThreadId, uniqueRequests);
-//     }
+
         Log.info("neuer post")
 
 

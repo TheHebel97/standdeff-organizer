@@ -5,6 +5,7 @@ import {
 import {convertRequestArrayToMessageString} from "../../helpers/table-helper";
 import {sdInquiry} from "../../types/types";
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
+import {Log} from "../../helpers/logging-helper";
 
 export function showRequestPopup() {
     const localStorageService = LocalStorageHelper.getInstance();

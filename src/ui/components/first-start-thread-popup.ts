@@ -1,7 +1,6 @@
-import {
-    addThreadIdToLocalStorage,
-} from "../../helpers/helper-functions";
+import {addThreadIdToLocalStorage,} from "../../helpers/helper-functions";
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
+import {Log} from "../../helpers/logging-helper";
 
 export function addSdPopup(currentThreadId: string | null){
     const localStorageService = LocalStorageHelper.getInstance();

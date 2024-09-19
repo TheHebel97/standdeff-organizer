@@ -9,6 +9,7 @@ import {
     packages
 } from "../types/types";
 import {LocalStorageHelper} from "./local-storage-helper";
+import {Log} from "./logging-helper";
 
 export function convertMessageRequestStringToRequestArray(messageString: String): sdInquiry[] {
     // Split the messageString into lines

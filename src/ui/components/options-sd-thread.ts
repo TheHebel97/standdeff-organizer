@@ -1,4 +1,5 @@
 import {addThreadIdToLocalStorage} from "../../helpers/helper-functions";
+import {Log} from "../../helpers/logging-helper";
 
 export function addSdOptions(currentThreadId: string | null){
     Log.info("thread id is not in thread ids")

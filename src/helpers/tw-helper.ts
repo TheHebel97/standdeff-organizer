@@ -1,3 +1,5 @@
+import {Log} from "./logging-helper";
+
 export function isUserForumMod(){
     //only works inside the forum
     if(game_data.screen === "forum") {

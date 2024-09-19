@@ -1,14 +1,12 @@
 import {
     addThreadIdToLocalStorage,
 } from "../helpers/helper-functions";
-import {isUserForumMod} from "../helpers/tw-helper";
 import {addSdOptions} from "./components/options-sd-thread";
 import {addSdPopup} from "./components/first-start-thread-popup";
 import {sdTable} from "./components/sd-table";
-import {updateData, Threads} from "../types/types";
+import { Threads} from "../types/types";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
-import {parseSdPosts} from "../helpers/table-helper";
-
+import {Log} from "../helpers/logging-helper";
 
 export function viewThread() {
     const localStorageService = LocalStorageHelper.getInstance();

@@ -10,6 +10,7 @@ import {
     parseTableHtmlElemToSdState,
     updateSentPackagesInSdTable
 } from "../../helpers/table-helper";
+import {Log} from "../../helpers/logging-helper";
 
 
 export function sdTable(threads: Threads) {

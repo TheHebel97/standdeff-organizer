@@ -1,6 +1,7 @@
 import {groupData, rowSdTable, templateData, ThreadData} from "../types/types";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {lsThreadData} from "../types/localStorageTypes";
+import {Log} from "../helpers/logging-helper";
 
 export function displayMassUt() {
     $(document).ready(function () {

@@ -16,6 +16,7 @@ import {displayMassUt} from "./ui/mass-ut";
 import {viewThread} from "./ui/view-thread";
 import {createNewTable} from "./ui/new-thread";
 import {displaySettings} from "./ui/settings";
+import {Log} from "./helpers/logging-helper";
 
 (function () {
     //load when document is ready

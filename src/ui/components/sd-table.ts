@@ -124,7 +124,7 @@ export function sdTable(threads: Threads) {
         sdPostElement.nextAll(".post").hide();
     }
 
-    const showHiddenPosts = '<button class="btn" id="showPostsButton">Show hidden Posts</button>';
+    const showHiddenPosts = '<button class="btn" id="showPostsButton">Zeige versteckte Posts</button>';
     $(".thread_button").last().parent().append(showHiddenPosts)
 
     $("#showPostsButton").on("click", function() {

@@ -75,7 +75,7 @@ function renderTableRows(): void {
                                     <th style="padding-left: 10px; padding-right: 10px">Anmerkung <span style="font-size: 0.8em;">(optional)</span></th>
                                     <th style="padding-left: 10px; padding-right: 10px">ab <span style="font-size: 0.8em;">(optional)</span></th>
                                     <th style="padding-left: 10px; padding-right: 10px">bis <span style="font-size: 0.8em;">(optional)</span></th>
-                                    <th style="padding-left: 10px; padding-right: 10px">Löschen</th></tr>`;
+                                    <th style="padding-left: 10px; padding-right: 10px">Löschen <button style="cursor:pointer; background: url(https://dsde.innogamescdn.com/asset/c045337f/graphic/delete.png); width: 20px; height: 20px;  border: none" class="deleteRequest" id="deleteAll"></button></th></tr>`;
     if (requestDataArray.length === 0) {
         $(".addBunkerAnfrage").prop("disabled", true);
     } else {
@@ -126,7 +126,7 @@ function renderTableRows(): void {
             returnHtml += `<input type="datetime-local" style="background-color:#EAD5AA; border: none;" id="dateUntilInput${index}" class="dateUntilInput" value="">`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
-        returnHtml += `<button style="background: url(https://dsde.innogamescdn.com/asset/c045337f/graphic/delete.png); width: 20px; height: 20px;  border: none" class="deleteRequest" id="deleteRequest${index}"></button>`;
+        returnHtml += `<button style="cursor:pointer; background: url(https://dsde.innogamescdn.com/asset/c045337f/graphic/delete.png); width: 20px; height: 20px;  border: none" class="deleteRequest" id="deleteRequest${index}"></button>`;
         returnHtml += "</td></tr>";
     })
     $(".requestContent").append(returnHtml);
@@ -267,6 +267,11 @@ function renderTableRows(): void {
 
     $(".commentInput").on("input", function () {
         handleInput(this);
+    });
+
+    $("#deleteAll").on("click", function () {
+        localStorageService.setSdInquiry(currentThreadId, []);
+        renderTableRows();
     });
 
 }

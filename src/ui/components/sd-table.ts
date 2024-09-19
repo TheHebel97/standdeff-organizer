@@ -103,6 +103,9 @@ export function sdTable(threads: Threads) {
     //if admin or mod dann zu löschende Posts selecten und
     updateSentPackagesInSdTable();
     applySettingsToMassUtLink()
+
+
+    let removedPosts: any[] = [];
     if (isUserForumMod()) {
         const sdPostId = threads[currentThreadId].sdPostId;
         //find sd post
@@ -115,7 +118,19 @@ export function sdTable(threads: Threads) {
                 $(`input[value=${postId}]`).parent().parent().css("background", "rgba(174,6,6,0.73)")
             })
         }
+    }else {
+        const sdPostId = threads[currentThreadId].sdPostId;
+        const sdPostElement = $("a[name='" + sdPostId + "']").parent();
+        sdPostElement.nextAll(".post").hide();
     }
+
+    const showHiddenPosts = '<button class="btn" id="showPostsButton">Show hidden Posts</button>';
+    $(".thread_button").last().parent().append(showHiddenPosts)
+
+    $("#showPostsButton").on("click", function() {
+        restorePosts();
+        $(this).remove();
+    });
 
     window.addEventListener('storage', (event) => {
         // Prüfen Sie den Schlüssel, der geändert wurde
@@ -129,7 +144,11 @@ export function sdTable(threads: Threads) {
 
     localStorageService.setSdTableState(currentThreadId, sdTableState)
 
-
+    function restorePosts() {
+        const sdPostId = threads[currentThreadId].sdPostId;
+        const sdPostElement = $("a[name='" + sdPostId + "']").parent();
+        sdPostElement.nextAll(".post").show();
+    }
 }
 
 

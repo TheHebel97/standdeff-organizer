@@ -50,14 +50,18 @@ export function sdTable(threads: Threads) {
     const sdTableBody = $(sdTablePost).find("table").find("tbody")
     const postCache = $(sdTablePost).find("input[value=postCache]").siblings().find("span").text()
     let postCacheSplit: any;
-    if (postCache.length > 2) {
-        postCacheSplit = postCache.split(",")
-    }
-    // delete every map member of the updateData that is not in the postCache
-    for (let key of postCacheSplit) {
-        updateData.delete(key);
-        if (!isUserForumMod()) {
-            $("a[name='" + key + "']").parent().remove();
+    console.log(postCache.length)
+    if (postCache.length > 1) {
+
+        if (postCache.length > 2) {
+            postCacheSplit = postCache.split(",")
+        }
+        // delete every map member of the updateData that is not in the postCache
+        for (let key of postCacheSplit) {
+            updateData.delete(key);
+            if (!isUserForumMod()) {
+                $("a[name='" + key + "']").parent().remove();
+            }
         }
     }
 
@@ -111,14 +115,15 @@ export function sdTable(threads: Threads) {
         //find sd post
         const sdPosts = $("a[name='" + sdPostId + "']").parent()
         const postsToDelete = $(sdPosts).find("input[value=postCache]").siblings().find("span").text()
-        if (postsToDelete !== "") {
-            const postToDelete = postsToDelete.split(",")
+        console.log(postsToDelete)
+        if (postsToDelete.length > 1) {
+            let postToDelete = postsToDelete.split(",")
             postToDelete.forEach((postId: string) => {
                 $(`input[value=${postId}]`).prop("checked", true)
                 $(`input[value=${postId}]`).parent().parent().css("background", "rgba(174,6,6,0.73)")
             })
         }
-    }else {
+    } else {
         const sdPostId = threads[currentThreadId].sdPostId;
         const sdPostElement = $("a[name='" + sdPostId + "']").parent();
         sdPostElement.nextAll(".post").hide();
@@ -127,7 +132,7 @@ export function sdTable(threads: Threads) {
     const showHiddenPosts = '<button class="btn" id="showPostsButton">Zeige versteckte Posts</button>';
     $(".thread_button").last().parent().append(showHiddenPosts)
 
-    $("#showPostsButton").on("click", function() {
+    $("#showPostsButton").on("click", function () {
         restorePosts();
         $(this).remove();
     });

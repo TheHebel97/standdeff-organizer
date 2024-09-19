@@ -13,10 +13,10 @@ Anforderungen:
 - [ ] matching von pakete angabe und sd vorlage
 
 Todos:
-- [ ] bunker anfragen und bearbeiten überschreibt sich]
-- [ ] handling von doppelten anfragen im bunker anfragen ui
-- [ ] regex im koords einfügen bereich fixen
-- [ ] bearbeiten button für normale nutzer entfernen
+- [x] bunker anfragen und bearbeiten überschreibt sich]
+- [x] handling von doppelten anfragen im bunker anfragen ui
+- [x] regex im koords einfügen bereich fixen
+- [x] bearbeiten button für normale nutzer entfernen
 - [ ] mac gänsefüßchen beachten
 - [ ] falls das paket vorlagen matching implementiert wird, muss es entsprechende fehlermeldungen und settings geben
 - [ ] ab und bis feature für die sd tabelle
@@ -99,18 +99,16 @@ SD Post bearbeiten:
 
 Massenut:
 - [x] gruppen wechseln ist möglich
-- [ ] wenn massen ut vereinfachen aus ist, wird die vorlage nicht ausgewählt
-- [ ] wenn massen ut vereinfachen aus ist, werden filter nicht angewendet
-- [ ] wenn massen ut vereinfachen aus ist, werden gruppen nicht angewendet
+- [x] wenn massen ut vereinfachen aus ist, wird die vorlage nicht ausgewählt
+- [x] wenn massen ut vereinfachen aus ist, werden filter nicht angewendet
+- [x] wenn massen ut vereinfachen aus ist, werden gruppen nicht angewendet
 
-- [ ] wenn massen ut vereinfachen an ist, wird die vorlage ausgewählt
-- [ ] wenn massen ut vereinfachen an ist, werden filter angewendet
-- [ ] wenn massen ut vereinfachen an ist, werden gruppen angewendet
+- [x] wenn massen ut vereinfachen an ist, wird die vorlage ausgewählt
+- [x] wenn massen ut vereinfachen an ist, werden filter angewendet
+- [x] wenn massen ut vereinfachen an ist, werden gruppen angewendet
 
-- [ ] wenn verhindere doppeltes schicken aus ist, werden checkboxen unabhängig von geschickten paketen die checkboxen gecheckt
-- [ ] wenn verhindere doppeltes schicken an ist, werden checkboxen nur gecheckt, wenn sie nicht schon geschickt wurden
+- [x] wenn verhindere doppeltes schicken aus ist, werden checkboxen unabhängig von geschickten paketen die checkboxen gecheckt
+- [x] wenn verhindere doppeltes schicken an ist, werden checkboxen nur gecheckt, wenn sie nicht schon geschickt wurden
 
-- [ ] die unterstützung wie welche buttons gedrückt werden müssen wird unabhängig von den settings angezeigt
-- [ ] die passende anzahl wie viele checkboxen gecheckt werden müssen wird unabhängig von den settings angewendet
-
-- [ ] tab schließen nach ut?
+- [x] die unterstützung wie welche buttons gedrückt werden müssen wird unabhängig von den settings angezeigt
+- [x] die passende anzahl wie viele checkboxen gecheckt werden müssen wird unabhängig von den settings angewendet

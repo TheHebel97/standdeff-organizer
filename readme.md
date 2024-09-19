@@ -20,14 +20,14 @@ Todos:
 - [ ] mac gänsefüßchen beachten
 - [ ] falls das paket vorlagen matching implementiert wird, muss es entsprechende fehlermeldungen und settings geben
 - [ ] ab und bis feature für die sd tabelle
-- [ ] verhalten kontrollieren wenn aktionen nur halb performed werden 
+- [x] verhalten kontrollieren wenn aktionen nur halb performed werden 
 
 
 Behavior Checkliste:
 SD Tabelle erstellen: (nur als admin)
 - [x] erstellen einer Tabelle in jedem thread möglich
 - [x] erstellen einer tabelle nur als admin möglich
-- [ ] je nach welt werden truppen angezeigt
+- [x] je nach welt werden truppen angezeigt
 - [x] default truppen werden verwendet
 - [x] formular kann nicht abgeschickt werden, wenn kein name eingetragen ist
 - [x] hinweis wen formular nicht abschickbar
@@ -38,7 +38,7 @@ Settings:
 - [x] popup beim starte ist default true
 - [x] das setting funktioniert auf den seiten
 - [x] massen ut vereinfachen ist default false
-- [ ] das settings beinflusst ob die annehmlichkeiten ausgeführt werden
+- [x] das settings beinflusst ob die annehmlichkeiten ausgeführt werden
 - [x] verhindere doppeltes schicken ist default false
 - [x] das settings beinflusst inwieweit checkboxen beim massenut gecheckt werden
 - [x] sortieren nach ist default leer

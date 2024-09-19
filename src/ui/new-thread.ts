@@ -126,7 +126,7 @@ ${paketText}
 - Rechnung innerhalb des Skriptes einfacher :)
 - das Pflegen der Tabelle wäre auch ohne Skript einfacher
 
-Ein Paket besteht aus !einer! festen (hoffentlich sinnvollen @loserSfs: keine skav in sd splits) Anzahl an Einheiten.
+Ein Paket besteht aus einer festen hoffentlich sinnvollen (@loserSfs: keine skav in sd splits) Anzahl an Einheiten.
 Dadruch entstehen im Stamm einheitliche Bunker und keine komischen Ausrutscher. Durch diese Art des Deffens können Verluste aufgeteilt und schneller nachgebaut werden.
 [/spoiler]
 
@@ -141,16 +141,16 @@ Das SD Skript besteht seit dem Update aus mehreren Bereichen:
 
 
 Handling ohne das Skript: (wieso auch immer)
-[b]Beispiele: [/b]
-- anfordern:
+[b]Beispiele: 
+Anfordern:[/b]
 [code]
 567|123 200"TheHebel97"ohne den Bunker front rip""
 897|123 2"-EDM"2 Pakete für Bruder Marwin""
 234|123 444 "alt_f4 " mauer_f4""
-345|123 1 "ma.exe"""
+345|123 1 "Andimacht"""
 345|123 1""""
   [/code]
-- bearbeiten:
+[b]Bearbeiten:[/b]
  [code] id5 20
   2 20
   1 70Pakete
@@ -163,9 +163,10 @@ Handling ohne das Skript: (wieso auch immer)
 Moin SFs:
 - postCache Spoiler ignorieren und nicht bearbeiten
 - nun muss jeder im Stamm das entsprechende Skript installieren um von den Neuerungen zu profitieren (gl beim einrichten xD)
-- das automatische Ausfüllen innerhalb Massenut muss in den Settings explizit aktiviert werden
+- um Filter und ähnliches in Massen Ut auszuführen, muss das Setting in den Spieleinstellungen aktiviert werden
 - Gruppen werden beim erstmaligen Öffnen von Massen UT eingelesen, im Anschluss daran kann in den Settings ausgewählt werden, was die SD Gruppe ist
 - für die normalen Nutzer ist das Textfeld blockiert, dies kann durch einen Doppelklick entfernt werden. Das dient dazu, dass die Sd posts clean bleiben. Sozialer Overhead in der SD Tabelle ist nicht erwünscht.
+- normale Nutzer haben ebenfalls keine bearbeiten Funktionen im sd Thread, außerdem sehen diese keine posts
 
 [/spoiler]
 [spoiler=postCache]

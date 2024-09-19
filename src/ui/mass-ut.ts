@@ -14,6 +14,14 @@ export function displayMassUt() {
         const refererThreadId = urlParams.get('sdTableId');
         const preventDuplicateDestination = localStorageService.getPreventDuplicateDestination;
         if (refererThreadId !== null) {
+
+            $(".group-menu-item").each(function () {
+                const currentHref = $(this).attr("href")!;
+                const newHref = new URL(currentHref, window.location.origin);
+                newHref.searchParams.set('sdTableId', refererThreadId);
+                $(this).attr("href", newHref.toString());
+            });
+
             let threadData = localStorageService.getThreadData(refererThreadId) || {} as ThreadData;
             console.log(threadData)
             const destinationVillageId = urlParams.get('target');

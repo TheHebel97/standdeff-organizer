@@ -88,6 +88,7 @@ export function postLayout(updateData: updateData) {
             $("input[name=send]").on("click", function () {
                 localStorageService.setPackagesSent(currentThreadId, new Map());
             });
+            $("#notificationBadge").remove();
 
             const packagesSent = localStorageService.getPackagesSent(currentThreadId)
             let res = "";

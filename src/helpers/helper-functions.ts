@@ -1,8 +1,9 @@
-import {rowSdTable, ThreadData, Threads} from "../../types/types";
-import {LocalStorageService} from "../local-storage-service";
+import {rowSdTable, ThreadData, Threads} from "../types/types";
+import {LocalStorageHelper} from "./local-storage-helper";
+import {Log} from "./logging-helper";
 
 export function addThreadIdToLocalStorage(currentThreadId: string | null, postId: string | null, threadName: string | null, forumName: string | null, forumId: string | null) {
-    const localStorageService = LocalStorageService.getInstance();
+    const localStorageService = LocalStorageHelper.getInstance();
 
     let threads: Threads = localStorageService.getAllThreads;
 
@@ -22,21 +23,21 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
 
             localStorageService.addThread(currentThreadId, threadData);
         } else {
-            console.error("thread id is already in thread ids")
+            Log.error("thread id is already in thread ids")
             return;
         }
     } else {
         if (currentThreadId === null) {
-            console.error("current thread id is null")
+            Log.error("current thread id is null")
         }
         if (postId === null) {
-            console.error("post id is null")
+            Log.error("post id is null")
         }
         if (threadName === null) {
-            console.error("thread name is null")
+            Log.error("thread name is null")
         }
         if (forumName === null) {
-            console.error("forum name is null")
+            Log.error("forum name is null")
         }
         return;
     }

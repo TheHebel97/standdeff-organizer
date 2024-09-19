@@ -7,8 +7,8 @@ import {
     sdTableState,
     postData,
     packages
-} from "../../types/types";
-import {LocalStorageService} from "../local-storage-service";
+} from "../types/types";
+import {LocalStorageHelper} from "./local-storage-helper";
 
 export function convertMessageRequestStringToRequestArray(messageString: String): sdInquiry[] {
     // Split the messageString into lines
@@ -63,7 +63,7 @@ export function convertRequestArrayToMessageString(requests: sdInquiry[]): strin
 }
 
 export function parseSdPosts(): updateData {
-    const localStorageService = LocalStorageService.getInstance();
+    const localStorageService = LocalStorageHelper.getInstance();
     const urlParams = new URLSearchParams(window.location.search);
     const currentThreadId = urlParams.get("thread_id") || "";
     const sdPostId = localStorageService.getSdPostId(currentThreadId);
@@ -82,7 +82,7 @@ export function parseSdPosts(): updateData {
         if (coords && villageId) {
             coordVilIdMap.set(coords, parseInt(villageId));
         } else {
-            console.error("coords or village id is undefined")
+            Log.error("coords or village id is undefined")
         }
     });
 
@@ -112,7 +112,7 @@ export function parseSdPosts(): updateData {
             if (inquiryMatch) {
 
                 if (!coordVilIdMap.has(inquiryMatch[1])) {
-                    console.error("coords not found in map")
+                    Log.error("coords not found in map")
                 }
                 const villageId = coordVilIdMap.get(inquiryMatch[1]) || 0;
 
@@ -183,7 +183,7 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
 }
 
 export function calculateSdTableState(updateData: updateData, sdState: sdState): sdState {
-    const localStorageService = LocalStorageService.getInstance();
+    const localStorageService = LocalStorageHelper.getInstance();
     //todo: get setting of "add up double requests"
     const addUpSetting = true;
     //const [inquiries, packagesSent, postIds] = updateData;
@@ -236,9 +236,9 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
     });
 
 
-    console.log(summarizedData)
-    console.log("sdTableState")
-    console.log(sdTableState)
+    Log.info(summarizedData)
+    Log.info("sdTableState")
+    Log.info(sdTableState)
 
     summarizedData.inquiries.forEach((inquiry, villageId) => {
         if (sdTableState.has(villageId)) {
@@ -269,8 +269,8 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
         }
     })
 
-    console.log("sdTableState after update")
-    console.log(sdTableState)
+    Log.info("sdTableState after update")
+    Log.info(sdTableState)
 
     summarizedData.packagesSent.forEach((amount, sdId) => {
         let matchingEntry = Array.from(sdTableState.entries()).find(([villageId, row]) => row.sdId === sdId);
@@ -279,14 +279,14 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
             row.leftAmount -= amount === "done" ? row.leftAmount : parseInt(amount);
             sdTableState.set(villageId, row);
         } else {
-            console.error(`no matching sdTableRowEntry found for package Id: ${sdId} -> I will ignore it :)`)
+            Log.error(`no matching sdTableRowEntry found for package Id: ${sdId} -> I will ignore it :)`)
 
         }
 
 
     });
-    console.log("sdTableState after package update")
-    console.log(sdTableState)
+    Log.info("sdTableState after package update")
+    Log.info(sdTableState)
 
     //clean up sdTableState and delete everything with leftAmount = 0 // hier logging von fertigen anfragen einbauen wenn gewünscht :)
     let newId = 1;
@@ -298,8 +298,8 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
         row.sdId = String(newId);
         newId++;
     });
-    console.log("sdTableState after cleanup")
-    console.log(sdTableState, newPostCache)
+    Log.info("sdTableState after cleanup")
+    Log.info(sdTableState, newPostCache)
 
     return [sdTableState, newPostCache] as sdState;
 }
@@ -371,19 +371,19 @@ function parseTwLinkToVillageId(linkElem: string): number {
 
 
 export function displayUpdatedSdTable(packagesToUpdate: Map<string, any>) {
-    const localStorageService = LocalStorageService.getInstance();
+    const localStorageService = LocalStorageHelper.getInstance();
     const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
     const currentThreadId: string = urlParams.get('thread_id') || "";
     //let sentPackages = localStorageService.getPackagesSent(currentThreadId);
     const sdPostId = localStorageService.getSdPostId(currentThreadId);
-    console.log(packagesToUpdate)
+    Log.info(packagesToUpdate)
     let result = $("a[name='" + sdPostId + "']").parent().find("table").find("tbody").find("tr").map((index, row) => {
         let rowData: any = $(row).find("td").map((tdIndex, td) => $(td).text()).get();
         rowData.push(row); // Add the current row element to the end of the array
         return [rowData];
     }).get();
 
-    console.log(result);
+    Log.info(result);
 
 
     result.forEach((rowData: any[]) => {
@@ -419,7 +419,7 @@ export function displayUpdatedSdTable(packagesToUpdate: Map<string, any>) {
 }
 
 export function updateSentPackagesInSdTable() {
-    const localStorageService = LocalStorageService.getInstance();
+    const localStorageService = LocalStorageHelper.getInstance();
     const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
     const currentThreadId: string = urlParams.get('thread_id') || "";
     const sdPostId = localStorageService.getSdPostId(currentThreadId);
@@ -470,8 +470,8 @@ export function updateSentPackagesInSdTable() {
 
 
 export function applySettingsToMassUtLink() {
-    console.log("apply settings to mass ut link")
-    const localStorageService = LocalStorageService.getInstance();
+    Log.info("apply settings to mass ut link")
+    const localStorageService = LocalStorageHelper.getInstance();
     const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
     const currentThreadId: string = urlParams.get('thread_id') || "";
     const automate = localStorageService.getAutomateMassenUt;
@@ -479,7 +479,7 @@ export function applySettingsToMassUtLink() {
     const orderBy = localStorageService.getSortBy;
     let addionalLinkText = "&dir=0&sdTableId=" + currentThreadId;
     if (automate) {
-        console.log("automate mass ut")
+        Log.info("automate mass ut")
 
         if (sdGroupId !== "") addionalLinkText += "&group=" + sdGroupId;
         if (orderBy !== "") addionalLinkText += "&order=" + orderBy;

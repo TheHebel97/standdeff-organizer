@@ -1,11 +1,11 @@
 import {
     addThreadIdToLocalStorage,
-} from "../../logic/helpers/helper-functions";
-import {LocalStorageService} from "../../logic/local-storage-service";
+} from "../../helpers/helper-functions";
+import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 
 export function addSdPopup(currentThreadId: string | null){
-    const localStorageService = LocalStorageService.getInstance();
-    console.log("no thread ids found")
+    const localStorageService = LocalStorageHelper.getInstance();
+    Log.info("no thread ids found")
 
 
     const popupBoxNewThread = `
@@ -33,10 +33,10 @@ export function addSdPopup(currentThreadId: string | null){
             const forum_id= urlParams.get('forum_id');
             if (edit_post_id !== undefined) {
                 addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name, forum_id);
-                console.log(localStorageService.getAllThreads)
+                Log.info(localStorageService.getAllThreads)
                 $("#dbInfo_popup_box").remove()
             } else {
-                console.error("edit_post_id is undefined")
+                Log.error("edit_post_id is undefined")
             }
 
         });

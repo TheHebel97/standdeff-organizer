@@ -1,15 +1,15 @@
 import {groupData, rowSdTable, templateData, ThreadData} from "../types/types";
-import {LocalStorageService} from "../logic/local-storage-service";
+import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {lsThreadData} from "../types/localStorageTypes";
 
 export function displayMassUt() {
     $(document).ready(function () {
-        console.log("standdeff-organizer loaded in mass-ut");
+        Log.info("standdeff-organizer loaded in mass-ut");
         storeGroupData();
         storeTemplateData();
 
 
-        const localStorageService = LocalStorageService.getInstance();
+        const localStorageService = LocalStorageHelper.getInstance();
         const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
         const refererThreadId = urlParams.get('sdTableId');
         const preventDuplicateDestination = localStorageService.getPreventDuplicateDestination;
@@ -23,7 +23,7 @@ export function displayMassUt() {
             });
 
             let threadData = localStorageService.getThreadData(refererThreadId) || {} as ThreadData;
-            console.log(threadData)
+            Log.info(threadData)
             const destinationVillageId = urlParams.get('target');
             const selectedTemplate = localStorageService.getSelectedTemplate;
             //auswahl der passenden vorlage
@@ -42,8 +42,8 @@ export function displayMassUt() {
 
             const sendingObj = threadData?.stateOfSdTable.get(Number(destinationVillageId)) || {} as rowSdTable;
             const alreadySentAmount = parseInt(String(threadData?.packagesSent.get(sendingObj?.sdId))) | 0;
-            console.log(sendingObj)
-            console.log(alreadySentAmount)
+            Log.info(sendingObj)
+            Log.info(alreadySentAmount)
             let packagesToSend = sendingObj.leftAmount - alreadySentAmount;
             //!(alreadySentAmount!==undefined && preventDuplicateDestination)
             if ((alreadySentAmount > 0 && preventDuplicateDestination) || packagesToSend < 0) {
@@ -83,7 +83,7 @@ export function displayMassUt() {
                 let checkedBoxes = $(".troop-request-selector:checked").length;
                 threadData?.packagesSent.set(sendingObj.sdId, String(checkedBoxes));
                 localStorageService.setThreadData(refererThreadId, threadData);
-                console.log(packagesToSend)
+                Log.info(packagesToSend)
             })
 
 
@@ -95,7 +95,7 @@ export function displayMassUt() {
 function storeGroupData() {
     const groupData: groupData[] = [];
 
-    const localStorageService = LocalStorageService.getInstance();
+    const localStorageService = LocalStorageHelper.getInstance();
     $(".vis_item").find(".group-menu-item").each(function () {
         const groupId = $(this).attr("data-group-id");
         const groupName = $(this).text().trim().slice(1, -1);
@@ -103,7 +103,7 @@ function storeGroupData() {
             groupData.push({id: groupId, name: groupName});
             return;
         }
-        console.error("group id or group name is undefined")
+        Log.error("group id or group name is undefined")
     });
     localStorageService.setGroupData = groupData;
 
@@ -113,7 +113,7 @@ function storeGroupData() {
 function storeTemplateData() {
     let optionArray: templateData[] = [];
 
-    const localStorageService = LocalStorageService.getInstance();
+    const localStorageService = LocalStorageHelper.getInstance();
     $("select[name='template'] > option").each(function () {
         if ($(this).val() === "") return;
         const optionValue: string = String($(this).val());

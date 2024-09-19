@@ -1,9 +1,12 @@
-import {isUserForumMod} from "../logic/helpers/tw-helper";
-import {LocalStorageService} from "../logic/local-storage-service";
+import {isUserForumMod} from "../helpers/tw-helper";
+import {LocalStorageHelper} from "../helpers/local-storage-helper";
+import {Log} from "../helpers/logging-helper";
+
+
 
 export function createNewTable() {
-    const localStorageService = LocalStorageService.getInstance();
-    console.log("standdeff-organizer loaded in new_thread");
+    const localStorageService = LocalStorageHelper.getInstance();
+    Log.info("standdeff-organizer loaded in new_thread");
     localStorageService.setNewThread = false;
 
     $(".clearfix > form > input[value=Senden]").on("mouseenter", function () {
@@ -19,7 +22,7 @@ export function createNewTable() {
 
     //debugger;
     if (isUserForumMod()) {
-        console.log("user is forum mod");
+        Log.info("user is forum mod");
         //html elements
         const settingsBtn = `<input type="button" style="background-image: url(https://dsde.innogamescdn.com/asset/7b986b1a/graphic//buildings/smith.png);
             background-repeat: no-repeat; width:20px;height:20px; border: none; cursor: pointer; background-color: transparent; margin-left:7px;" class="configbtn">`;
@@ -30,7 +33,7 @@ export function createNewTable() {
         let configContent = `<br><img src="https://dsde.innogamescdn.com/asset/b5d78b17/graphic/unit/unit_spear@2x.png" title="Speerträger" alt="" class="" style="width: 15px; height: 15px">
 <input type="text" class="inputSpear" style="width:70px;background-color:#EAD5AA;margin-right: 10px">
 <img src="https://dsde.innogamescdn.com/asset/b5d78b17/graphic/unit/unit_sword@2x.png" title="Schwertkämpfer" alt="" class="" style="width: 15px; height: 15px">
-<input type="text" class="inputSword" style="width:70px;background-color:#EAD5AA;margin-right: 10px">` + tbBows +`
+<input type="text" class="inputSword" style="width:70px;background-color:#EAD5AA;margin-right: 10px">` + tbBows + `
 <img src="https://dsde.innogamescdn.com/asset/b5d78b17/graphic/unit/unit_spy@2x.png" title="Späher" alt="" class="" style="width: 15px; height: 15px">
 <input type="text" class="inputSpy" style="width:70px;background-color:#EAD5AA;margin-right: 10px">` ;
 
@@ -58,7 +61,7 @@ export function createNewTable() {
 
 
 function newThread() {
-    const localStorageService = LocalStorageService.getInstance();
+    const localStorageService = LocalStorageHelper.getInstance();
     let troopArray = [];
 
 // Collect values from input elements with the class 'inputSpear'

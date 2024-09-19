@@ -21,7 +21,7 @@ import {displaySettings} from "./ui/settings";
     //load when document is ready
     $(function () {
         const currentScriptContext: string = getCurrentScriptContext();
-        console.log("standdeff-organizer will be loaded in context: " + currentScriptContext);
+        Log.info("standdeff-organizer will be loaded in context: " + currentScriptContext);
         setupScriptUI(currentScriptContext);
     });
 

@@ -1,17 +1,17 @@
 import {
     convertDateToEpoch,
     convertEpochToDate
-} from "../../logic/helpers/helper-functions";
-import {convertRequestArrayToMessageString} from "../../logic/helpers/table-helper";
+} from "../../helpers/helper-functions";
+import {convertRequestArrayToMessageString} from "../../helpers/table-helper";
 import {sdInquiry} from "../../types/types";
-import {LocalStorageService} from "../../logic/local-storage-service";
+import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 
 export function showRequestPopup() {
-    const localStorageService = LocalStorageService.getInstance();
+    const localStorageService = LocalStorageHelper.getInstance();
     const urlParams = new URLSearchParams(window.location.search);
     const currentThreadId = urlParams.get("thread_id") || "";
 
-    console.log("show request popup");
+    Log.info("show request popup");
     // requestData-Objekt aus dem LocalStorage abrufen
 
     const initPopopBox = `
@@ -37,7 +37,7 @@ export function showRequestPopup() {
     $('#ds_body')[0].insertAdjacentHTML('beforeend', initPopopBox)
     $("#textAreaKoords").on("focusout", function () {
         const input = getFilteredInput(String($("#textAreaKoords").val()) || "");
-        console.log(input);
+        Log.info(input);
         addNewRequestsToArray(input);
         renderTableRows();
     });
@@ -64,7 +64,7 @@ export function showRequestPopup() {
 
 
 function renderTableRows(): void {
-    const localStorageService = LocalStorageService.getInstance();
+    const localStorageService = LocalStorageHelper.getInstance();
     const urlParams = new URLSearchParams(window.location.search);
     const currentThreadId = urlParams.get("thread_id") || "";
     $(".requestContent").empty();
@@ -85,7 +85,7 @@ function renderTableRows(): void {
     requestDataArray.forEach((requestRow, index) => {
         Object.values(requestRow).forEach((value) => {
             if (value === undefined) {
-                console.log("value is undefined");
+                Log.info("value is undefined");
             }
         });
         returnHtml += `<tr style='margin=2px;'><td style="padding-left: 10px; padding-right: 10px">`
@@ -289,15 +289,15 @@ function handleInput(htmlElement: HTMLElement) {
 }
 
 function getFilteredInput(input: string) {
-    console.log("getFilteredInput");
+    Log.info("getFilteredInput");
     const coordsPattern = /\d{3}\|\d{3}/g;
     let inputArray: string[] = input.split("\n");
     let resultArray: string[] = [];
-    console.log(inputArray);
+    Log.info(inputArray);
     inputArray.forEach((line) => {
         let matches = line.match(coordsPattern);
         if (matches) {
-            console.log("line is valid");
+            Log.info("line is valid");
             resultArray.push(...matches);
         }
     });
@@ -309,9 +309,9 @@ function addNewRequestsToArray(input: string[]) {
 
     const urlParams = new URLSearchParams(window.location.search);
     const currentThreadId = urlParams.get("thread_id") || "";
-    const localStorageService = LocalStorageService.getInstance();
+    const localStorageService = LocalStorageHelper.getInstance();
     let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
-    console.log(sdInquiryCollection);
+    Log.info(sdInquiryCollection);
     input.forEach((line) => {
         let [coords, amount, ...optionalData] = line.split(' ', 3);
         let request: sdInquiry = {
@@ -325,7 +325,7 @@ function addNewRequestsToArray(input: string[]) {
         sdInquiryCollection.push(request);
     });
     sdInquiryCollection = removeDuplicatesByCoords(sdInquiryCollection);
-    console.log(sdInquiryCollection);
+    Log.info(sdInquiryCollection);
     localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
 
 }

@@ -1,11 +1,11 @@
 import {groupData, templateData, Threads} from "../types/types";
-import {LocalStorageService} from "../logic/local-storage-service";
+import {LocalStorageHelper} from "../helpers/local-storage-helper";
 
-const localStorageService = LocalStorageService.getInstance();
+const localStorageService = LocalStorageHelper.getInstance();
 
 
 export function displaySettings() {
-    console.log("standdeff-organizer loaded in settings");
+    Log.info("standdeff-organizer loaded in settings");
 
     let unitDropDownOptions: string = '<option value="default"></option>';
     game_data.units.forEach(unit => {
@@ -130,7 +130,7 @@ export function displaySettings() {
 
     // get group data from local storage
     let groupData: groupData[] = localStorageService.getGroupData;
-    console.log("groupData: ", groupData);
+    Log.info("groupData: ", groupData);
     let templateData: templateData[] = localStorageService.getTemplateData;
 
     if (groupData.length > 0) {

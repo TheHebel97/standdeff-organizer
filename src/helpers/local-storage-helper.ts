@@ -1,10 +1,11 @@
 import {groupData, rowSdTable, sdInquiry, ThreadData, Threads,templateData} from "../types/types";
 import {LocalStorageData} from "../types/localStorageTypes";
+import {Log} from "./logging-helper";
 
 
-export class LocalStorageService {
+export class LocalStorageHelper {
     private _localStorageData: LocalStorageData;
-    private static instance: LocalStorageService;
+    private static instance: LocalStorageHelper;
 
     constructor() {
         const initData = localStorage.getItem("standdeff-organizer");
@@ -33,20 +34,20 @@ export class LocalStorageService {
         try {
             JSON.parse(str);
         } catch (e) {
-            console.error("Error parsing string to JSON: " + str);
+            Log.error("Error parsing string to JSON: " + str);
             return false;
         }
         return true;
     }
 
     private storeDataInLocalStorage(data: LocalStorageData) {
-        console.log("storing data in local storage")
-        console.log(data)
+        Log.info("storing data in local storage")
+        Log.info(data)
         let test = JSON.stringify(data);
         try {
             localStorage.setItem("standdeff-organizer", test);
         } catch (e) {
-            console.error("Error storing data in LocalStorage: " + e);
+            Log.error("Error storing data in LocalStorage: " + e);
         }
 
     }
@@ -54,18 +55,18 @@ export class LocalStorageService {
     private updateFromLocalStorage() {
         let data: string | null = localStorage.getItem("standdeff-organizer");
         if (data === null) {
-            console.error("No data found in LocalStorage for key: " + "standdeff-organizer");
+            Log.error("No data found in LocalStorage for key: " + "standdeff-organizer");
         }
         if (data !== null && this.isStringValidJson(data)) {
             this._localStorageData = JSON.parse(data);
         }
     }
 
-    public static getInstance(): LocalStorageService {
-        if (!LocalStorageService.instance) {
-            LocalStorageService.instance = new LocalStorageService();
+    public static getInstance(): LocalStorageHelper {
+        if (!LocalStorageHelper.instance) {
+            LocalStorageHelper.instance = new LocalStorageHelper();
         }
-        return LocalStorageService.instance;
+        return LocalStorageHelper.instance;
     }
 
 

@@ -5,7 +5,7 @@ export function isUserForumMod(){
         //return false;
         return modDefiningElement.length > 0;
     }else{
-        console.error("you can only authenticate as a forum mod in the forum screen");
+        Log.error("you can only authenticate as a forum mod in the forum screen");
         return false;
     }
 }

@@ -1,22 +1,22 @@
-import {isUserForumMod} from "../../logic/helpers/tw-helper";
+import {isUserForumMod} from "../../helpers/tw-helper";
 import {showRequestPopup} from "./request-popup";
-import {convertMessageRequestStringToRequestArray} from "../../logic/helpers/table-helper";
+import {convertMessageRequestStringToRequestArray} from "../../helpers/table-helper";
 import {updateData, sdInquiry} from "../../types/types";
-import {LocalStorageService} from "../../logic/local-storage-service";
+import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 
 export function postLayout(updateData: updateData) {
 
-    console.log("parsed posts in view thread")
-    console.log(updateData) //parsed posts in view thread // für die darstellung der sd tabelle
-    console.log("post layout");
-    const localStorageService = LocalStorageService.getInstance();
+    Log.info("parsed posts in view thread")
+    Log.info(updateData) //parsed posts in view thread // für die darstellung der sd tabelle
+    Log.info("post layout");
+    const localStorageService = LocalStorageHelper.getInstance();
     const urlParams = new URLSearchParams(window.location.search);
     const currentThreadId = urlParams.get("thread_id") || "";
     if (urlParams.has("answer")) {
 
 
         if (!isUserForumMod()) {
-            console.log("user is not forum mod and text area is present")
+            Log.info("user is not forum mod and text area is present")
             $("#message").prop("readonly", true)
             let element = $("#message")
             const styledElem = `<div class="hideUserInput" style="position: relative">
@@ -30,7 +30,7 @@ export function postLayout(updateData: updateData) {
             });
         }
         const finishedRequests = localStorageService.getPackagesSent(currentThreadId).size;
-        console.log(finishedRequests)
+        Log.info(finishedRequests)
         const postLayout = `
 <input class="btn" type="button" value="Bunker anfragen" id="requestBunker">
 <input class="btn" type="button" value="Bearbeitung eintragen" id="addBearbeitung">`
@@ -56,7 +56,7 @@ export function postLayout(updateData: updateData) {
 
 //     if (!urlParams.has("answer")) {
 //
-//         console.log("bearbeiten eines posts, der nicht die sd tabelle ist")
+//         Log.info("bearbeiten eines posts, der nicht die sd tabelle ist")
 //         let editText: String = String($("#message").val());
 //         let pastRequests: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId) || [] as sdInquiry[];
 //         let newRequests: sdInquiry[] = convertMessageRequestStringToRequestArray(editText) || [] as sdInquiry[];
@@ -76,12 +76,12 @@ export function postLayout(updateData: updateData) {
 //         }
 //         localStorageService.setSdInquiry(currentThreadId, uniqueRequests);
 //     }
-        console.log("neuer post")
+        Log.info("neuer post")
 
 
         $("#requestBunker").on("click", function () {
             showRequestPopup();
-            console.log("past requests");
+            Log.info("past requests");
         })
         $("#addBearbeitung").on("click", function () {
 
@@ -97,7 +97,7 @@ export function postLayout(updateData: updateData) {
             });
 
             $("#message").val(res)
-            console.log("bearbeitung eintragen")
+            Log.info("bearbeitung eintragen")
         })
         $("input[name=send]").on("click", function () {
             let emptyRequestData: sdInquiry[] = [] as sdInquiry[];

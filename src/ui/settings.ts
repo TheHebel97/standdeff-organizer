@@ -166,10 +166,11 @@ export function displaySettings() {
     let threads: Threads = localStorageService.getAllThreads;
 
     let baseUrl = window.location.origin + window.location.pathname;
+    let villageId = game_data.village.id;
 
     if (threads) {
         Object.entries(threads).forEach(([threadId, threadData]) => {
-            let threadLink = `${baseUrl}?village=3130&screen=forum&screenmode=view_thread&forum_id=${threadData.forumId}&thread_id=${threadId}`;
+            let threadLink = `${baseUrl}?village=${villageId}&screen=forum&screenmode=view_thread&forum_id=${threadData.forumId}&thread_id=${threadId}`;
 
             let row = `<tr>
              <td>

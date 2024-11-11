@@ -1,12 +1,14 @@
 'use strict'
 const isDebug = true;
-const info =(...msg : any) => {
+const info = (...msg: any) => {
     if (isDebug) {
-        console.log(msg.join(" "));
+        msg.forEach((m: any) => {
+            console.log(m);
+        });
     }
 }
 
-const error = (msg:string | Object) => {
+const error = (msg: string | Object) => {
     console.error(msg);
 }
 

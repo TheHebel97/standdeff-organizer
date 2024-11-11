@@ -129,7 +129,7 @@ ${paketText}
 - Rechnung innerhalb des Skriptes einfacher :)
 - das Pflegen der Tabelle wäre auch ohne Skript einfacher
 
-Ein Paket besteht aus einer festen hoffentlich sinnvollen (@loserSfs: keine skav in sd splits) Anzahl an Einheiten.
+Ein Paket besteht aus einer festen hoffentlich sinnvollen (keine skav in sd splits) Anzahl an Einheiten.
 Dadruch entstehen im Stamm einheitliche Bunker und keine komischen Ausrutscher. Durch diese Art des Deffens können Verluste aufgeteilt und schneller nachgebaut werden.
 [/spoiler]
 

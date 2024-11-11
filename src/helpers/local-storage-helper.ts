@@ -9,7 +9,7 @@ export class LocalStorageHelper {
 
     constructor() {
         const initData = localStorage.getItem("standdeff-organizer");
-        if (initData !== null) {
+        if (initData !== null && this.isStringValidJson(initData)) {
             this._localStorageData = JSON.parse(initData);
             return;
         }

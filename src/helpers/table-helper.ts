@@ -159,7 +159,7 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
     let sdTableState = new Map<number, rowSdTable>();
     tableText.split("[*]").forEach((line) => {
         const cells = line.split("[|]")
-        if (cells.length < 5) {
+        if (cells.length < 5 && cells.length > 9) {
             return;
         }
         cells[8] = cells[8].match(villageIdPattern)?.[1] || "";

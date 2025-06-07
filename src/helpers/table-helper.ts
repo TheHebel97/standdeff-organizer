@@ -159,9 +159,13 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
     let sdTableState = new Map<number, rowSdTable>();
     tableText.split("[*]").forEach((line) => {
         const cells = line.split("[|]")
-        if (cells.length < 5 && cells.length > 9) {
+        if (cells.length < 5 || cells.length > 9) {
             return;
         }
+        console.log("-----")
+        console.log(cells)
+        console.log(villageIdPattern)
+        console.log("-----")
         cells[8] = cells[8].match(villageIdPattern)?.[1] || "";
         cells[4] = cells[4].replace(/\[player]/, "").replace(/\[\/player]/, "");
         const dateFrom = isNaN(parseInt(cells[6])) ? 0 : parseInt(cells[6]);

@@ -491,3 +491,16 @@ export function applySettingsToMassUtLink() {
 
 }
 
+export function trimVillageNameText(){
+    Log.info("trim village names")
+    $(".village_anchor>a").each((index, element) => {
+        console.log($(element).text())
+        const coordsPattern = /(\d{3}\|\d{3})/;
+        const match = $(element).text().match(coordsPattern);
+        if(match){
+            $(element).text(match[1]);
+        }
+    });
+
+}
+

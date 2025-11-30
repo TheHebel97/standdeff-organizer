@@ -7,7 +7,7 @@ import {
     applySettingsToMassUtLink,
     displayUpdatedSdTable,
     parseSdPosts,
-    parseTableHtmlElemToSdState,
+    parseTableHtmlElemToSdState, trimVillageNameText,
     updateSentPackagesInSdTable
 } from "../../helpers/table-helper";
 import {Log} from "../../helpers/logging-helper";
@@ -104,7 +104,9 @@ export function sdTable(threads: Threads) {
     //display sd zeugs für alle nutzer
     //if admin or mod dann zu löschende Posts selecten und
     updateSentPackagesInSdTable();
-    applySettingsToMassUtLink()
+    applySettingsToMassUtLink();
+    trimVillageNameText();
+
 
 
     if (isUserForumMod()) {

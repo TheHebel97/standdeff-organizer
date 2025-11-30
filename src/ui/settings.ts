@@ -80,6 +80,15 @@ export function displaySettings() {
           </td>
 
         </tr>
+        <tr>
+          <td>
+            Schwert Laufzeit:
+          </td>
+          <td>
+            <input type="number" value="0" id="sd-schwertLfz" style="width:68px;  background-color: #8d0100; color: #ffffff"/>
+          </td>
+
+        </tr>
         
         </tbody>
       </table>
@@ -127,6 +136,12 @@ export function displaySettings() {
         $("#sd-sort-by").val(localStorageService.getSortBy).css("background", "#0e7a0e");
     } else {
         $("#sd-sort-by").val("default").css("background", "#8d0100");
+    }
+
+    if (localStorageService.getSwordLfz !== 0) {
+        $("#sd-schwertLfz").val(localStorageService.getSwordLfz).css("background", "#0e7a0e");
+    } else {
+        $("#sd-schwertLfz").val("0").css("background", "#8d0100");
     }
 
     // get group data from local storage
@@ -270,4 +285,14 @@ export function displaySettings() {
         localStorageService.setSortBy = "default";
         $(this).css("background", "#8d0100");
     });
+
+    $("#sd-schwertLfz").on("change", function () {
+        const value = Number($(this).val());
+        if (!isNaN(value) && value >= 0) {
+            localStorageService.setSwordLfz = value;
+        } else {
+            Log.error("Ungültiger Wert für Schwert lfz:");
+            $(this).val(localStorageService.getSwordLfz);
+        }
+    })
 }

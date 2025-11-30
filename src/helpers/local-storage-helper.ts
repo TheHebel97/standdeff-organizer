@@ -22,6 +22,7 @@ export class LocalStorageHelper {
                 sortBy: "",
                 selectedTemplate: "",
                 preventDuplicateDestination: true,
+                swordLfz: 22,
                 templateData: [],
                 groupData: []
             },
@@ -138,6 +139,16 @@ export class LocalStorageHelper {
 
     public set setGroupData(value: groupData[]) {
         this._localStorageData.generalSettings.groupData = value;
+        this.storeDataInLocalStorage(this._localStorageData);
+    }
+
+    public get getSwordLfz(): number {
+        this.updateFromLocalStorage();
+        return this._localStorageData.generalSettings.swordLfz;
+    }
+
+    public set setSwordLfz(value: number) {
+        this._localStorageData.generalSettings.swordLfz = value;
         this.storeDataInLocalStorage(this._localStorageData);
     }
 

@@ -13,6 +13,7 @@ export type generalSettings = {
     sortBy: string,
     selectedTemplate: string,
     preventDuplicateDestination: boolean,
+    swordLfz: number,
     templateData: templateData[],
     groupData: groupData[]
 }

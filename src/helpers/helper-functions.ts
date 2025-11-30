@@ -57,6 +57,18 @@ export function convertDateToEpoch(date: string): number {
     return datetime.getTime() / 1000;
 }
 
+export function parseGermanDate(dateStr:string) {
+    if (!dateStr || typeof dateStr !== "string") return 0;
+
+    // Erwartetes Format: "DD.MM.YYYY HH:MM"
+    const [d, t] = dateStr.split(" ");
+    const [day, month, year] = d.split(".").map(Number);
+    const [hour, minute] = t.split(":").map(Number);
+
+    // gültiges Date-Objekt erzeugen → richtig interpretiert
+    return new Date(year, month - 1, day, hour, minute).getTime();
+}
+
 
 
 

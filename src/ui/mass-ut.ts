@@ -2,6 +2,8 @@ import {groupData, rowSdTable, templateData, ThreadData} from "../types/types";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {lsThreadData} from "../types/localStorageTypes";
 import {Log} from "../helpers/logging-helper";
+import {distanceXY, villageBBCodeToCoordinates} from "../helpers/tw-helper";
+import {parseGermanDate} from "../helpers/helper-functions";
 
 export function displayMassUt() {
     $(document).ready(function () {
@@ -46,6 +48,10 @@ export function displayMassUt() {
             Log.info(sendingObj)
             Log.info(alreadySentAmount)
             let packagesToSend = sendingObj.leftAmount - alreadySentAmount;
+            let epochDateUntil = parseGermanDate(sendingObj.dateUntil);
+            let epochDateFrom  = parseGermanDate(sendingObj.dateFrom);
+
+            console.log(epochDateUntil, epochDateFrom)
             //!(alreadySentAmount!==undefined && preventDuplicateDestination)
             if ((alreadySentAmount > 0 && preventDuplicateDestination) || packagesToSend < 0) {
                 packagesToSend = 0;
@@ -58,13 +64,37 @@ export function displayMassUt() {
             });
             // check how many checkboxes are present
 
-            if ($(".troop-request-selector").length < packagesToSend) {
+            if ($(".troop-request-selector").length < packagesToSend && epochDateFrom === 0 && epochDateUntil === 0) {
                 $("#place_call_select_all").trigger('click');
             } else {
-                $(".troop-request-selector").each(function () {
+                const slowestUnitLfz = localStorageService.getSwordLfz * 60 * 1000;
+                const currentTime = Date.now();
+                $(".call-village").each(function () {
                     if (packagesToSend > 0) {
-                        $(this).trigger('click');
-                        packagesToSend--;
+
+                        let sourceCoords = villageBBCodeToCoordinates($(this).find("a").text().trim());
+                        let destinationCoords = villageBBCodeToCoordinates(sendingObj.coords);
+                        const distance = Number(distanceXY(sourceCoords, destinationCoords).toFixed(3));
+                        const travelTime = distance * slowestUnitLfz; // ms
+                        const arrival = currentTime + travelTime; // ms
+
+                        const fromIsSet = typeof epochDateFrom === "number" && epochDateFrom > 0;
+                        const untilIsSet = typeof epochDateUntil === "number" && epochDateUntil > 0;
+
+                        const withinFrom = fromIsSet ? arrival >= epochDateFrom : true;
+                        const withinUntil = untilIsSet ? arrival <= epochDateUntil : true;
+
+                        console.log(new Date(arrival));
+                        if (fromIsSet) console.log("from:", new Date(epochDateFrom));
+                        if (untilIsSet) console.log("until:", new Date(epochDateUntil));
+                        console.log("--");
+
+                        if (withinFrom && withinUntil) {
+                            $(this).find(".troop-request-selector").trigger('click');
+                            packagesToSend--;
+                        }
+
+
                     }
                 });
             }

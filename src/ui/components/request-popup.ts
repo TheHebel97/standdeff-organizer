@@ -278,16 +278,14 @@ function renderTableRows(): void {
 }
 
 function handleInput(htmlElement: HTMLElement) {
-    let input: string = String($(htmlElement).val());
-    let pattern = /^[a-zA-Z0-9_]*$/;
-    if (input !== null && !pattern.test(input)) {
-        let subString = input.substring(0, input.length - 1);
-        $(htmlElement).css("background-color", "red");
-        $(htmlElement).val(subString);
-        return;
+    const $el = $(htmlElement);
+    const input = String($el.val() ?? "");
+    if (input.includes('"')) {
+        const cleaned = input.replace(/"/g, "");
+        $el.val(cleaned);
     }
-    $(htmlElement).css("background-color", "#EAD5AA");
 }
+
 
 function getFilteredInput(input: string) {
     Log.info("getFilteredInput");

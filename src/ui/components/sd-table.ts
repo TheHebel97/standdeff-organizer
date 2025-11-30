@@ -7,7 +7,7 @@ import {
     applySettingsToMassUtLink,
     displayUpdatedSdTable,
     parseSdPosts,
-    parseTableHtmlElemToSdState, trimVillageNameText,
+    parseTableHtmlElemToSdState, trimVillageNameText, trimYearFromDateStrings,
     updateSentPackagesInSdTable
 } from "../../helpers/table-helper";
 import {Log} from "../../helpers/logging-helper";
@@ -106,6 +106,7 @@ export function sdTable(threads: Threads) {
     updateSentPackagesInSdTable();
     applySettingsToMassUtLink();
     trimVillageNameText();
+    trimYearFromDateStrings();
 
 
 

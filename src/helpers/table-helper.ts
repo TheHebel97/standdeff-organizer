@@ -37,8 +37,8 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
             amount: Number(amount),
             playerName: optionalData[1] || undefined,
             comment: optionalData[2] || undefined,
-            dateFrom: Number(optionalData[3]) || undefined,
-            dateUntil: Number(optionalData[4]) || undefined
+            dateFrom: optionalData[3] || undefined,
+            dateUntil: optionalData[4] || undefined
         };
 
         // Add the requestData object to the array
@@ -51,10 +51,52 @@ export function convertRequestArrayToMessageString(requests: sdInquiry[]): strin
     // Array to hold the lines
     let lines: string[] = [];
 
+    // helper to format numeric date values into DD.MM.YYYY HH:MM (handles seconds, ms, yyyymmdd and year)
+    function pad(n: number) { return n < 10 ? '0' + n : String(n); }
+    function formatDate(value?: number): string {
+        // treat undefined, null, NaN and 0 as empty (no date)
+        if (value === undefined || value === null) return "";
+        const v = Number(value);
+        if (isNaN(v) || v === 0) return "";
+
+        let date: Date | null = null;
+
+        if (v > 1e12) { // milliseconds
+            date = new Date(v);
+        } else if (v > 1e9) { // seconds
+            date = new Date(v * 1000);
+        } else if (/^\d{8}$/.test(String(v))) { // yyyymmdd -> date only, time = 00:00
+            const s = String(v);
+            const y = parseInt(s.slice(0, 4));
+            const m = parseInt(s.slice(4, 6));
+            const d = parseInt(s.slice(6, 8));
+            date = new Date(y, m - 1, d, 0, 0);
+        } else if (v >= 1970 && v <= 3000) { // year only -> date = 01.01.<year> 00:00
+            date = new Date(v, 0, 1, 0, 0);
+        } else {
+            // unknown format: return numeric value as string to avoid data loss
+            return String(v);
+        }
+
+        if (!date || isNaN(date.getTime())) return String(v);
+        const day = pad(date.getDate());
+        const month = pad(date.getMonth() + 1);
+        const year = date.getFullYear();
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+
+        // always append hours:minutes (for date-only sources this will be 00:00)
+        return `${day}.${month}.${year} ${hours}:${minutes}`;
+    }
+
     // Iterate over each requestData object
     for (const request of requests) {
         // Create the line
-        let line = `${request.coords} ${request.amount} "${request.playerName || ''}"${request.comment || ''}"${request.dateFrom || ''}"${request.dateUntil || ''}`;
+
+        let dateFrom = formatDate(request.dateFrom as any);
+        let dateUntil = formatDate(request.dateUntil as any);
+
+        let line = `${request.coords} ${request.amount} "${request.playerName || ''}"${request.comment || ''}"${dateFrom}"${dateUntil}`;
         // Add the line to the array
         lines.push(line);
     }
@@ -88,7 +130,7 @@ export function parseSdPosts(): updateData {
     });
 
     // Get the post container
-    const newInquiryRegex = /(\d{3}\|\d{3})\)\sK\d+\s+(\d+)\s+["|“](.+)?["|“](.+)?["|“](\d+)?["|“](\d+)?/; // hier die anführungszeichen für mac hinzufügen todo:
+    const newInquiryRegex = /(\d{3}\|\d{3})\)\sK\d+\s+(\d+)\s+["“](.+)?["“](.+)?["“](.+)?["“](.+)?/; // hier die anführungszeichen für mac hinzufügen todo:
     const packagesSentRegex = /(\d+)\s(\d+|done)/; // evtl noch optimieren todo:
     $(".post").each((index, element) => {
         let packagesSent: packages = new Map<string, string>();
@@ -108,7 +150,10 @@ export function parseSdPosts(): updateData {
                 return;
             }
 
+            console.log(line)
+
             let inquiryMatch = line.match(newInquiryRegex);
+            console.log(inquiryMatch)
             let packagesMatch = line.match(packagesSentRegex);
             if (inquiryMatch) {
 
@@ -122,8 +167,8 @@ export function parseSdPosts(): updateData {
                     amount: parseInt(inquiryMatch[2]),
                     playerName: inquiryMatch[3],
                     comment: inquiryMatch[4],
-                    dateFrom: inquiryMatch[5] ? parseInt(inquiryMatch[5]) : undefined,
-                    dateUntil: inquiryMatch[6] ? parseInt(inquiryMatch[6]) : undefined
+                    dateFrom: inquiryMatch[5] ? inquiryMatch[5] : undefined,
+                    dateUntil: inquiryMatch[6] ? inquiryMatch[6] : undefined
                 }
                 inquiries.set(villageId, sdInquiry);
             } else if (packagesMatch) {
@@ -155,7 +200,7 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
 
 
     const villageIdPattern = /target=(\d+)/;
-    const playerPattern = /[player]([a-zA-Z0-9.]+)[/player]/;
+    // const playerPattern = /[player]([a-zA-Z0-9.]+)[/player]/; // unused - entfernt
     let sdTableState = new Map<number, rowSdTable>();
     tableText.split("[*]").forEach((line) => {
         const cells = line.split("[|]")
@@ -168,8 +213,8 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
         console.log("-----")
         cells[8] = cells[8].match(villageIdPattern)?.[1] || "";
         cells[4] = cells[4].replace(/\[player]/, "").replace(/\[\/player]/, "");
-        const dateFrom = isNaN(parseInt(cells[6])) ? 0 : parseInt(cells[6]);
-        const dateUntil = isNaN(parseInt(cells[7])) ? 0 : parseInt(cells[7]);
+        const dateFrom = cells[6] ? "" : cells[6];
+        const dateUntil = cells[7] ? "" : cells[7];
         sdTableState.set(parseInt(cells[8]), {
             coords: cells[1].trim(),
             sdId: cells[0],
@@ -259,8 +304,8 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
                 leftAmount: inquiry.amount,
                 playerName: inquiry.playerName || "",
                 comment: inquiry.comment || "",
-                dateFrom: inquiry.dateFrom || 0,
-                dateUntil: inquiry.dateUntil || 0
+                dateFrom: inquiry.dateFrom || "",
+                dateUntil: inquiry.dateUntil || ""
             });
 
         }
@@ -340,8 +385,8 @@ export function parseTableHtmlElemToSdState(tableBodyElem: any): sdTableState {
             leftAmount: parseInt(rowSdTableArray[3].text().trim()),
             playerName: rowSdTableArray[4].text().trim(),
             comment: rowSdTableArray[5].text().trim(),
-            dateFrom: parseInt(rowSdTableArray[6].text().trim()),
-            dateUntil: parseInt(rowSdTableArray[7].text().trim())
+            dateFrom: rowSdTableArray[6].text().trim(),
+            dateUntil: rowSdTableArray[7].text().trim()
 
         };
         sdTableState.set(villageId, rowSdTable);
@@ -494,7 +539,6 @@ export function applySettingsToMassUtLink() {
 export function trimVillageNameText(){
     Log.info("trim village names")
     $(".village_anchor>a").each((index, element) => {
-        console.log($(element).text())
         const coordsPattern = /(\d{3}\|\d{3})/;
         const match = $(element).text().match(coordsPattern);
         if(match){
@@ -504,3 +548,32 @@ export function trimVillageNameText(){
 
 }
 
+export function trimYearFromDateStrings(){
+    Log.info("trim year from date strings")
+    $(".bbcodetable>tbody").children().each((index, element) => {
+
+        // skip header row if present (index 0)
+        if (index === 0) return;
+
+        const $cells = $(element).find('td');
+        const $dateFrom = $cells.eq(6);
+        const $dateUntil = $cells.eq(7);
+
+        function stripYear($cell: JQuery<HTMLElement>) {
+            if (!$cell || $cell.length === 0) return;
+            const text = $cell.text().trim();
+            if (!text) return;
+            // Match formats like "DD.MM.YYYY HH:MM" or "DD.MM.YYYY" (be tolerant)
+            const m = text.match(/^(\d{2}\.\d{2})\.(\d{4})(?:\s+(\d{1,2}:\d{2}))?.*$/);
+            if (m) {
+                const dayMonth = m[1];
+                const time = m[3] ? m[3] : "00:00"; // if no time present, show 00:00 to keep consistent visual
+                $cell.text(`${dayMonth} ${time}`);
+            }
+        }
+
+        stripYear($dateFrom);
+        stripYear($dateUntil);
+
+    });
+}

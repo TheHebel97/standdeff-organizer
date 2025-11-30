@@ -49,8 +49,8 @@ export type rowSdTable = {
     leftAmount: number;
     playerName: string;
     comment: string;
-    dateFrom: number;
-    dateUntil: number;
+    dateFrom: string;
+    dateUntil: string;
 }
 
 export type lsPackages = Array<[string, string]> //internalSdId, amount

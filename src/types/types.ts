@@ -44,8 +44,8 @@ export type sdInquiry = {
     amount: number;
     playerName: string | undefined;
     comment: string | undefined;
-    dateFrom: number | undefined;
-    dateUntil: number | undefined;
+    dateFrom: any | undefined;
+    dateUntil: any | undefined;
 }
 
 export type newInquiry = Map<number, sdInquiry>  // villageId , sdInquiry
@@ -61,8 +61,8 @@ export type rowSdTable = {
     leftAmount: number;
     playerName: string;
     comment: string;
-    dateFrom: number;
-    dateUntil: number;
+    dateFrom: any;
+    dateUntil: any;
 }
 
 export type packages = Map<string, string> //internalSdId, amount

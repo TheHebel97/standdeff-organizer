@@ -207,14 +207,11 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
         if (cells.length < 5 || cells.length > 9) {
             return;
         }
-        console.log("-----")
-        console.log(cells)
-        console.log(villageIdPattern)
-        console.log("-----")
+        while (cells.length < 9) cells.push("");
         cells[8] = cells[8].match(villageIdPattern)?.[1] || "";
         cells[4] = cells[4].replace(/\[player]/, "").replace(/\[\/player]/, "");
-        const dateFrom = cells[6] ? "" : cells[6];
-        const dateUntil = cells[7] ? "" : cells[7];
+        const dateFrom = cells[6] ? cells[6].trim() : "";
+        const dateUntil = cells[7] ? cells[7].trim() : "";
         sdTableState.set(parseInt(cells[8]), {
             coords: cells[1].trim(),
             sdId: cells[0],

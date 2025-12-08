@@ -5,7 +5,8 @@
   "scripts": {
     "build": "npx webpack --mode development",
     "test": "jest",
-    "start": "webpack serve --config ./webpack.config.js --mode development --host 0.0.0.0"
+    "start": "webpack serve --config ./webpack.config.js --mode development --host 0.0.0.0",
+    "build2": "npx webpack --mode development && sed -i 's/\\\\n/\" +\\n\"/g' dist/bundle.js && sed -i ':a;N;$!ba;s/\\\\\" +\\n\"/\\\\n/g' dist/bundle.js"
   },
   "keywords": [],
   "author": "",

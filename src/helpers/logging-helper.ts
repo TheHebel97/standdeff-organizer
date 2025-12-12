@@ -1,5 +1,5 @@
 'use strict'
-const isDebug = true;
+const isDebug = false;
 const info = (...msg: any) => {
     if (isDebug) {
         msg.forEach((m: any) => {

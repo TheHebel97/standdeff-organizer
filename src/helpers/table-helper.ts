@@ -150,10 +150,7 @@ export function parseSdPosts(): updateData {
                 return;
             }
 
-            console.log(line)
-
             let inquiryMatch = line.match(newInquiryRegex);
-            console.log(inquiryMatch)
             let packagesMatch = line.match(packagesSentRegex);
             if (inquiryMatch) {
 

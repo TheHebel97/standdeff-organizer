@@ -173,6 +173,8 @@ Moin SFs:
 - normale Nutzer haben ebenfalls keine bearbeiten Funktionen im sd Thread, außerdem sehen diese keine posts
 
 [/spoiler]
+[spoiler=playerRanking]
+[/spoiler]
 [spoiler=postCache]
 [/spoiler]
 [/spoiler]

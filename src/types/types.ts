@@ -1,8 +1,6 @@
 import {Unit} from "./tw-types";
 
 
-
-
 export type generalSettings = {
     newThread: boolean,
     firstStartPopup: boolean,
@@ -73,9 +71,19 @@ export type coordinates = `${number}|${number}`;
 export type postData = {
     inquiries: newInquiry,
     packages: packages,
+    playerId: string,
+    playerName: string,
+    sumOfPackagesSent: number
 }
 
 export type updateData = Map<string, postData> //inquiries, packages, postIds
+
+
+export type rankingsData = {
+    playerName: string;
+    playerId: string;
+    amount: number;
+}
 
 
 

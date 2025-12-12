@@ -1,6 +1,11 @@
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
-import { updateData, sdState} from "../../types/types";
-import {calculateSdTableState, parseEditSdTableData, parseSdStateToTableString} from "../../helpers/table-helper";
+import {updateData, sdState, rankingsData} from "../../types/types";
+import {
+    calculateSdTableState,
+    getDataFromPlayerRanking,
+    parseEditSdTableData,
+    parseSdStateToTableString
+} from "../../helpers/table-helper";
 import {Log} from "../../helpers/logging-helper";
 
 export function editSdPost(updateData: updateData) {
@@ -25,19 +30,24 @@ export function editSdPost(updateData: updateData) {
 
 function updateSdTable(updateData: updateData) { // hier wird mir kinda schlecht
     const tablePattern = /\[table]([\s\S]*)\[\/table]/;
+    const playerRankingPattern = /\[spoiler=playerRanking]([\s\S]*?)\[\/spoiler]/;
     const cachePattern = /\[spoiler=postCache]([\s\S]*?)\[\/spoiler]/;
     const rawSdPostText = String($("#message").val());
     const table = rawSdPostText.match(tablePattern);
+    const playerRanking = rawSdPostText.match(playerRankingPattern);
     const cache = rawSdPostText.match(cachePattern);
 
-    if (table === null || cache === null) {
-        Log.error("Table or Cache not found")
+    if (table === null || cache === null || playerRanking === null) {
+        Log.error("Table or Cache or Ranking not found")
         return;
     }
 
+    let rankingOfSdTable: [rankingsData] = getDataFromPlayerRanking(playerRanking[0]);
+    console.log(rankingOfSdTable)
+    console.log("sad.-ads.asd")
     let sdState: sdState = parseEditSdTableData(table[1], cache[0])
 
-    let newSdState:sdState = calculateSdTableState(updateData, sdState)
+    let newSdState: sdState = calculateSdTableState(updateData, sdState)
 
     let [tableText, cacheText] = parseSdStateToTableString(newSdState)
 

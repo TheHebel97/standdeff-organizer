@@ -15,6 +15,7 @@ import {Log} from "../../helpers/logging-helper";
 
 export function sdTable(threads: Threads) {
     let updateData: updateData = parseSdPosts()
+    console.log(updateData)
     Log.info("visualisierung der sd tabelle")
 //visuell anzeigen, dass es sich um die sd tabelle handelt
     const sdTableTitle = `<span style="color: #002bff; font-size: x-small"> (SD Tabelle)</span>`

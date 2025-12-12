@@ -6,7 +6,7 @@ import {
     sdState,
     sdTableState,
     postData,
-    packages
+    packages, rankingsData
 } from "../types/types";
 import {LocalStorageHelper} from "./local-storage-helper";
 import {Log} from "./logging-helper";
@@ -52,7 +52,10 @@ export function convertRequestArrayToMessageString(requests: sdInquiry[]): strin
     let lines: string[] = [];
 
     // helper to format numeric date values into DD.MM.YYYY HH:MM (handles seconds, ms, yyyymmdd and year)
-    function pad(n: number) { return n < 10 ? '0' + n : String(n); }
+    function pad(n: number) {
+        return n < 10 ? '0' + n : String(n);
+    }
+
     function formatDate(value?: number): string {
         // treat undefined, null, NaN and 0 as empty (no date)
         if (value === undefined || value === null) return "";
@@ -142,8 +145,10 @@ export function parseSdPosts(): updateData {
         const postId = $(element).find("a").first().attr("name") || "";
         const postContent = $(element).find(".text").text();
         const postContentSplit = postContent.split("\n");
+        const playerName = $(element).find(".postheader_left").find("a").first().text().trim();
+        const playerId = $(element).find(".postheader_left").find("a").first().attr("href")?.match(/id=(\d+)/)?.[1] || "";
 
-
+        let sumOfPackagesSent: number = 0;
         postContentSplit.forEach((line) => {
             if (finished || line === "______________________________") {
                 finished = true;
@@ -182,6 +187,8 @@ export function parseSdPosts(): updateData {
                         return;
                     }
                     let newVal = parseInt(oldVal) + parseInt(packagesMatch[2]);
+                    sumOfPackagesSent += parseInt(packagesMatch[2]);
+                    // adding the string done will make problems, fix later or never xd
                     packagesSent.set(packagesMatch[1], newVal.toString());
                     return;
                 }
@@ -189,7 +196,14 @@ export function parseSdPosts(): updateData {
 
             }
         })
-        updateData.set(postId, {inquiries: inquiries, packages: packagesSent});
+
+        updateData.set(postId, {
+            inquiries: inquiries,
+            packages: packagesSent,
+            playerName: playerName,
+            playerId: playerId,
+            sumOfPackagesSent: sumOfPackagesSent
+        });
 
 
     });
@@ -489,9 +503,9 @@ export function updateSentPackagesInSdTable() {
                     // Das aktuelle tr-Element stimmt mit dem gespeicherten tr-Element überein
                     // Sie können hier Code hinzufügen, um das tr-Element zu bearbeiten
                     // Zum Beispiel, um den Text des ersten td-Elements zu ändern:
-                    if($(tr).find("#sent-info").length > 0){
-                        if(sentAmount) {
-                            $(tr).find("#sent-info").text("(-"+sentAmount+")");
+                    if ($(tr).find("#sent-info").length > 0) {
+                        if (sentAmount) {
+                            $(tr).find("#sent-info").text("(-" + sentAmount + ")");
                             return;
                         }
                     }
@@ -533,19 +547,19 @@ export function applySettingsToMassUtLink() {
 
 }
 
-export function trimVillageNameText(){
+export function trimVillageNameText() {
     Log.info("trim village names")
     $(".village_anchor>a").each((index, element) => {
         const coordsPattern = /(\d{3}\|\d{3})/;
         const match = $(element).text().match(coordsPattern);
-        if(match){
+        if (match) {
             $(element).text(match[1]);
         }
     });
 
 }
 
-export function trimYearFromDateStrings(){
+export function trimYearFromDateStrings() {
     Log.info("trim year from date strings")
     $(".bbcodetable>tbody").children().each((index, element) => {
 
@@ -573,4 +587,23 @@ export function trimYearFromDateStrings(){
         stripYear($dateUntil);
 
     });
+}
+
+
+export function getDataFromPlayerRanking(rankingText: String): [rankingsData] {
+    Log.info("get data from player ranking")
+    let res: any[] = [];
+    let rankingTextWithoutSpoiler = rankingText.replace(/\[spoiler=playerRanking]\s*([\s\S]*?)\s*\[\/spoiler]/i, "$1").trim();
+
+    rankingTextWithoutSpoiler.split("\n").forEach(line => {
+        let data = line.split(";")
+        const temp = {
+            playerName: data[0].trim(),
+            playerId: data[1].trim(),
+            amount: parseInt(data[2].trim()),
+        }
+        res.push(temp);
+    })
+    // @ts-ignore
+    return res;
 }

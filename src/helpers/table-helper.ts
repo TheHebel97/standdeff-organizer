@@ -131,7 +131,7 @@ export function parseSdPosts(): updateData {
 
     // Get the post container
     const newInquiryRegex = /(\d{3}\|\d{3})\)\sK\d+\s+(\d+)\s+["\u201c](.+)?["\u201c](.+)?["\u201c](.+)?["\u201c](.+)?/; // hier die anführungszeichen für mac hinzufügen todo:
-    const packagesSentRegex = /(\d+)\s(\d+|done)/; // evtl noch optimieren todo:
+    const packagesSentRegex = /(\d+)\s(\d+|done)/i;
     $(".post").each((index, element) => {
         let packagesSent: packages = new Map<string, string>();
         let inquiries: newInquiry = new Map<number, sdInquiry>();
@@ -169,12 +169,15 @@ export function parseSdPosts(): updateData {
                 }
                 inquiries.set(villageId, sdInquiry);
             } else if (packagesMatch) {
+                const pkgVal = packagesMatch[2].toLowerCase();
+                const isDone = pkgVal === "done";
+                const valueToSet = isDone ? "done" : packagesMatch[2];
                 if (packagesSent.has(packagesMatch[1])) {
                     let oldVal = packagesSent.get(packagesMatch[1]);
                     if (oldVal === "done" || oldVal === undefined) {
                         return;
                     }
-                    if (packagesMatch[2] === "done") {
+                    if (isDone) {
                         packagesSent.set(packagesMatch[1], "done");
                         return;
                     }
@@ -182,7 +185,7 @@ export function parseSdPosts(): updateData {
                     packagesSent.set(packagesMatch[1], newVal.toString());
                     return;
                 }
-                packagesSent.set(packagesMatch[1], packagesMatch[2]);
+                packagesSent.set(packagesMatch[1], valueToSet);
 
             }
         })
@@ -257,10 +260,13 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
         });
 
         postData.packages.forEach((packageSent, sdId) => {
+            const packageSentLower = String(packageSent ?? "").toLowerCase();
+            const isPackageDone = packageSentLower === "done";
             if (summarizedData.packagesSent.has(sdId)) {
                 let existingPackage = summarizedData.packagesSent.get(sdId);
-                if (existingPackage !== "done") {
-                    let newPackage = packageSent === "done" ? "done" : (parseInt(existingPackage || "0") + parseInt(packageSent)).toString();
+                const existingLower = String(existingPackage ?? "").toLowerCase();
+                if (existingLower !== "done") {
+                    let newPackage = isPackageDone ? "done" : (parseInt(existingPackage || "0") + parseInt(packageSent)).toString();
                     summarizedData.packagesSent.set(sdId, newPackage);
                 } else {
                     summarizedData.packagesSent.set(sdId, packageSent);
@@ -309,10 +315,12 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
     Log.info(sdTableState)
 
     summarizedData.packagesSent.forEach((amount, sdId) => {
+        const amountLower = String(amount ?? "").toLowerCase();
+        const isDone = amountLower === "done";
         let matchingEntry = Array.from(sdTableState.entries()).find(([_, row]) => row.sdId === sdId);
         if (matchingEntry) {
             let [villageId, row] = matchingEntry;
-            row.leftAmount -= amount === "done" ? row.leftAmount : parseInt(amount);
+            row.leftAmount -= isDone ? row.leftAmount : parseInt(amount);
             sdTableState.set(villageId, row);
         } else {
             Log.error(`no matching sdTableRowEntry found for package Id: ${sdId} -> I will ignore it :)`)
@@ -426,31 +434,41 @@ export function displayUpdatedSdTable(packagesToUpdate: Map<string, any>) {
         // Die ID ist der erste Wert im rowData Array
         let id = rowData[0];
         // Überprüfe, ob die ID in packageToUpdate vorhanden ist
-        if (packagesToUpdate.has(id)) {
-            // Hole den zu aktualisierenden Wert
-            if (rowData[3] === "done") {
-                return;
-            }
-            let updateValue = parseInt(packagesToUpdate.get(id) || "0");
-            let oldValue = parseInt(rowData[3]);
-            let newVal = Math.max(0, oldValue - updateValue);
-            let addionalText = "";
-
-            // Nehmen Sie an, dass result Ihr Array ist und das letzte Element das gespeicherte tr-Element ist
-            let savedTr = result[id][9];
-            $("a[name='" + sdPostId + "']").parent().find("table").find("tbody").find("tr").each((index, tr) => {
-                // Überprüfen Sie, ob das aktuelle tr-Element mit dem gespeicherten tr-Element übereinstimmt
-                if ($(tr).is(savedTr)) {
-                    // Das aktuelle tr-Element stimmt mit dem gespeicherten tr-Element überein
-                    // Sie können hier Code hinzufügen, um das tr-Element zu bearbeiten
-                    // Zum Beispiel, um den Text des ersten td-Elements zu ändern:
-                    $(tr).find("td").eq(3).text(newVal.toString());
-                    if (addionalText !== "") {
-                        $(tr).find("td").eq(3).append(addionalText);
-                    }
-                }
-            });
+        if (!packagesToUpdate.has(id)) {
+            return;
         }
+        const cellValueRaw = rowData[3];
+        const cellValueLower = String(cellValueRaw ?? "").toLowerCase();
+        if (cellValueLower === "done") {
+            return;
+        }
+        // Hole den zu aktualisierenden Wert
+        const updateRaw = packagesToUpdate.get(id);
+        const updateLower = String(updateRaw ?? "").toLowerCase();
+        const isDone = updateLower === "done";
+        let displayVal: number;
+        if (isDone) {
+            displayVal = 0;
+        } else {
+            const updateValue = parseInt(updateRaw || "0", 10);
+            const oldValue = parseInt(cellValueRaw, 10);
+            const newVal = isNaN(oldValue) ? 0 : oldValue - (isNaN(updateValue) ? 0 : updateValue);
+            displayVal = Math.max(0, newVal);
+        }
+        const addionalText = "";
+        // Das letzte Element im rowData ist das gespeicherte tr-Element
+        let savedTr = rowData[9];
+        $("a[name='" + sdPostId + "']").parent().find("table").find("tbody").find("tr").each((index, tr) => {
+            // Überprüfen Sie, ob das aktuelle tr-Element mit dem gespeicherten tr-Element übereinstimmt
+            if ($(tr).is(savedTr)) {
+                // Das aktuelle tr-Element stimmt mit dem gespeicherten tr-Element überein
+                // Zum Beispiel, um den Text des ersten td-Elements zu ändern:
+                $(tr).find("td").eq(3).text(displayVal.toString());
+                if (addionalText !== "") {
+                    $(tr).find("td").eq(3).append(addionalText);
+                }
+            }
+        });
     });
 }
 

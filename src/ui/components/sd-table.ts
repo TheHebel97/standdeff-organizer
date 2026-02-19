@@ -86,11 +86,28 @@ export function sdTable(threads: Threads) {
     let packagesToUpdateFromPosts: Map<string, any> = new Map();
     packagesMap.forEach((value) => {  // key = post id // value = packages (multiple)
         value.forEach((amount: string, id: string) => {
+            const amountLower = String(amount ?? "").toLowerCase();
+            const isDone = amountLower === "done";
             if (packagesToUpdateFromPosts.has(id)) {
-                let existingAmount = packagesToUpdateFromPosts.get(id);
-                packagesToUpdateFromPosts.set(id, parseInt(existingAmount) + parseInt(amount));
+                const existingAmount = packagesToUpdateFromPosts.get(id);
+                const existingLower = String(existingAmount ?? "").toLowerCase();
+                if (existingLower === "done") {
+                    return;
+                }
+                if (isDone) {
+                    packagesToUpdateFromPosts.set(id, "done");
+                    return;
+                }
+                const existingNum = parseInt(existingAmount, 10);
+                const amountNum = parseInt(amount, 10);
+                packagesToUpdateFromPosts.set(id, (isNaN(existingNum) ? 0 : existingNum) + (isNaN(amountNum) ? 0 : amountNum));
             } else {
-                packagesToUpdateFromPosts.set(id, parseInt(amount));
+                if (isDone) {
+                    packagesToUpdateFromPosts.set(id, "done");
+                } else {
+                    const amountNum = parseInt(amount, 10);
+                    packagesToUpdateFromPosts.set(id, isNaN(amountNum) ? 0 : amountNum);
+                }
             }
         });
     })

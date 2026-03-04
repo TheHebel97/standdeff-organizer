@@ -112,7 +112,15 @@ export function displayMassUt() {
             $("#place_call_form_submit").on("click", function () {
                 //$(this).prop('disabled', true);
                 let checkedBoxes = $(".troop-request-selector:checked").length;
-                threadData?.packagesSent.set(sendingObj.sdId, String(checkedBoxes));
+                const currentStored = threadData?.packagesSent?.get(sendingObj?.sdId);
+                if (String(currentStored ?? "").toLowerCase() === "done") {
+                    // bereits erledigt, nichts überschreiben
+                } else {
+                    const previous = parseInt(String(currentStored), 10) || 0;
+                    const newTotal = previous + checkedBoxes;
+                    const leftAmount = sendingObj?.leftAmount ?? 0;
+                    threadData?.packagesSent?.set(sendingObj.sdId, newTotal >= leftAmount ? "done" : String(newTotal));
+                }
                 localStorageService.setThreadData(refererThreadId, threadData);
                 Log.info(packagesToSend)
             })

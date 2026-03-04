@@ -11,6 +11,22 @@ import {
 import {LocalStorageHelper} from "./local-storage-helper";
 import {Log} from "./logging-helper";
 
+/**
+ * Treats undefined, null, "", "0" and numeric 0 as "no date" for Ab/Bis cells.
+ * Returns "" in those cases; otherwise returns the value as string (trimmed if string).
+ * Does not treat date strings (e.g. "01.01.2025 12:00") as empty.
+ */
+function normalizeDateCell(value: any): string {
+    if (value === undefined || value === null) return "";
+    if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (trimmed === "" || trimmed === "0") return "";
+        return trimmed;
+    }
+    if (typeof value === "number" && (value === 0 || isNaN(value))) return "";
+    return String(value);
+}
+
 export function convertMessageRequestStringToRequestArray(messageString: String): sdInquiry[] {
     // Split the messageString into lines
     const lines = messageString.split('\n');
@@ -37,8 +53,8 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
             amount: Number(amount),
             playerName: optionalData[1] || undefined,
             comment: optionalData[2] || undefined,
-            dateFrom: optionalData[3] || undefined,
-            dateUntil: optionalData[4] || undefined
+            dateFrom: normalizeDateCell(optionalData[3]) === "" ? undefined : (optionalData[3] ?? undefined),
+            dateUntil: normalizeDateCell(optionalData[4]) === "" ? undefined : (optionalData[4] ?? undefined)
         };
 
         // Add the requestData object to the array
@@ -164,8 +180,8 @@ export function parseSdPosts(): updateData {
                     amount: parseInt(inquiryMatch[2]),
                     playerName: inquiryMatch[3],
                     comment: inquiryMatch[4],
-                    dateFrom: inquiryMatch[5] ? inquiryMatch[5] : undefined,
-                    dateUntil: inquiryMatch[6] ? inquiryMatch[6] : undefined
+                    dateFrom: normalizeDateCell(inquiryMatch[5]) === "" ? undefined : (inquiryMatch[5] ?? undefined),
+                    dateUntil: normalizeDateCell(inquiryMatch[6]) === "" ? undefined : (inquiryMatch[6] ?? undefined)
                 }
                 inquiries.set(villageId, sdInquiry);
             } else if (packagesMatch) {
@@ -210,8 +226,8 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
         while (cells.length < 9) cells.push("");
         cells[8] = cells[8].match(villageIdPattern)?.[1] || "";
         cells[4] = cells[4].replace(/\[player]/, "").replace(/\[\/player]/, "");
-        const dateFrom = cells[6] ? cells[6].trim() : "";
-        const dateUntil = cells[7] ? cells[7].trim() : "";
+        const dateFrom = normalizeDateCell(cells[6] ? cells[6].trim() : "");
+        const dateUntil = normalizeDateCell(cells[7] ? cells[7].trim() : "");
         sdTableState.set(parseInt(cells[8]), {
             coords: cells[1].trim(),
             sdId: cells[0],
@@ -304,8 +320,8 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
                 leftAmount: inquiry.amount,
                 playerName: inquiry.playerName || "",
                 comment: inquiry.comment || "",
-                dateFrom: inquiry.dateFrom || "",
-                dateUntil: inquiry.dateUntil || ""
+                dateFrom: normalizeDateCell(inquiry.dateFrom),
+                dateUntil: normalizeDateCell(inquiry.dateUntil)
             });
 
         }
@@ -352,7 +368,7 @@ export function parseSdStateToTableString(sdState: sdState): [string, string] {
     const [sdTableState, cache] = sdState;
     let tableString = "";
     sdTableState.forEach((row, villageId) => {
-        tableString += `[*]${row.sdId}[|]${" " + row.coords + " "}[|]${row.startAmount}[|]${row.leftAmount}[|][player]${row.playerName}[/player][|]${row.comment}[|]${row.dateFrom}[|]${row.dateUntil}[|][url=${generateMassUtLink(villageId)}]Massen UT-Link[/url][/*]\n`;
+        tableString += `[*]${row.sdId}[|]${" " + row.coords + " "}[|]${row.startAmount}[|]${row.leftAmount}[|][player]${row.playerName}[/player][|]${row.comment}[|]${normalizeDateCell(row.dateFrom)}[|]${normalizeDateCell(row.dateUntil)}[|][url=${generateMassUtLink(villageId)}]Massen UT-Link[/url][/*]\n`;
     });
     let cacheString = `[spoiler=postCache]${cache.join(",")}[/spoiler]`;
     return [tableString, cacheString];
@@ -387,8 +403,8 @@ export function parseTableHtmlElemToSdState(tableBodyElem: any): sdTableState {
             leftAmount: parseInt(rowSdTableArray[3].text().trim()),
             playerName: rowSdTableArray[4].text().trim(),
             comment: rowSdTableArray[5].text().trim(),
-            dateFrom: rowSdTableArray[6].text().trim(),
-            dateUntil: rowSdTableArray[7].text().trim()
+            dateFrom: normalizeDateCell(rowSdTableArray[6].text().trim()),
+            dateUntil: normalizeDateCell(rowSdTableArray[7].text().trim())
 
         };
         sdTableState.set(villageId, rowSdTable);

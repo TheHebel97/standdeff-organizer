@@ -11,6 +11,22 @@ import {
 import {LocalStorageHelper} from "./local-storage-helper";
 import {Log} from "./logging-helper";
 
+/**
+ * Treats undefined, null, "", "0" and numeric 0 as "no date" for Ab/Bis cells.
+ * Returns "" in those cases; otherwise returns the value as string (trimmed if string).
+ * Does not treat date strings (e.g. "01.01.2025 12:00") as empty.
+ */
+function normalizeDateCell(value: any): string {
+    if (value === undefined || value === null) return "";
+    if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (trimmed === "" || trimmed === "0") return "";
+        return trimmed;
+    }
+    if (typeof value === "number" && (value === 0 || isNaN(value))) return "";
+    return String(value);
+}
+
 export function convertMessageRequestStringToRequestArray(messageString: String): sdInquiry[] {
     // Split the messageString into lines
     const lines = messageString.split('\n');
@@ -37,8 +53,8 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
             amount: Number(amount),
             playerName: optionalData[1] || undefined,
             comment: optionalData[2] || undefined,
-            dateFrom: optionalData[3] || undefined,
-            dateUntil: optionalData[4] || undefined
+            dateFrom: normalizeDateCell(optionalData[3]) === "" ? undefined : (optionalData[3] ?? undefined),
+            dateUntil: normalizeDateCell(optionalData[4]) === "" ? undefined : (optionalData[4] ?? undefined)
         };
 
         // Add the requestData object to the array
@@ -131,7 +147,7 @@ export function parseSdPosts(): updateData {
 
     // Get the post container
     const newInquiryRegex = /(\d{3}\|\d{3})\)\sK\d+\s+(\d+)\s+["\u201c](.+)?["\u201c](.+)?["\u201c](.+)?["\u201c](.+)?/; // hier die anführungszeichen für mac hinzufügen todo:
-    const packagesSentRegex = /(\d+)\s(\d+|done)/; // evtl noch optimieren todo:
+    const packagesSentRegex = /(\d+)\s(\d+|done)/i;
     $(".post").each((index, element) => {
         let packagesSent: packages = new Map<string, string>();
         let inquiries: newInquiry = new Map<number, sdInquiry>();
@@ -164,17 +180,20 @@ export function parseSdPosts(): updateData {
                     amount: parseInt(inquiryMatch[2]),
                     playerName: inquiryMatch[3],
                     comment: inquiryMatch[4],
-                    dateFrom: inquiryMatch[5] ? inquiryMatch[5] : undefined,
-                    dateUntil: inquiryMatch[6] ? inquiryMatch[6] : undefined
+                    dateFrom: normalizeDateCell(inquiryMatch[5]) === "" ? undefined : (inquiryMatch[5] ?? undefined),
+                    dateUntil: normalizeDateCell(inquiryMatch[6]) === "" ? undefined : (inquiryMatch[6] ?? undefined)
                 }
                 inquiries.set(villageId, sdInquiry);
             } else if (packagesMatch) {
+                const pkgVal = packagesMatch[2].toLowerCase();
+                const isDone = pkgVal === "done";
+                const valueToSet = isDone ? "done" : packagesMatch[2];
                 if (packagesSent.has(packagesMatch[1])) {
                     let oldVal = packagesSent.get(packagesMatch[1]);
                     if (oldVal === "done" || oldVal === undefined) {
                         return;
                     }
-                    if (packagesMatch[2] === "done") {
+                    if (isDone) {
                         packagesSent.set(packagesMatch[1], "done");
                         return;
                     }
@@ -182,7 +201,7 @@ export function parseSdPosts(): updateData {
                     packagesSent.set(packagesMatch[1], newVal.toString());
                     return;
                 }
-                packagesSent.set(packagesMatch[1], packagesMatch[2]);
+                packagesSent.set(packagesMatch[1], valueToSet);
 
             }
         })
@@ -207,8 +226,8 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
         while (cells.length < 9) cells.push("");
         cells[8] = cells[8].match(villageIdPattern)?.[1] || "";
         cells[4] = cells[4].replace(/\[player]/, "").replace(/\[\/player]/, "");
-        const dateFrom = cells[6] ? cells[6].trim() : "";
-        const dateUntil = cells[7] ? cells[7].trim() : "";
+        const dateFrom = normalizeDateCell(cells[6] ? cells[6].trim() : "");
+        const dateUntil = normalizeDateCell(cells[7] ? cells[7].trim() : "");
         sdTableState.set(parseInt(cells[8]), {
             coords: cells[1].trim(),
             sdId: cells[0],
@@ -257,10 +276,13 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
         });
 
         postData.packages.forEach((packageSent, sdId) => {
+            const packageSentLower = String(packageSent ?? "").toLowerCase();
+            const isPackageDone = packageSentLower === "done";
             if (summarizedData.packagesSent.has(sdId)) {
                 let existingPackage = summarizedData.packagesSent.get(sdId);
-                if (existingPackage !== "done") {
-                    let newPackage = packageSent === "done" ? "done" : (parseInt(existingPackage || "0") + parseInt(packageSent)).toString();
+                const existingLower = String(existingPackage ?? "").toLowerCase();
+                if (existingLower !== "done") {
+                    let newPackage = isPackageDone ? "done" : (parseInt(existingPackage || "0") + parseInt(packageSent)).toString();
                     summarizedData.packagesSent.set(sdId, newPackage);
                 } else {
                     summarizedData.packagesSent.set(sdId, packageSent);
@@ -298,8 +320,8 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
                 leftAmount: inquiry.amount,
                 playerName: inquiry.playerName || "",
                 comment: inquiry.comment || "",
-                dateFrom: inquiry.dateFrom || "",
-                dateUntil: inquiry.dateUntil || ""
+                dateFrom: normalizeDateCell(inquiry.dateFrom),
+                dateUntil: normalizeDateCell(inquiry.dateUntil)
             });
 
         }
@@ -309,10 +331,12 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
     Log.info(sdTableState)
 
     summarizedData.packagesSent.forEach((amount, sdId) => {
+        const amountLower = String(amount ?? "").toLowerCase();
+        const isDone = amountLower === "done";
         let matchingEntry = Array.from(sdTableState.entries()).find(([_, row]) => row.sdId === sdId);
         if (matchingEntry) {
             let [villageId, row] = matchingEntry;
-            row.leftAmount -= amount === "done" ? row.leftAmount : parseInt(amount);
+            row.leftAmount -= isDone ? row.leftAmount : parseInt(amount);
             sdTableState.set(villageId, row);
         } else {
             Log.error(`no matching sdTableRowEntry found for package Id: ${sdId} -> I will ignore it :)`)
@@ -344,7 +368,7 @@ export function parseSdStateToTableString(sdState: sdState): [string, string] {
     const [sdTableState, cache] = sdState;
     let tableString = "";
     sdTableState.forEach((row, villageId) => {
-        tableString += `[*]${row.sdId}[|]${" " + row.coords + " "}[|]${row.startAmount}[|]${row.leftAmount}[|][player]${row.playerName}[/player][|]${row.comment}[|]${row.dateFrom}[|]${row.dateUntil}[|][url=${generateMassUtLink(villageId)}]Massen UT-Link[/url][/*]\n`;
+        tableString += `[*]${row.sdId}[|]${" " + row.coords + " "}[|]${row.startAmount}[|]${row.leftAmount}[|][player]${row.playerName}[/player][|]${row.comment}[|]${normalizeDateCell(row.dateFrom)}[|]${normalizeDateCell(row.dateUntil)}[|][url=${generateMassUtLink(villageId)}]Massen UT-Link[/url][/*]\n`;
     });
     let cacheString = `[spoiler=postCache]${cache.join(",")}[/spoiler]`;
     return [tableString, cacheString];
@@ -379,8 +403,8 @@ export function parseTableHtmlElemToSdState(tableBodyElem: any): sdTableState {
             leftAmount: parseInt(rowSdTableArray[3].text().trim()),
             playerName: rowSdTableArray[4].text().trim(),
             comment: rowSdTableArray[5].text().trim(),
-            dateFrom: rowSdTableArray[6].text().trim(),
-            dateUntil: rowSdTableArray[7].text().trim()
+            dateFrom: normalizeDateCell(rowSdTableArray[6].text().trim()),
+            dateUntil: normalizeDateCell(rowSdTableArray[7].text().trim())
 
         };
         sdTableState.set(villageId, rowSdTable);
@@ -426,31 +450,41 @@ export function displayUpdatedSdTable(packagesToUpdate: Map<string, any>) {
         // Die ID ist der erste Wert im rowData Array
         let id = rowData[0];
         // Überprüfe, ob die ID in packageToUpdate vorhanden ist
-        if (packagesToUpdate.has(id)) {
-            // Hole den zu aktualisierenden Wert
-            if (rowData[3] === "done") {
-                return;
-            }
-            let updateValue = parseInt(packagesToUpdate.get(id) || "0");
-            let oldValue = parseInt(rowData[3]);
-            let newVal = Math.max(0, oldValue - updateValue);
-            let addionalText = "";
-
-            // Nehmen Sie an, dass result Ihr Array ist und das letzte Element das gespeicherte tr-Element ist
-            let savedTr = result[id][9];
-            $("a[name='" + sdPostId + "']").parent().find("table").find("tbody").find("tr").each((index, tr) => {
-                // Überprüfen Sie, ob das aktuelle tr-Element mit dem gespeicherten tr-Element übereinstimmt
-                if ($(tr).is(savedTr)) {
-                    // Das aktuelle tr-Element stimmt mit dem gespeicherten tr-Element überein
-                    // Sie können hier Code hinzufügen, um das tr-Element zu bearbeiten
-                    // Zum Beispiel, um den Text des ersten td-Elements zu ändern:
-                    $(tr).find("td").eq(3).text(newVal.toString());
-                    if (addionalText !== "") {
-                        $(tr).find("td").eq(3).append(addionalText);
-                    }
-                }
-            });
+        if (!packagesToUpdate.has(id)) {
+            return;
         }
+        const cellValueRaw = rowData[3];
+        const cellValueLower = String(cellValueRaw ?? "").toLowerCase();
+        if (cellValueLower === "done") {
+            return;
+        }
+        // Hole den zu aktualisierenden Wert
+        const updateRaw = packagesToUpdate.get(id);
+        const updateLower = String(updateRaw ?? "").toLowerCase();
+        const isDone = updateLower === "done";
+        let displayVal: number;
+        if (isDone) {
+            displayVal = 0;
+        } else {
+            const updateValue = parseInt(updateRaw || "0", 10);
+            const oldValue = parseInt(cellValueRaw, 10);
+            const newVal = isNaN(oldValue) ? 0 : oldValue - (isNaN(updateValue) ? 0 : updateValue);
+            displayVal = Math.max(0, newVal);
+        }
+        const addionalText = "";
+        // Das letzte Element im rowData ist das gespeicherte tr-Element
+        let savedTr = rowData[9];
+        $("a[name='" + sdPostId + "']").parent().find("table").find("tbody").find("tr").each((index, tr) => {
+            // Überprüfen Sie, ob das aktuelle tr-Element mit dem gespeicherten tr-Element übereinstimmt
+            if ($(tr).is(savedTr)) {
+                // Das aktuelle tr-Element stimmt mit dem gespeicherten tr-Element überein
+                // Zum Beispiel, um den Text des ersten td-Elements zu ändern:
+                $(tr).find("td").eq(3).text(displayVal.toString());
+                if (addionalText !== "") {
+                    $(tr).find("td").eq(3).append(addionalText);
+                }
+            }
+        });
     });
 }
 

@@ -195,7 +195,7 @@ export function calculateSentPackageMarkers(rows: sdTableRenderRow[], sentPackag
         if (!sentAmount) {
             return;
         }
-        sentPackageMarkers.set(row.sdId, `(-${sentAmount})`);
+        sentPackageMarkers.set(row.sdId, isDoneValue(sentAmount) ? "(done)" : `(-${sentAmount})`);
     });
 
     return sentPackageMarkers;

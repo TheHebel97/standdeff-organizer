@@ -10,6 +10,7 @@ import {
     parseTableHtmlElemToSdState, trimVillageNameText, trimYearFromDateStrings,
     updateSentPackagesInSdTable
 } from "../../helpers/table-helper";
+import {aggregatePackageUpdates, parsePostCacheIds} from "../../helpers/table-domain";
 import {Log} from "../../helpers/logging-helper";
 import {PageContext} from "../../helpers/script-context";
 import {getThreadIdFromContext, isAnswerMode, isEditingSdPost} from "../../helpers/thread-guards";
@@ -85,7 +86,7 @@ export function sdTable(pageContext: PageContext, threads: Threads) {
         rowCount: sdTableState.size
     });
 
-    const packagesToUpdateFromPosts = derivePackagesToUpdate(filteredUpdateData);
+    const packagesToUpdateFromPosts = aggregatePackageUpdates(filteredUpdateData);
     log.state("Aggregated package deltas from posts", {
         packageCount: packagesToUpdateFromPosts.size,
         entries: Array.from(packagesToUpdateFromPosts.entries()).slice(0, 10)
@@ -119,7 +120,7 @@ function readPageState(pageContext: PageContext, threads: Threads): SdTablePageS
 function deriveState(pageContext: PageContext, pageState: SdTablePageState, threads: Threads): SdTableDerivedState {
     return {
         isEditMode: isEditingSdPost(pageContext, threads),
-        postCacheIds: readPostCacheIds(readSdTableDom(pageState.sdPostId).postCacheText)
+        postCacheIds: parsePostCacheIds(readSdTableDom(pageState.sdPostId).postCacheText)
     };
 }
 
@@ -150,16 +151,9 @@ function readSdTableDom(sdPostId: string) {
     };
 }
 
-function readPostCacheIds(postCacheText: string): string[] {
-    if (postCacheText.length <= 2) {
-        return [];
-    }
-    return postCacheText.split(",");
-}
-
 function applyPostCacheFiltering(pageState: SdTablePageState, postCacheText: string): updateData {
     const filteredUpdateData: updateData = new Map(pageState.updateData);
-    const postCacheIds = readPostCacheIds(postCacheText);
+    const postCacheIds = parsePostCacheIds(postCacheText);
     for (const key of postCacheIds) {
         filteredUpdateData.delete(key);
         if (!pageState.isForumMod) {
@@ -172,38 +166,6 @@ function applyPostCacheFiltering(pageState: SdTablePageState, postCacheText: str
         });
     }
     return filteredUpdateData;
-}
-
-function derivePackagesToUpdate(filteredUpdateData: updateData): Map<string, any> {
-    let packagesToUpdateFromPosts: Map<string, any> = new Map();
-    filteredUpdateData.forEach((value) => {
-        value.packages.forEach((amount: string, id: string) => {
-            const amountLower = String(amount ?? "").toLowerCase();
-            const isDone = amountLower === "done";
-            if (packagesToUpdateFromPosts.has(id)) {
-                const existingAmount = packagesToUpdateFromPosts.get(id);
-                const existingLower = String(existingAmount ?? "").toLowerCase();
-                if (existingLower === "done") {
-                    return;
-                }
-                if (isDone) {
-                    packagesToUpdateFromPosts.set(id, "done");
-                    return;
-                }
-                const existingNum = parseInt(existingAmount, 10);
-                const amountNum = parseInt(amount, 10);
-                packagesToUpdateFromPosts.set(id, (isNaN(existingNum) ? 0 : existingNum) + (isNaN(amountNum) ? 0 : amountNum));
-            } else {
-                if (isDone) {
-                    packagesToUpdateFromPosts.set(id, "done");
-                } else {
-                    const amountNum = parseInt(amount, 10);
-                    packagesToUpdateFromPosts.set(id, isNaN(amountNum) ? 0 : amountNum);
-                }
-            }
-        });
-    });
-    return packagesToUpdateFromPosts;
 }
 
 function renderRoleSpecificView(pageState: SdTablePageState, postCacheText: string) {

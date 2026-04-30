@@ -67,6 +67,33 @@ export type rowSdTable = {
 
 export type packages = Map<string, string> //internalSdId, amount
 
+export type villageAnchorSource = {
+    coords: string;
+    villageId: number;
+}
+
+export type forumPostSource = {
+    postId: string;
+    lines: string[];
+}
+
+export type sdTableRowSource = {
+    sdId: string;
+    coordsText: string;
+    startAmountText: string;
+    leftAmountText: string;
+    playerNameText: string;
+    commentText: string;
+    dateFromText: string;
+    dateUntilText: string;
+    villageHref: string;
+}
+
+export type sdTableRenderRow = {
+    sdId: string;
+    leftAmountText: string;
+}
+
 
 export type coordinates = `${number}|${number}`;
 

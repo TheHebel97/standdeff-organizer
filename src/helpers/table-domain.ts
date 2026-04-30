@@ -1,15 +1,38 @@
 import {
+    forumPostSource,
     newInquiry,
     packages,
     rowSdTable,
     sdInquiry,
     sdState,
+    sdTableRenderRow,
+    sdTableRowSource,
     sdTableState,
-    updateData
+    updateData,
+    villageAnchorSource
 } from "../types/types";
 import {Log} from "./logging-helper";
 
 const log = Log.scope("table-domain");
+
+const NEW_INQUIRY_REGEX = /(\d{3}\|\d{3})\)\sK\d+\s+(\d+)\s+["\u201c](.+)?["\u201c](.+)?["\u201c](.+)?["\u201c](.+)?/;
+const PACKAGES_SENT_REGEX = /(\d+)\s(\d+|done)/i;
+const VILLAGE_ID_PATTERN = /target=(\d+)/;
+
+function isDoneValue(value: string | undefined | null): boolean {
+    return String(value ?? "").toLowerCase() === "done";
+}
+
+function parseTwCoordsText(coordsText: string): string {
+    const coordsPattern = /\d{3}\|\d{3}/g;
+    const found = coordsText.match(coordsPattern);
+    return found ? found[found.length - 1] : "";
+}
+
+function parseVillageIdFromHref(href: string): number {
+    const found = href.match(VILLAGE_ID_PATTERN);
+    return found ? parseInt(found[1], 10) : 0;
+}
 
 export function normalizeDateCell(value: any): string {
     if (value === undefined || value === null) return "";
@@ -20,6 +43,176 @@ export function normalizeDateCell(value: any): string {
     }
     if (typeof value === "number" && (value === 0 || isNaN(value))) return "";
     return String(value);
+}
+
+export function buildCoordVillageIdMap(villageAnchors: villageAnchorSource[]): Map<string, number> {
+    const coordVillageIdMap = new Map<string, number>();
+    villageAnchors.forEach((anchor) => {
+        coordVillageIdMap.set(anchor.coords, anchor.villageId);
+    });
+    return coordVillageIdMap;
+}
+
+export function parseForumPostUpdates(posts: forumPostSource[], coordVillageIdMap: Map<string, number>): updateData {
+    const parsedUpdateData: updateData = new Map<string, { inquiries: newInquiry; packages: packages }>();
+
+    posts.forEach((post) => {
+        const packagesSent: packages = new Map<string, string>();
+        const inquiries: newInquiry = new Map<number, sdInquiry>();
+        let finished = false;
+
+        post.lines.forEach((line) => {
+            if (finished || line === "______________________________") {
+                finished = true;
+                return;
+            }
+
+            const inquiryMatch = line.match(NEW_INQUIRY_REGEX);
+            const packagesMatch = line.match(PACKAGES_SENT_REGEX);
+            if (inquiryMatch) {
+                if (!coordVillageIdMap.has(inquiryMatch[1])) {
+                    log.error("coords not found in village map", {coords: inquiryMatch[1]});
+                }
+                const villageId = coordVillageIdMap.get(inquiryMatch[1]) || 0;
+                inquiries.set(villageId, {
+                    coords: inquiryMatch[1],
+                    amount: parseInt(inquiryMatch[2], 10),
+                    playerName: inquiryMatch[3],
+                    comment: inquiryMatch[4],
+                    dateFrom: normalizeDateCell(inquiryMatch[5]) === "" ? undefined : (inquiryMatch[5] ?? undefined),
+                    dateUntil: normalizeDateCell(inquiryMatch[6]) === "" ? undefined : (inquiryMatch[6] ?? undefined)
+                });
+                return;
+            }
+
+            if (!packagesMatch) {
+                return;
+            }
+
+            const sdId = packagesMatch[1];
+            const packageValue = packagesMatch[2];
+            if (packagesSent.has(sdId)) {
+                const previousValue = packagesSent.get(sdId);
+                if (isDoneValue(previousValue)) {
+                    return;
+                }
+                if (isDoneValue(packageValue)) {
+                    packagesSent.set(sdId, "done");
+                    return;
+                }
+                const nextValue = (parseInt(previousValue || "0", 10) || 0) + (parseInt(packageValue, 10) || 0);
+                packagesSent.set(sdId, String(nextValue));
+                return;
+            }
+            packagesSent.set(sdId, isDoneValue(packageValue) ? "done" : packageValue);
+        });
+
+        parsedUpdateData.set(post.postId, {inquiries, packages: packagesSent});
+    });
+
+    return parsedUpdateData;
+}
+
+export function parseSdTableRows(rows: sdTableRowSource[]): sdTableState {
+    const parsedState = new Map<number, rowSdTable>();
+    rows.forEach((row) => {
+        const villageId = parseVillageIdFromHref(row.villageHref);
+        parsedState.set(villageId, {
+            coords: parseTwCoordsText(row.coordsText),
+            sdId: row.sdId,
+            startAmount: parseInt(row.startAmountText, 10),
+            leftAmount: parseInt(row.leftAmountText, 10),
+            playerName: row.playerNameText,
+            comment: row.commentText,
+            dateFrom: normalizeDateCell(row.dateFromText),
+            dateUntil: normalizeDateCell(row.dateUntilText)
+        });
+    });
+    return parsedState;
+}
+
+export function parsePostCacheIds(postCacheText: string): string[] {
+    if (postCacheText.length <= 2) {
+        return [];
+    }
+    return postCacheText.split(",");
+}
+
+export function aggregatePackageUpdates(updateData: updateData): packages {
+    const aggregatedPackages: packages = new Map<string, string>();
+
+    updateData.forEach((value) => {
+        value.packages.forEach((amount: string, id: string) => {
+            if (aggregatedPackages.has(id)) {
+                const existingAmount = aggregatedPackages.get(id);
+                if (isDoneValue(existingAmount)) {
+                    return;
+                }
+                if (isDoneValue(amount)) {
+                    aggregatedPackages.set(id, "done");
+                    return;
+                }
+                const existingNum = parseInt(existingAmount || "0", 10);
+                const amountNum = parseInt(amount, 10);
+                aggregatedPackages.set(id, String((isNaN(existingNum) ? 0 : existingNum) + (isNaN(amountNum) ? 0 : amountNum)));
+                return;
+            }
+
+            aggregatedPackages.set(id, isDoneValue(amount) ? "done" : String(isNaN(parseInt(amount, 10)) ? 0 : parseInt(amount, 10)));
+        });
+    });
+
+    return aggregatedPackages;
+}
+
+export function calculateDisplayedLeftAmounts(rows: sdTableRenderRow[], packagesToUpdate: packages): packages {
+    const displayedLeftAmounts: packages = new Map<string, string>();
+
+    rows.forEach((row) => {
+        if (!packagesToUpdate.has(row.sdId) || isDoneValue(row.leftAmountText)) {
+            return;
+        }
+        const updateRaw = packagesToUpdate.get(row.sdId);
+        if (isDoneValue(updateRaw)) {
+            displayedLeftAmounts.set(row.sdId, "0");
+            return;
+        }
+
+        const updateValue = parseInt(updateRaw || "0", 10);
+        const oldValue = parseInt(row.leftAmountText, 10);
+        const newValue = (isNaN(oldValue) ? 0 : oldValue) - (isNaN(updateValue) ? 0 : updateValue);
+        displayedLeftAmounts.set(row.sdId, String(Math.max(0, newValue)));
+    });
+
+    return displayedLeftAmounts;
+}
+
+export function calculateSentPackageMarkers(rows: sdTableRenderRow[], sentPackages: packages): Map<string, string> {
+    const sentPackageMarkers = new Map<string, string>();
+
+    rows.forEach((row) => {
+        const sentAmount = sentPackages.get(row.sdId);
+        if (!sentAmount) {
+            return;
+        }
+        sentPackageMarkers.set(row.sdId, `(-${sentAmount})`);
+    });
+
+    return sentPackageMarkers;
+}
+
+export function buildMassUtQuerySuffix(currentThreadId: string, automate: boolean, sdGroupId: string, orderBy: string): string {
+    let additionalQuery = "&dir=0&sdTableId=" + currentThreadId;
+    if (!automate) {
+        return additionalQuery;
+    }
+    if (sdGroupId !== "") {
+        additionalQuery += "&group=" + sdGroupId;
+    }
+    if (orderBy !== "") {
+        additionalQuery += "&order=" + orderBy;
+    }
+    return additionalQuery;
 }
 
 export function convertMessageRequestStringToRequestArray(messageString: String): sdInquiry[] {
@@ -63,9 +256,9 @@ export function convertRequestArrayToMessageString(requests: sdInquiry[]): strin
             date = new Date(v * 1000);
         } else if (/^\d{8}$/.test(String(v))) {
             const s = String(v);
-            const y = parseInt(s.slice(0, 4));
-            const m = parseInt(s.slice(4, 6));
-            const d = parseInt(s.slice(6, 8));
+            const y = parseInt(s.slice(0, 4), 10);
+            const m = parseInt(s.slice(4, 6), 10);
+            const d = parseInt(s.slice(6, 8), 10);
             date = new Date(y, m - 1, d, 0, 0);
         } else if (v >= 1970 && v <= 3000) {
             date = new Date(v, 0, 1, 0, 0);
@@ -93,7 +286,6 @@ export function convertRequestArrayToMessageString(requests: sdInquiry[]): strin
 }
 
 export function parseEditSdTableData(tableText: string, cacheText: string): sdState {
-    const villageIdPattern = /target=(\d+)/;
     let sdTableState = new Map<number, rowSdTable>();
     tableText.split("[*]").forEach((line) => {
         const cells = line.split("[|]");
@@ -101,15 +293,15 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
             return;
         }
         while (cells.length < 9) cells.push("");
-        cells[8] = cells[8].match(villageIdPattern)?.[1] || "";
+        cells[8] = cells[8].match(VILLAGE_ID_PATTERN)?.[1] || "";
         cells[4] = cells[4].replace(/\[player]/, "").replace(/\[\/player]/, "");
         const dateFrom = normalizeDateCell(cells[6] ? cells[6].trim() : "");
         const dateUntil = normalizeDateCell(cells[7] ? cells[7].trim() : "");
-        sdTableState.set(parseInt(cells[8]), {
+        sdTableState.set(parseInt(cells[8], 10), {
             coords: cells[1].trim(),
             sdId: cells[0],
-            startAmount: parseInt(cells[2]),
-            leftAmount: parseInt(cells[3]),
+            startAmount: parseInt(cells[2], 10),
+            leftAmount: parseInt(cells[3], 10),
             playerName: cells[4],
             comment: cells[5],
             dateFrom: dateFrom,
@@ -152,13 +344,12 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
         });
 
         postData.packages.forEach((packageSent, sdId) => {
-            const packageSentLower = String(packageSent ?? "").toLowerCase();
-            const isPackageDone = packageSentLower === "done";
             if (summarizedData.packagesSent.has(sdId)) {
                 let existingPackage = summarizedData.packagesSent.get(sdId);
-                const existingLower = String(existingPackage ?? "").toLowerCase();
-                if (existingLower !== "done") {
-                    let newPackage = isPackageDone ? "done" : (parseInt(existingPackage || "0") + parseInt(packageSent)).toString();
+                if (!isDoneValue(existingPackage)) {
+                    let newPackage = isDoneValue(packageSent)
+                        ? "done"
+                        : (parseInt(existingPackage || "0", 10) + parseInt(packageSent, 10)).toString();
                     summarizedData.packagesSent.set(sdId, newPackage);
                 } else {
                     summarizedData.packagesSent.set(sdId, packageSent);
@@ -198,12 +389,10 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
     });
 
     summarizedData.packagesSent.forEach((amount, sdId) => {
-        const amountLower = String(amount ?? "").toLowerCase();
-        const isDone = amountLower === "done";
         let matchingEntry = Array.from(sdTableState.entries()).find(([_, row]) => row.sdId === sdId);
         if (matchingEntry) {
             let [villageId, row] = matchingEntry;
-            row.leftAmount -= isDone ? row.leftAmount : parseInt(amount);
+            row.leftAmount -= isDoneValue(amount) ? row.leftAmount : parseInt(amount, 10);
             sdTableState.set(villageId, row);
         } else {
             log.error(`no matching sdTableRowEntry found for package Id: ${sdId} -> I will ignore it :)`);

@@ -201,6 +201,14 @@ export function calculateSentPackageMarkers(rows: sdTableRenderRow[], sentPackag
     return sentPackageMarkers;
 }
 
+export function calculateTotalRequiredPackages(sdTableState: sdTableState): number {
+    let totalRequiredPackages = 0;
+    sdTableState.forEach((row) => {
+        totalRequiredPackages += isNaN(row.leftAmount) ? 0 : row.leftAmount;
+    });
+    return totalRequiredPackages;
+}
+
 export function buildMassUtQuerySuffix(currentThreadId: string, automate: boolean, sdGroupId: string, orderBy: string): string {
     let additionalQuery = "&dir=0&sdTableId=" + currentThreadId;
     if (!automate) {

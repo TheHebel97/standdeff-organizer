@@ -10,7 +10,7 @@ import {
     parseTableHtmlElemToSdState, trimVillageNameText, trimYearFromDateStrings,
     updateSentPackagesInSdTable
 } from "../../helpers/table-helper";
-import {aggregatePackageUpdates, parsePostCacheIds} from "../../helpers/table-domain";
+import {aggregatePackageUpdates, calculateTotalRequiredPackages, parsePostCacheIds} from "../../helpers/table-domain";
 import {Log} from "../../helpers/logging-helper";
 import {PageContext} from "../../helpers/script-context";
 import {getThreadIdFromContext, isAnswerMode, isEditingSdPost} from "../../helpers/thread-guards";
@@ -95,6 +95,7 @@ export function sdTable(pageContext: PageContext, threads: Threads) {
     displayUpdatedSdTable(pageState.currentThreadId, packagesToUpdateFromPosts);
     sdTableState = parseTableHtmlElemToSdState(sdTableDom.sdTableBody);
     LocalStorageHelper.getInstance().setSdTableState(pageState.currentThreadId, sdTableState);
+    updateSdTableTitle(sdTableDom.sdTablePost, sdTableState);
 
     updateSentPackagesInSdTable(pageState.currentThreadId);
     applySettingsToMassUtLink(pageState.currentThreadId);
@@ -131,6 +132,25 @@ function renderChrome(pageState: SdTablePageState) {
     if (pageState.hasReplyTextarea) {
         log.info("Reply textarea detected; enabling post layout helpers");
     }
+}
+
+function updateSdTableTitle(sdTablePost: JQuery<HTMLElement>, sdTableState: ReturnType<typeof parseTableHtmlElemToSdState>) {
+    const totalRequiredPackages = calculateTotalRequiredPackages(sdTableState);
+    const titleElement = sdTablePost.find(".text b").filter((index, element) => {
+        return $(element).text().trim().startsWith("SD Tabelle Paketsystem");
+    }).first();
+
+    if (titleElement.length === 0) {
+        log.warn("Could not find SD table package system title for package total update", {
+            totalRequiredPackages
+        });
+        return;
+    }
+
+    titleElement.text(`SD Tabelle Paketsystem || Benötigte Pakete (${totalRequiredPackages})`);
+    log.info("Updated SD table package total in title", {
+        totalRequiredPackages
+    });
 }
 
 function removeNonModActions() {

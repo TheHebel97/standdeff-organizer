@@ -412,15 +412,14 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
     return [sdTableState, newPostCache] as sdState;
 }
 
-export function buildMassUtLink(world: string, villageId: number): string {
-    return `https://${world}.die-staemme.de/game.php?village=0&screen=place&mode=call&target=${villageId}`;
-}
-
-export function parseSdStateToTableString(sdState: sdState, world: string): [string, string] {
+export function parseSdStateToTableString(
+    sdState: sdState,
+    buildMassUtLink: (villageId: number) => string,
+): [string, string] {
     const [sdTableState, cache] = sdState;
     let tableString = "";
     sdTableState.forEach((row, villageId) => {
-        tableString += `[*]${row.sdId}[|]${" " + row.coords + " "}[|]${row.startAmount}[|]${row.leftAmount}[|][player]${row.playerName}[/player][|]${row.comment}[|]${normalizeDateCell(row.dateFrom)}[|]${normalizeDateCell(row.dateUntil)}[|][url=${buildMassUtLink(world, villageId)}]Massen UT-Link[/url][/*]\n`;
+        tableString += `[*]${row.sdId}[|]${" " + row.coords + " "}[|]${row.startAmount}[|]${row.leftAmount}[|][player]${row.playerName}[/player][|]${row.comment}[|]${normalizeDateCell(row.dateFrom)}[|]${normalizeDateCell(row.dateUntil)}[|][url=${buildMassUtLink(villageId)}]Massen UT-Link[/url][/*]\n`;
     });
     let cacheString = `[spoiler=postCache]${cache.join(",")}[/spoiler]`;
     return [tableString, cacheString];

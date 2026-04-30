@@ -2,6 +2,7 @@ import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 import {updateData, sdState} from "../../types/types";
 import {calculateSdTableState, parseEditSdTableData, parseSdStateToTableString} from "../../helpers/table-domain";
 import {Log} from "../../helpers/logging-helper";
+import {buildMassUtCallUrl} from "../../helpers/game-url-helper";
 
 const log = Log.scope("edit-sd-post");
 
@@ -31,7 +32,7 @@ function updateSdTable(updateData: updateData) {
 
     let currentSdState: sdState = parseEditSdTableData(table[1], cache[0]);
     let newSdState: sdState = calculateSdTableState(updateData, currentSdState);
-    let [tableText, cacheText] = parseSdStateToTableString(newSdState, game_data.world);
+    let [tableText, cacheText] = parseSdStateToTableString(newSdState, buildMassUtCallUrl);
 
     let updatedSdPostText = rawSdPostText.replace(tablePattern, `[table]
     [**]ID[||]Dorfkoordinaten[||]Angefordert[||][color=#8d0100]Noch benoetigt[/color] [||]Spieler[||]Bemerkung[||]Ab[||]Bis[||][color=#001c83]Massen UT-Link[/color][/**]${tableText}[/table]`);

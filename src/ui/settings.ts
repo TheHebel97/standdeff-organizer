@@ -3,6 +3,7 @@ import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
 import {PageContext} from "../helpers/script-context";
 import {ADD_THREAD_ICON_DATA_URI} from "./ui-assets";
+import {buildForumThreadUrl} from "../helpers/game-url-helper";
 
 const localStorageService = LocalStorageHelper.getInstance();
 const log = Log.scope("settings");
@@ -187,12 +188,9 @@ export function displaySettings(pageContext: PageContext) {
 
     let threads: Threads = localStorageService.getAllThreads;
 
-    let baseUrl = window.location.origin + window.location.pathname;
-    let villageId = game_data.village.id;
-
     if (threads) {
         Object.entries(threads).forEach(([threadId, threadData]) => {
-            let threadLink = `${baseUrl}?village=${villageId}&screen=forum&screenmode=view_thread&forum_id=${threadData.forumId}&thread_id=${threadId}`;
+            let threadLink = buildForumThreadUrl(threadData.forumId, threadId);
 
             let row = `<tr>
              <td>

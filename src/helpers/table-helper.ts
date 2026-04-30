@@ -1,10 +1,10 @@
 import {packages, sdTableState, updateData} from "../types/types";
 import {LocalStorageHelper} from "./local-storage-helper";
 import {Log} from "./logging-helper";
+import {buildMassUtCallUrl} from "./game-url-helper";
 import {
     aggregatePackageUpdates,
     buildCoordVillageIdMap,
-    buildMassUtLink,
     buildMassUtQuerySuffix,
     calculateDisplayedLeftAmounts,
     calculateSentPackageMarkers,
@@ -160,5 +160,5 @@ export function trimYearFromDateStrings() {
 }
 
 export function buildMassUtLinkForCurrentWorld(villageId: number): string {
-    return buildMassUtLink(game_data.world, villageId);
+    return buildMassUtCallUrl(villageId);
 }

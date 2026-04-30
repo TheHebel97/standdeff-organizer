@@ -2,11 +2,11 @@ import {isUserForumMod} from "../helpers/tw-helper";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
 
-
+const log = Log.scope("new-thread");
 
 export function createNewTable() {
     const localStorageService = LocalStorageHelper.getInstance();
-    Log.info("standdeff-organizer loaded in new_thread");
+    log.info("Initializing new-thread controller", {href: window.location.href});
     localStorageService.setNewThread = false;
 
     $(".clearfix > form > input[value=Senden]").on("mouseenter", function () {
@@ -22,7 +22,7 @@ export function createNewTable() {
 
     //debugger;
     if (isUserForumMod()) {
-        Log.info("user is forum mod");
+        log.info("User is forum mod; injecting SD thread generator UI");
         //html elements
         const settingsBtn = `<input type="button" style="background-image: url(/graphic/buildings/smith.png);
             background-repeat: no-repeat; width:20px;height:20px; border: none; cursor: pointer; background-color: transparent; margin-left:7px;" class="configbtn">`;
@@ -52,9 +52,14 @@ export function createNewTable() {
         $("#setupTable").on("click", newThread)
         $("#newPaketLine").on("click", function () {
             $(".inputCollection").append(configContent);
+            log.info("Added another package configuration row", {
+                currentRowCount: $(".inputCollection").children("input, img").length
+            });
 
         });
 
+    } else {
+        log.info("User is not forum mod; SD thread generator UI will not be injected");
     }
 
 }
@@ -111,8 +116,14 @@ function newThread() {
     }
     troopArray = troopArray.filter(row => row.some(value => value !== ""));
     let paketText = createPaketHtml(troopArray)
+    log.info("Generated package configuration for new SD thread", {
+        packageCount: troopArray.length,
+        usedDefaultValues: allInputsEmpty,
+        includesArchers: game_data.units.includes("archer")
+    });
     $(".clearfix > form > input[value=Senden]").on("click", function () {
         localStorageService.setNewThread = true;
+        log.info("Marked next forum view as freshly created SD thread");
 
     });
     let text = `[b]SD Tabelle Paketsystem[/b]
@@ -180,6 +191,9 @@ Moin SFs:
 `
 
     $("#message").val(text);
+    log.info("Inserted generated SD thread template into message textarea", {
+        messageLength: text.length
+    });
 }
 
 const createPaketHtml = (troopArray: any[]) => {
@@ -201,8 +215,10 @@ function swapConfgDisplay() {
     let element = $(".configs");
     if (element.css("display") === "none") {
         element.css("display", "block")
+        log.info("Opened SD thread generator config");
     } else {
         element.css("display", "none")
+        log.info("Closed SD thread generator config");
     }
 }
 

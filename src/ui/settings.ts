@@ -3,10 +3,11 @@ import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
 
 const localStorageService = LocalStorageHelper.getInstance();
+const log = Log.scope("settings");
 
 
 export function displaySettings() {
-    Log.info("standdeff-organizer loaded in settings");
+    log.info("Initializing settings controller", {href: window.location.href});
 
     let unitDropDownOptions: string = '<option value="default"></option>';
     game_data.units.forEach(unit => {
@@ -146,7 +147,11 @@ export function displaySettings() {
 
     // get group data from local storage
     let groupData: groupData[] = localStorageService.getGroupData;
-    Log.info("groupData: ", groupData);
+    log.state("Loaded settings data sources", {
+        groupCount: groupData.length,
+        templateCount: localStorageService.getTemplateData.length,
+        threadCount: Object.keys(localStorageService.getAllThreads).length
+    });
     let templateData: templateData[] = localStorageService.getTemplateData;
 
     if (groupData.length > 0) {
@@ -205,7 +210,7 @@ export function displaySettings() {
 
     $(".delete-thread").on("click", function () {
         let threadIdToDelete = $(this).data("thread-id");
-
+        log.info("Deleting thread from settings", {threadIdToDelete});
         localStorageService.deleteThread(threadIdToDelete);
 
         $(this).parent().parent().remove();
@@ -219,10 +224,12 @@ export function displaySettings() {
             $(this).val("Aus");
             $("#first-start-popup").css("background", "#8d0100");
             localStorageService.setFirstStartPopup = false;
+            log.info("Updated setting", {setting: "firstStartPopup", value: false});
         } else {
             $(this).val("An");
             $("#first-start-popup").css("background", "#0e7a0e");
             localStorageService.setFirstStartPopup = true;
+            log.info("Updated setting", {setting: "firstStartPopup", value: true});
         }
     });
     $("#prevent-duplicate-destination").on("click", function () {
@@ -232,11 +239,13 @@ export function displaySettings() {
             $(this).val("Aus");
             $("#prevent-duplicate-destination").css("background", "#8d0100");
             localStorageService.setPreventDuplicateDestination = false;
+            log.info("Updated setting", {setting: "preventDuplicateDestination", value: false});
 
         } else {
             $(this).val("An");
             $("#prevent-duplicate-destination").css("background", "#0e7a0e");
             localStorageService.setPreventDuplicateDestination = true;
+            log.info("Updated setting", {setting: "preventDuplicateDestination", value: true});
         }
     });
 
@@ -248,11 +257,13 @@ export function displaySettings() {
             $(this).val("Aus");
             $("#automate-massen-ut").css("background", "#8d0100");
             localStorageService.setAutomateMassenUt = false;
+            log.info("Updated setting", {setting: "automateMassenUt", value: false});
 
         } else {
             $(this).val("An");
             $("#automate-massen-ut").css("background", "#0e7a0e");
             localStorageService.setAutomateMassenUt = true;
+            log.info("Updated setting", {setting: "automateMassenUt", value: true});
         }
     });
 
@@ -260,38 +271,45 @@ export function displaySettings() {
         if ($(this).val() !== "0") {
             localStorageService.setSdGroupId = String($(this).val());
             $(this).css("background", "#0e7a0e");
+            log.info("Updated setting", {setting: "sdGroupId", value: String($(this).val())});
             return;
         }
         localStorageService.setSdGroupId = "0";
         $(this).css("background", "#8d0100");
+        log.info("Updated setting", {setting: "sdGroupId", value: "0"});
     });
 
     $("#sd-template-id").on("change", function () {
         if ($(this).val() !== "0") {
             localStorageService.setSelectedTemplate = String($(this).val());
             $(this).css("background", "#0e7a0e");
+            log.info("Updated setting", {setting: "selectedTemplate", value: String($(this).val())});
             return;
         }
         localStorageService.setSelectedTemplate = "0";
         $(this).css("background", "#8d0100");
+        log.info("Updated setting", {setting: "selectedTemplate", value: "0"});
     });
 
     $("#sd-sort-by").on("change", function () {
         if ($(this).val() !== "default") {
             localStorageService.setSortBy = String($(this).val());
             $(this).css("background", "#0e7a0e");
+            log.info("Updated setting", {setting: "sortBy", value: String($(this).val())});
             return;
         }
         localStorageService.setSortBy = "default";
         $(this).css("background", "#8d0100");
+        log.info("Updated setting", {setting: "sortBy", value: "default"});
     });
 
     $("#sd-schwertLfz").on("change", function () {
         const value = Number($(this).val());
         if (!isNaN(value) && value >= 0) {
             localStorageService.setSwordLfz = value;
+            log.info("Updated setting", {setting: "swordLfz", value});
         } else {
-            Log.error("Ung\u00fcltiger Wert f\u00fcr Schwert lfz:");
+            log.error("Invalid value for sword travel time", {value: $(this).val()});
             $(this).val(localStorageService.getSwordLfz);
         }
     })

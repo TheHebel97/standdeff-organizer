@@ -11,6 +11,8 @@ import {
 import {LocalStorageHelper} from "./local-storage-helper";
 import {Log} from "./logging-helper";
 
+const log = Log.scope("table-helper");
+
 /**
  * Treats undefined, null, "", "0" and numeric 0 as "no date" for Ab/Bis cells.
  * Returns "" in those cases; otherwise returns the value as string (trimmed if string).
@@ -25,6 +27,44 @@ function normalizeDateCell(value: any): string {
     }
     if (typeof value === "number" && (value === 0 || isNaN(value))) return "";
     return String(value);
+}
+
+function summarizeUpdateDataMap(data: updateData) {
+    let postCount = 0;
+    let inquiryCount = 0;
+    let packageCount = 0;
+    data.forEach((post) => {
+        postCount++;
+        inquiryCount += post.inquiries.size;
+        packageCount += post.packages.size;
+    });
+    return {
+        postCount,
+        inquiryCount,
+        packageCount
+    };
+}
+
+function summarizeSdTableStateMap(state: sdTableState) {
+    return {
+        rowCount: state.size,
+        rows: Array.from(state.entries()).slice(0, 5).map(([villageId, row]) => ({
+            villageId,
+            sdId: row.sdId,
+            coords: row.coords,
+            startAmount: row.startAmount,
+            leftAmount: row.leftAmount,
+            dateFrom: row.dateFrom,
+            dateUntil: row.dateUntil
+        }))
+    };
+}
+
+function summarizePackagesMap(packagesToSummarize: Map<string, any>) {
+    return {
+        packageCount: packagesToSummarize.size,
+        entries: Array.from(packagesToSummarize.entries()).slice(0, 10)
+    };
 }
 
 export function convertMessageRequestStringToRequestArray(messageString: String): sdInquiry[] {
@@ -127,6 +167,12 @@ export function parseSdPosts(): updateData {
     const currentThreadId = urlParams.get("thread_id") || "";
     const sdPostId = localStorageService.getSdPostId(currentThreadId);
 
+    log.info("Parsing SD posts from thread view", {
+        currentThreadId,
+        sdPostId,
+        postCount: $(".post").length
+    });
+
 
     let coordVilIdMap = new Map<string, number>();
 
@@ -141,7 +187,7 @@ export function parseSdPosts(): updateData {
         if (coords && villageId) {
             coordVilIdMap.set(coords, parseInt(villageId));
         } else {
-            Log.error("coords or village id is undefined")
+            log.error("coords or village id is undefined");
         }
     });
 
@@ -171,7 +217,7 @@ export function parseSdPosts(): updateData {
             if (inquiryMatch) {
 
                 if (!coordVilIdMap.has(inquiryMatch[1])) {
-                    Log.error("coords not found in map")
+                    log.error("coords not found in village map", {coords: inquiryMatch[1]});
                 }
                 const villageId = coordVilIdMap.get(inquiryMatch[1]) || 0;
 
@@ -208,6 +254,10 @@ export function parseSdPosts(): updateData {
         updateData.set(postId, {inquiries: inquiries, packages: packagesSent});
 
 
+    });
+    log.state("Finished parsing SD posts", {
+        coordVillageMappingCount: coordVilIdMap.size,
+        summary: summarizeUpdateDataMap(updateData)
     });
     return updateData;
 }
@@ -250,6 +300,13 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
     const [sdTableState, postCache] = sdState;
     let updateDataWithoutCache: updateData = new Map();
     let newPostCache: string[] = [];
+
+    log.state("Calculating SD table state", {
+        addUpSetting,
+        postCacheCount: postCache.length,
+        incomingUpdates: summarizeUpdateDataMap(updateData),
+        currentTableState: summarizeSdTableStateMap(sdTableState)
+    });
 
     updateData.forEach((postData, postId) => {
         if (!postCache.includes(postId)) {
@@ -294,9 +351,10 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
     });
 
 
-    Log.info(summarizedData)
-    Log.info("sdTableState")
-    Log.info(sdTableState)
+    log.state("Summarized updates before table merge", {
+        inquiryCount: summarizedData.inquiries.size,
+        packageCount: summarizedData.packagesSent.size
+    });
 
     summarizedData.inquiries.forEach((inquiry, villageId) => {
         if (sdTableState.has(villageId)) {
@@ -327,8 +385,7 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
         }
     })
 
-    Log.info("sdTableState after update")
-    Log.info(sdTableState)
+    log.state("SD table after inquiry merge", summarizeSdTableStateMap(sdTableState));
 
     summarizedData.packagesSent.forEach((amount, sdId) => {
         const amountLower = String(amount ?? "").toLowerCase();
@@ -339,14 +396,13 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
             row.leftAmount -= isDone ? row.leftAmount : parseInt(amount);
             sdTableState.set(villageId, row);
         } else {
-            Log.error(`no matching sdTableRowEntry found for package Id: ${sdId} -> I will ignore it :)`)
+            log.error(`no matching sdTableRowEntry found for package Id: ${sdId} -> I will ignore it :)`);
 
         }
 
 
     });
-    Log.info("sdTableState after package update")
-    Log.info(sdTableState)
+    log.state("SD table after package merge", summarizeSdTableStateMap(sdTableState));
 
     //clean up sdTableState and delete everything with leftAmount = 0 // hier logging von fertigen anfragen einbauen wenn gewünscht :)
     let newId = 1;
@@ -358,8 +414,10 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
         row.sdId = String(newId);
         newId++;
     });
-    Log.info("sdTableState after cleanup")
-    Log.info(sdTableState, newPostCache)
+    log.state("SD table after cleanup", {
+        tableState: summarizeSdTableStateMap(sdTableState),
+        newPostCacheCount: newPostCache.length
+    });
 
     return [sdTableState, newPostCache] as sdState;
 }
@@ -436,14 +494,16 @@ export function displayUpdatedSdTable(packagesToUpdate: Map<string, any>) {
     const currentThreadId: string = urlParams.get('thread_id') || "";
     //let sentPackages = localStorageService.getPackagesSent(currentThreadId);
     const sdPostId = localStorageService.getSdPostId(currentThreadId);
-    Log.info(packagesToUpdate)
+    log.state("Applying package deltas to SD table DOM", {
+        currentThreadId,
+        sdPostId,
+        packages: summarizePackagesMap(packagesToUpdate)
+    });
     let result = $("a[name='" + sdPostId + "']").parent().find("table").find("tbody").find("tr").map((index, row) => {
         let rowData: any = $(row).find("td").map((tdIndex, td) => $(td).text()).get();
         rowData.push(row); // Add the current row element to the end of the array
         return [rowData];
     }).get();
-
-    Log.info(result);
 
 
     result.forEach((rowData: any[]) => {
@@ -495,6 +555,12 @@ export function updateSentPackagesInSdTable() {
     const sdPostId = localStorageService.getSdPostId(currentThreadId);
     let sentPackages = localStorageService.getPackagesSent(currentThreadId);
 
+    log.state("Syncing sent packages marker into SD table DOM", {
+        currentThreadId,
+        sdPostId,
+        packages: summarizePackagesMap(sentPackages)
+    });
+
     let result = $("a[name='" + sdPostId + "']").parent().find("table").find("tbody").find("tr").map((index, row) => {
         let rowData: any = $(row).find("td").map((tdIndex, td) => $(td).text()).get();
         rowData.push(row); // Add the current row element to the end of the array
@@ -540,7 +606,7 @@ export function updateSentPackagesInSdTable() {
 
 
 export function applySettingsToMassUtLink() {
-    Log.info("apply settings to mass ut link")
+    log.info("Applying settings to mass-ut links");
     const localStorageService = LocalStorageHelper.getInstance();
     const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
     const currentThreadId: string = urlParams.get('thread_id') || "";
@@ -549,23 +615,32 @@ export function applySettingsToMassUtLink() {
     const orderBy = localStorageService.getSortBy;
     let addionalLinkText = "&dir=0&sdTableId=" + currentThreadId;
     if (automate) {
-        Log.info("automate mass ut")
+        log.info("Mass-ut automation is enabled for link rewriting");
 
         if (sdGroupId !== "") addionalLinkText += "&group=" + sdGroupId;
         if (orderBy !== "") addionalLinkText += "&order=" + orderBy;
     }
+    let updatedLinkCount = 0;
     $(".bbcodetable").find("a[referrerpolicy^='no-ref']").each(function () {
         let oldHref = $(this).attr('href');
         if (oldHref) {
             let newHref = oldHref + addionalLinkText;
             $(this).attr('href', newHref);
+            updatedLinkCount++;
         }
+    });
+    log.info("Mass-ut links updated", {
+        currentThreadId,
+        automate,
+        sdGroupId,
+        orderBy,
+        updatedLinkCount
     });
 
 }
 
 export function trimVillageNameText(){
-    Log.info("trim village names")
+    log.info("Trimming village names in SD table");
     $(".village_anchor>a").each((index, element) => {
         const coordsPattern = /(\d{3}\|\d{3})/;
         const match = $(element).text().match(coordsPattern);
@@ -577,7 +652,7 @@ export function trimVillageNameText(){
 }
 
 export function trimYearFromDateStrings(){
-    Log.info("trim year from date strings")
+    log.info("Trimming year from date strings in SD table");
     $(".bbcodetable>tbody").children().each((index, element) => {
 
         // skip header row if present (index 0)

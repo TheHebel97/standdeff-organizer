@@ -2,6 +2,8 @@ import {rowSdTable, ThreadData, Threads} from "../types/types";
 import {LocalStorageHelper} from "./local-storage-helper";
 import {Log} from "./logging-helper";
 
+const log = Log.scope("helper-functions");
+
 export function addThreadIdToLocalStorage(currentThreadId: string | null, postId: string | null, threadName: string | null, forumName: string | null, forumId: string | null) {
     const localStorageService = LocalStorageHelper.getInstance();
 
@@ -22,22 +24,29 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
             }
 
             localStorageService.addThread(currentThreadId, threadData);
+            log.info("Registered SD thread in localStorage", {
+                currentThreadId,
+                postId,
+                threadName,
+                forumName,
+                forumId
+            });
         } else {
-            Log.error("thread id is already in thread ids")
+            log.error("thread id is already in thread ids");
             return;
         }
     } else {
         if (currentThreadId === null) {
-            Log.error("current thread id is null")
+            log.error("current thread id is null");
         }
         if (postId === null) {
-            Log.error("post id is null")
+            log.error("post id is null");
         }
         if (threadName === null) {
-            Log.error("thread name is null")
+            log.error("thread name is null");
         }
         if (forumName === null) {
-            Log.error("forum name is null")
+            log.error("forum name is null");
         }
         return;
     }

@@ -1,5 +1,7 @@
 import {Log} from "./logging-helper";
 
+const log = Log.scope("tw-helper");
+
 export function isUserForumMod(){
     //only works inside the forum
     if(game_data.screen === "forum") {
@@ -7,7 +9,7 @@ export function isUserForumMod(){
         //return false;
         return modDefiningElement.length > 0;
     }else{
-        Log.error("you can only authenticate as a forum mod in the forum screen");
+        log.error("you can only authenticate as a forum mod in the forum screen");
         return false;
     }
 }
@@ -19,7 +21,7 @@ export function villageBBCodeToCoordinates(bbcode: string): string {
     if (match) {
         return match[match.length - 1];
     } else {
-        Log.error("Invalid village BBCode format");
+        log.error("Invalid village BBCode format", {bbcode});
         return "";
     }
 }

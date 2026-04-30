@@ -7,27 +7,40 @@ import {sdTable} from "./components/sd-table";
 import { Threads} from "../types/types";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
+import {PageContext} from "../helpers/script-context";
+import {getThreadIdFromContext, isKnownSdThread, shouldShowFirstStartPopup} from "../helpers/thread-guards";
 
 const log = Log.scope("view-thread");
 
-export function viewThread() {
+type ViewThreadPageState = {
+    currentThreadId: string;
+    threads: Threads;
+};
+
+type ViewThreadDerivedState = {
+    hasPendingNewThreadMarker: boolean;
+    isKnownThread: boolean;
+    shouldShowPopup: boolean;
+};
+
+export function viewThread(pageContext: PageContext) {
     const localStorageService = LocalStorageHelper.getInstance();
-    const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
-    const currentThreadId: string = urlParams.get('thread_id') || "";
+    const currentThreadId = getThreadIdFromContext(pageContext);
     log.info("Initializing view-thread controller", {
         currentThreadId,
         href: window.location.href
     });
 
-    //wenn zuvor ein neuer SD Thread erstellt wurde, ist der Boolean in newThread true
-    if (localStorageService.getNewThread) {
+    const pageState = readPageState(pageContext, localStorageService);
+    const derivedState = deriveState(pageContext, pageState, localStorageService);
+
+    if (derivedState.hasPendingNewThreadMarker) {
         log.info("Detected pending new-thread marker");
         localStorageService.setNewThread = false;
         const edit_post_id: string | undefined = $(".post > a").attr("name")
         const thread_name: string | null = $(".clearfix > table").first().find("h2").text();
         const forum_name: string | null = $(".forum-container").find(".selected").text().trim();
-        // @ts-ignore
-        const forum_id: string | null = $(".forum.selected").find("a").attr("href").match(/forum_id=\d+/)[0].split("=")[1] || null;
+        const forum_id: string | null = pageContext.forumId;
         if (edit_post_id !== undefined) {
             log.info("Persisting newly created SD thread", {
                 currentThreadId,
@@ -44,29 +57,42 @@ export function viewThread() {
         log.info("No pending new-thread marker found");
     }
 
-    // auslesen der ThreadIds aus dem localstorage um zu verifizieren, dass es sich um eine SD Tabelle handelt
-    let threads: Threads = localStorageService.getAllThreads;
     log.state("Known thread ids in localStorage", {
-        currentThreadId,
-        knownThreadIds: Object.keys(threads),
-        knownThreadCount: Object.keys(threads).length
+        currentThreadId: pageState.currentThreadId,
+        knownThreadIds: Object.keys(pageState.threads),
+        knownThreadCount: Object.keys(pageState.threads).length
     });
 
-    if (threads[currentThreadId] !== undefined) {
+    if (derivedState.isKnownThread) {
         log.info("Thread is registered as SD thread; rendering SD table", {
-            currentThreadId
+            currentThreadId: pageState.currentThreadId
         });
-        sdTable(threads);
+        sdTable(pageContext, pageState.threads);
     } else {
-        if (Object.keys(threads).length === 0) {
+        if (derivedState.shouldShowPopup) {
             log.info("No known threads stored yet; showing first-start popup", {
-                currentThreadId
+                currentThreadId: pageState.currentThreadId
             });
-            addSdPopup(currentThreadId);
+            addSdPopup(pageState.currentThreadId, pageContext.forumId);
         }
         log.info("Thread not registered; showing SD thread options", {
-            currentThreadId
+            currentThreadId: pageState.currentThreadId
         });
-        addSdOptions(currentThreadId);
+        addSdOptions(pageState.currentThreadId, pageContext.forumId);
     }
+}
+
+function readPageState(pageContext: PageContext, localStorageService: LocalStorageHelper): ViewThreadPageState {
+    return {
+        currentThreadId: getThreadIdFromContext(pageContext),
+        threads: localStorageService.getAllThreads
+    };
+}
+
+function deriveState(pageContext: PageContext, pageState: ViewThreadPageState, localStorageService: LocalStorageHelper): ViewThreadDerivedState {
+    return {
+        hasPendingNewThreadMarker: localStorageService.getNewThread,
+        isKnownThread: isKnownSdThread(pageState.threads, pageContext),
+        shouldShowPopup: shouldShowFirstStartPopup(pageState.threads)
+    };
 }

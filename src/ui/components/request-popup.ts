@@ -2,17 +2,17 @@ import {
     convertDateToEpoch,
     convertEpochToDate
 } from "../../helpers/helper-functions";
-import {convertRequestArrayToMessageString} from "../../helpers/table-helper";
+import {convertRequestArrayToMessageString} from "../../helpers/table-domain";
 import {sdInquiry} from "../../types/types";
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 import {Log} from "../../helpers/logging-helper";
 
-export function showRequestPopup() {
-    const localStorageService = LocalStorageHelper.getInstance();
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentThreadId = urlParams.get("thread_id") || "";
+const log = Log.scope("request-popup");
 
-    Log.info("show request popup");
+export function showRequestPopup(currentThreadId: string) {
+    const localStorageService = LocalStorageHelper.getInstance();
+
+    log.info("show request popup", {currentThreadId});
     // requestData-Objekt aus dem LocalStorage abrufen
 
     const initPopopBox = `
@@ -38,11 +38,11 @@ export function showRequestPopup() {
     $('#ds_body')[0].insertAdjacentHTML('beforeend', initPopopBox)
     $("#textAreaKoords").on("focusout", function () {
         const input = getFilteredInput(String($("#textAreaKoords").val()) || "");
-        Log.info(input);
-        addNewRequestsToArray(input);
-        renderTableRows();
+        log.info("Parsed coordinates from textarea", input);
+        addNewRequestsToArray(currentThreadId, input);
+        renderTableRows(currentThreadId);
     });
-    renderTableRows();
+    renderTableRows(currentThreadId);
 
     $(".addBunkerAnfrage").on("click", function () {
         let isEmpty = false;
@@ -64,10 +64,8 @@ export function showRequestPopup() {
 }
 
 
-function renderTableRows(): void {
+function renderTableRows(currentThreadId: string): void {
     const localStorageService = LocalStorageHelper.getInstance();
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentThreadId = urlParams.get("thread_id") || "";
     $(".requestContent").empty();
     let requestDataArray: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
     let returnHtml: string = `<tr style='margin=2px;'><th style="padding-left: 10px; padding-right: 10px">Koordinate</th>
@@ -86,7 +84,7 @@ function renderTableRows(): void {
     requestDataArray.forEach((requestRow, index) => {
         Object.values(requestRow).forEach((value) => {
             if (value === undefined) {
-                Log.info("value is undefined");
+                log.trace("value is undefined");
             }
         });
         returnHtml += `<tr style='margin=2px;'><td style="padding-left: 10px; padding-right: 10px">`
@@ -139,7 +137,7 @@ function renderTableRows(): void {
         if (index !== -1) {
             sdInquiryCollection.splice(index, 1);
             localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
-            renderTableRows();
+            renderTableRows(currentThreadId);
         }
     });
 
@@ -272,7 +270,7 @@ function renderTableRows(): void {
 
     $("#deleteAll").on("click", function () {
         localStorageService.setSdInquiry(currentThreadId, []);
-        renderTableRows();
+        renderTableRows(currentThreadId);
     });
 
 }
@@ -288,15 +286,15 @@ function handleInput(htmlElement: HTMLElement) {
 
 
 function getFilteredInput(input: string) {
-    Log.info("getFilteredInput");
+    log.info("Filtering bunker coordinate input");
     const coordsPattern = /\d{3}\|\d{3}/g;
     let inputArray: string[] = input.split("\n");
     let resultArray: string[] = [];
-    Log.info(inputArray);
+    log.trace("Raw bunker input lines", inputArray);
     inputArray.forEach((line) => {
         let matches = line.match(coordsPattern);
         if (matches) {
-            Log.info("line is valid");
+            log.trace("Accepted bunker input line", line);
             resultArray.push(...matches);
         }
     });
@@ -304,13 +302,13 @@ function getFilteredInput(input: string) {
     return resultArray;
 }
 
-function addNewRequestsToArray(input: string[]) {
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentThreadId = urlParams.get("thread_id") || "";
+function addNewRequestsToArray(currentThreadId: string, input: string[]) {
     const localStorageService = LocalStorageHelper.getInstance();
     let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
-    Log.info(sdInquiryCollection);
+    log.state("Existing bunker request collection", {
+        currentThreadId,
+        count: sdInquiryCollection.length
+    });
     input.forEach((line) => {
         let [coords, amount, ...optionalData] = line.split(' ', 3);
         let request: sdInquiry = {
@@ -324,7 +322,10 @@ function addNewRequestsToArray(input: string[]) {
         sdInquiryCollection.push(request);
     });
     sdInquiryCollection = removeDuplicatesByCoords(sdInquiryCollection);
-    Log.info(sdInquiryCollection);
+    log.state("Updated bunker request collection", {
+        currentThreadId,
+        count: sdInquiryCollection.length
+    });
     localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
 
 }

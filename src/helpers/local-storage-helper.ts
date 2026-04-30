@@ -1,16 +1,17 @@
 import {groupData, rowSdTable, sdInquiry, ThreadData, Threads, templateData} from "../types/types";
 import {LocalStorageData, lsThreadData} from "../types/localStorageTypes";
 import {Log} from "./logging-helper";
-
-const STORAGE_KEY = "standdeff-organizer";
+import {StandDeffStorageRepository} from "./local-storage-repository";
+import {deserializeThreadData, serializeThreadData} from "./local-storage-serializer";
 
 export class LocalStorageHelper {
     private _localStorageData: LocalStorageData;
     private static instance: LocalStorageHelper;
     private readonly log = Log.scope("storage");
+    private readonly repository = new StandDeffStorageRepository();
 
     constructor() {
-        const initData = localStorage.getItem(STORAGE_KEY);
+        const initData = this.repository.load();
         if (initData !== null && this.isStringValidJson(initData)) {
             this._localStorageData = JSON.parse(initData);
             this.log.info("Loaded existing localStorage data", this.summarizeLocalStorageData(this._localStorageData));
@@ -43,32 +44,6 @@ export class LocalStorageHelper {
             return false;
         }
         return true;
-    }
-
-    private serializeThreadData(value: ThreadData): lsThreadData {
-        return {
-            threadName: value.threadName,
-            forumName: value.forumName,
-            forumId: value.forumId,
-            sdPostId: value.sdPostId,
-            bunkerInquiryCache: value.bunkerInquiryCache,
-            stateOfSdTable: Array.from(value.stateOfSdTable.entries()),
-            packagesSent: Array.from(value.packagesSent.entries()),
-            updatedPostIds: value.updatedPostIds
-        };
-    }
-
-    private deserializeThreadData(value: lsThreadData): ThreadData {
-        return {
-            threadName: value.threadName,
-            forumName: value.forumName,
-            forumId: value.forumId,
-            sdPostId: value.sdPostId,
-            bunkerInquiryCache: value.bunkerInquiryCache,
-            stateOfSdTable: new Map(value.stateOfSdTable),
-            packagesSent: new Map(value.packagesSent),
-            updatedPostIds: value.updatedPostIds
-        };
     }
 
     private summarizeThreadData(threadId: string, value: ThreadData | lsThreadData) {
@@ -121,16 +96,16 @@ export class LocalStorageHelper {
             summary: this.summarizeLocalStorageData(data)
         });
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            this.repository.save(data);
         } catch (error) {
             this.log.error("Error storing data in LocalStorage", error);
         }
     }
 
     private updateFromLocalStorage(reason: string) {
-        const data = localStorage.getItem(STORAGE_KEY);
+        const data = this.repository.load();
         if (data === null) {
-            this.log.warn("No data found in LocalStorage", {storageKey: STORAGE_KEY, reason});
+            this.log.warn("No data found in LocalStorage", {storageKey: this.repository.storageKey, reason});
             return;
         }
         if (this.isStringValidJson(data)) {
@@ -256,13 +231,13 @@ export class LocalStorageHelper {
             this.log.warn("Requested thread data for unknown thread", {threadId: id});
             return undefined;
         }
-        const threadData = this.deserializeThreadData(storedThreadData);
+        const threadData = deserializeThreadData(storedThreadData);
         this.log.trace("Loaded thread data", this.summarizeThreadData(id, threadData));
         return threadData;
     }
 
     public setThreadData(id: string, value: ThreadData) {
-        this._localStorageData.threads[id] = this.serializeThreadData(value);
+        this._localStorageData.threads[id] = serializeThreadData(value);
         this.log.info("Updating thread data", this.summarizeThreadData(id, value));
         this.storeDataInLocalStorage(this._localStorageData, `setThreadData:${id}`);
     }
@@ -273,7 +248,7 @@ export class LocalStorageHelper {
         for (const id in this._localStorageData.threads) {
             const storedThreadData = this._localStorageData.threads[id];
             if (storedThreadData) {
-                threads[id] = this.deserializeThreadData(storedThreadData);
+                threads[id] = deserializeThreadData(storedThreadData);
             }
         }
         this.log.trace("Loaded all threads", {
@@ -284,7 +259,7 @@ export class LocalStorageHelper {
     }
 
     public addThread(id: string, value: ThreadData) {
-        this._localStorageData.threads[id] = this.serializeThreadData(value);
+        this._localStorageData.threads[id] = serializeThreadData(value);
         this.log.info("Adding thread to localStorage", this.summarizeThreadData(id, value));
         this.storeDataInLocalStorage(this._localStorageData, `addThread:${id}`);
     }

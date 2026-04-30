@@ -17,11 +17,11 @@ import {viewThread} from "./ui/view-thread";
 import {createNewTable} from "./ui/new-thread";
 import {displaySettings} from "./ui/settings";
 import {Log} from "./helpers/logging-helper";
-import {resolveScriptContext, ScriptContext} from "./helpers/script-context";
+import {PageContext, resolveScriptContext, ScriptContext} from "./helpers/script-context";
 
 const log = Log.scope("bootstrap");
 
-const contextHandlers: Partial<Record<ScriptContext, { name: string, run: () => void }>> = {
+const contextHandlers: Partial<Record<ScriptContext, { name: string, run: (pageContext: PageContext) => void }>> = {
     "place": {name: "displayMassUt", run: displayMassUt},
     "forum-view_thread": {name: "viewThread", run: viewThread},
     "forum-new_thread": {name: "createNewTable", run: createNewTable},
@@ -51,7 +51,7 @@ const contextHandlers: Partial<Record<ScriptContext, { name: string, run: () => 
         });
 
         try {
-            handler.run();
+            handler.run(contextResolution);
             log.info("Controller finished boot phase", {
                 context: contextResolution.context,
                 handler: handler.name

@@ -19,6 +19,8 @@ export type ScriptContextResolution = {
     targetVillageId: string | null;
 };
 
+export type PageContext = ScriptContextResolution;
+
 function urlParamsToObject(urlParams: URLSearchParams): Record<string, string> {
     const result: Record<string, string> = {};
     urlParams.forEach((value, key) => {

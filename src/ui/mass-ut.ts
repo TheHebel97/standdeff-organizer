@@ -3,8 +3,26 @@ import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
 import {distanceXY, villageBBCodeToCoordinates} from "../helpers/tw-helper";
 import {parseGermanDate} from "../helpers/helper-functions";
+import {PageContext} from "../helpers/script-context";
 
 const log = Log.scope("mass-ut");
+
+type MassUtPageState = {
+    refererThreadId: string | null;
+    destinationVillageId: string | null;
+    automateMassenUt: boolean;
+    preventDuplicateDestination: boolean;
+    selectedTemplate: string;
+    threadData?: ThreadData;
+};
+
+type MassUtDerivedState = {
+    sendingObj?: rowSdTable;
+    alreadySentAmount: number;
+    packagesToSend: number;
+    epochDateFrom: number;
+    epochDateUntil: number;
+};
 
 function summarizeThreadData(threadId: string, threadData: ThreadData) {
     return {
@@ -31,30 +49,84 @@ function summarizeSendingRow(destinationVillageId: string | null, sendingObj: ro
     };
 }
 
-export function displayMassUt() {
+export function displayMassUt(pageContext: PageContext) {
     log.info("Initializing mass-ut controller", {href: window.location.href});
     storeGroupData();
     storeTemplateData();
 
     const localStorageService = LocalStorageHelper.getInstance();
-    const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
-    const refererThreadId = urlParams.get("sdTableId");
-    const destinationVillageId = urlParams.get("target");
-    const automateMassenUt = localStorageService.getAutomateMassenUt;
-    const preventDuplicateDestination = localStorageService.getPreventDuplicateDestination;
+    const pageState = readPageState(pageContext, localStorageService);
 
     log.state("Mass-ut route params", {
-        refererThreadId,
-        destinationVillageId,
-        automateMassenUt,
-        preventDuplicateDestination
+        refererThreadId: pageState.refererThreadId,
+        destinationVillageId: pageState.destinationVillageId,
+        automateMassenUt: pageState.automateMassenUt,
+        preventDuplicateDestination: pageState.preventDuplicateDestination
     });
 
-    if (refererThreadId === null) {
+    if (pageState.refererThreadId === null) {
         log.info("No sdTableId present; only caching groups and templates on this page");
         return;
     }
 
+    renderGroupLinks(pageState.refererThreadId);
+
+    if (!pageState.threadData) {
+        log.warn("No thread data found for sdTableId", {refererThreadId: pageState.refererThreadId});
+        return;
+    }
+    log.state("Loaded thread data snapshot", summarizeThreadData(pageState.refererThreadId, pageState.threadData));
+
+    applyTemplateSelection(pageState);
+
+    const derivedState = deriveState(pageState);
+    if (!derivedState.sendingObj) {
+        log.warn("No SD row found for destination village", {
+            refererThreadId: pageState.refererThreadId,
+            destinationVillageId: pageState.destinationVillageId
+        });
+        return;
+    }
+
+    renderAutoSelection(pageState, derivedState, localStorageService);
+    bindEvents(pageState, derivedState, localStorageService);
+}
+
+function readPageState(pageContext: PageContext, localStorageService: LocalStorageHelper): MassUtPageState {
+    const refererThreadId = pageContext.query.sdTableId ?? null;
+    return {
+        refererThreadId,
+        destinationVillageId: pageContext.targetVillageId,
+        automateMassenUt: localStorageService.getAutomateMassenUt,
+        preventDuplicateDestination: localStorageService.getPreventDuplicateDestination,
+        selectedTemplate: localStorageService.getSelectedTemplate,
+        threadData: refererThreadId ? localStorageService.getThreadData(refererThreadId) : undefined
+    };
+}
+
+function deriveState(pageState: MassUtPageState): MassUtDerivedState {
+    const sendingObj = pageState.threadData?.stateOfSdTable.get(Number(pageState.destinationVillageId));
+    const alreadySentAmount = sendingObj
+        ? parseInt(String(pageState.threadData?.packagesSent.get(sendingObj.sdId)), 10) || 0
+        : 0;
+    let packagesToSend = sendingObj ? sendingObj.leftAmount - alreadySentAmount : 0;
+    const epochDateUntil = parseGermanDate(sendingObj?.dateUntil ?? "");
+    const epochDateFrom = parseGermanDate(sendingObj?.dateFrom ?? "");
+
+    if ((alreadySentAmount > 0 && pageState.preventDuplicateDestination) || packagesToSend < 0) {
+        packagesToSend = 0;
+    }
+
+    return {
+        sendingObj,
+        alreadySentAmount,
+        packagesToSend,
+        epochDateFrom,
+        epochDateUntil
+    };
+}
+
+function renderGroupLinks(refererThreadId: string) {
     $(".group-menu-item").each(function () {
         const currentHref = $(this).attr("href");
         if (!currentHref) {
@@ -64,54 +136,39 @@ export function displayMassUt() {
         newHref.searchParams.set("sdTableId", refererThreadId);
         $(this).attr("href", newHref.toString());
     });
+}
 
-    const threadData = localStorageService.getThreadData(refererThreadId);
-    if (!threadData) {
-        log.warn("No thread data found for sdTableId", {refererThreadId});
+function applyTemplateSelection(pageState: MassUtPageState) {
+    if (!pageState.automateMassenUt) {
         return;
     }
-    log.state("Loaded thread data snapshot", summarizeThreadData(refererThreadId, threadData));
 
-    const selectedTemplate = localStorageService.getSelectedTemplate;
-    if (automateMassenUt) {
-        let matchingTemplateFound = false;
-        $("select[name='template'] > option").each(function () {
-            const optionValue = $(this).val();
-            if (!optionValue) {
-                return;
-            }
-            const optionObj = JSON.parse(String(optionValue));
-            if (optionObj.id === selectedTemplate) {
-                $(this).prop("selected", true);
-                matchingTemplateFound = true;
-                return false;
-            }
-        });
-        log.info("Template auto-selection completed", {
-            selectedTemplate,
-            matchingTemplateFound
-        });
-    }
+    let matchingTemplateFound = false;
+    $("select[name='template'] > option").each(function () {
+        const optionValue = $(this).val();
+        if (!optionValue) {
+            return;
+        }
+        const optionObj = JSON.parse(String(optionValue));
+        if (optionObj.id === pageState.selectedTemplate) {
+            $(this).prop("selected", true);
+            matchingTemplateFound = true;
+            return false;
+        }
+    });
+    log.info("Template auto-selection completed", {
+        selectedTemplate: pageState.selectedTemplate,
+        matchingTemplateFound
+    });
+}
 
-    const sendingObj = threadData.stateOfSdTable.get(Number(destinationVillageId));
+function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDerivedState, localStorageService: LocalStorageHelper) {
+    let {sendingObj, alreadySentAmount, packagesToSend, epochDateFrom, epochDateUntil} = derivedState;
     if (!sendingObj) {
-        log.warn("No SD row found for destination village", {
-            refererThreadId,
-            destinationVillageId
-        });
         return;
     }
 
-    const alreadySentAmount = parseInt(String(threadData.packagesSent.get(sendingObj.sdId)), 10) || 0;
-    let packagesToSend = sendingObj.leftAmount - alreadySentAmount;
-    const epochDateUntil = parseGermanDate(sendingObj.dateUntil);
-    const epochDateFrom = parseGermanDate(sendingObj.dateFrom);
-
-    if ((alreadySentAmount > 0 && preventDuplicateDestination) || packagesToSend < 0) {
-        packagesToSend = 0;
-    }
-
-    log.info("Computed sending target", summarizeSendingRow(destinationVillageId, sendingObj, alreadySentAmount, packagesToSend));
+    log.info("Computed sending target", summarizeSendingRow(pageState.destinationVillageId, sendingObj, alreadySentAmount, packagesToSend));
     log.state("Date window for package selection", {
         dateFrom: epochDateFrom > 0 ? new Date(epochDateFrom).toISOString() : null,
         dateUntil: epochDateUntil > 0 ? new Date(epochDateUntil).toISOString() : null
@@ -143,8 +200,8 @@ export function displayMassUt() {
             const travelTime = distance * slowestUnitLfz;
             const arrival = currentTime + travelTime;
 
-            const fromIsSet = typeof epochDateFrom === "number" && epochDateFrom > 0;
-            const untilIsSet = typeof epochDateUntil === "number" && epochDateUntil > 0;
+            const fromIsSet = epochDateFrom > 0;
+            const untilIsSet = epochDateUntil > 0;
             const withinFrom = fromIsSet ? arrival >= epochDateFrom : true;
             const withinUntil = untilIsSet ? arrival <= epochDateUntil : true;
 
@@ -168,6 +225,7 @@ export function displayMassUt() {
         });
     }
 
+    derivedState.packagesToSend = packagesToSend;
     log.info("Auto-selection completed", {
         checkedBoxes: $(".troop-request-selector:checked").length,
         packagesRemainingAfterSelection: packagesToSend
@@ -175,6 +233,15 @@ export function displayMassUt() {
 
     $("#place_call_form_submit").prop("disabled", true);
     $(".evt-button-fill").css("background", "#0e7a0e");
+}
+
+function bindEvents(pageState: MassUtPageState, derivedState: MassUtDerivedState, localStorageService: LocalStorageHelper) {
+    if (!pageState.refererThreadId || !pageState.threadData || !derivedState.sendingObj) {
+        return;
+    }
+    const refererThreadId = pageState.refererThreadId;
+    const threadData = pageState.threadData;
+    const sendingObj = derivedState.sendingObj;
 
     $(".evt-button-fill").on("click", function () {
         $(this).prop("disabled", true);

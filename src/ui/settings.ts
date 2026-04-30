@@ -1,13 +1,14 @@
 import {groupData, templateData, Threads} from "../types/types";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
+import {PageContext} from "../helpers/script-context";
 
 const localStorageService = LocalStorageHelper.getInstance();
 const log = Log.scope("settings");
 
 
-export function displaySettings() {
-    log.info("Initializing settings controller", {href: window.location.href});
+export function displaySettings(pageContext: PageContext) {
+    log.info("Initializing settings controller", {href: pageContext.href});
 
     let unitDropDownOptions: string = '<option value="default"></option>';
     game_data.units.forEach(unit => {

@@ -15,7 +15,9 @@ import {Log} from "./logging-helper";
 
 const log = Log.scope("table-domain");
 
-const NEW_INQUIRY_REGEX = /(\d{3}\|\d{3})\)\sK\d+\s+(\d+)\s+["\u201c](.+)?["\u201c](.+)?["\u201c](.+)?["\u201c](.+)?/;
+const NEW_INQUIRY_FORUM_REGEX = /(\d{3}\|\d{3})\)\sK\d+\s+(\d+)(?:\s+(.*))?/;
+const NEW_INQUIRY_SHORTCUT_REGEX = /^(\d{3}\|\d{3})\s+(\d+)(?:\s+(.*))?$/;
+const NEW_INQUIRY_OPTIONAL_DATA_REGEX = /^["\u201c](.*?)["\u201c](.*?)["\u201c](.*?)["\u201c](.*?)$/;
 const PACKAGES_SENT_REGEX = /(\d+)\s(\d+|done)/i;
 const VILLAGE_ID_PATTERN = /target=(\d+)/;
 
@@ -53,6 +55,40 @@ export function buildCoordVillageIdMap(villageAnchors: villageAnchorSource[]): M
     return coordVillageIdMap;
 }
 
+function parseNewInquiryLine(line: string): sdInquiry | null {
+    const trimmedLine = line.trim();
+    const baseMatch = trimmedLine.match(NEW_INQUIRY_FORUM_REGEX) ?? trimmedLine.match(NEW_INQUIRY_SHORTCUT_REGEX);
+    if (!baseMatch) {
+        return null;
+    }
+
+    const optionalDataRaw = baseMatch[3]?.trim() ?? "";
+    if (optionalDataRaw === "") {
+        return {
+            coords: baseMatch[1],
+            amount: parseInt(baseMatch[2], 10),
+            playerName: undefined,
+            comment: undefined,
+            dateFrom: undefined,
+            dateUntil: undefined
+        };
+    }
+
+    const optionalDataMatch = optionalDataRaw.match(NEW_INQUIRY_OPTIONAL_DATA_REGEX);
+    if (!optionalDataMatch) {
+        return null;
+    }
+
+    return {
+        coords: baseMatch[1],
+        amount: parseInt(baseMatch[2], 10),
+        playerName: optionalDataMatch[1] || undefined,
+        comment: optionalDataMatch[2] || undefined,
+        dateFrom: normalizeDateCell(optionalDataMatch[3]) === "" ? undefined : (optionalDataMatch[3] ?? undefined),
+        dateUntil: normalizeDateCell(optionalDataMatch[4]) === "" ? undefined : (optionalDataMatch[4] ?? undefined)
+    };
+}
+
 export function parseForumPostUpdates(posts: forumPostSource[], coordVillageIdMap: Map<string, number>): updateData {
     const parsedUpdateData: updateData = new Map<string, { inquiries: newInquiry; packages: packages }>();
 
@@ -67,21 +103,14 @@ export function parseForumPostUpdates(posts: forumPostSource[], coordVillageIdMa
                 return;
             }
 
-            const inquiryMatch = line.match(NEW_INQUIRY_REGEX);
+            const parsedInquiry = parseNewInquiryLine(line);
             const packagesMatch = line.match(PACKAGES_SENT_REGEX);
-            if (inquiryMatch) {
-                if (!coordVillageIdMap.has(inquiryMatch[1])) {
-                    log.error("coords not found in village map", {coords: inquiryMatch[1]});
+            if (parsedInquiry) {
+                if (!coordVillageIdMap.has(parsedInquiry.coords)) {
+                    log.error("coords not found in village map", {coords: parsedInquiry.coords});
                 }
-                const villageId = coordVillageIdMap.get(inquiryMatch[1]) || 0;
-                inquiries.set(villageId, {
-                    coords: inquiryMatch[1],
-                    amount: parseInt(inquiryMatch[2], 10),
-                    playerName: inquiryMatch[3],
-                    comment: inquiryMatch[4],
-                    dateFrom: normalizeDateCell(inquiryMatch[5]) === "" ? undefined : (inquiryMatch[5] ?? undefined),
-                    dateUntil: normalizeDateCell(inquiryMatch[6]) === "" ? undefined : (inquiryMatch[6] ?? undefined)
-                });
+                const villageId = coordVillageIdMap.get(parsedInquiry.coords) || 0;
+                inquiries.set(villageId, parsedInquiry);
                 return;
             }
 
@@ -228,21 +257,11 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
     let requests: sdInquiry[] = [];
 
     for (const line of lines) {
-        let [coords, amount, ...optionalData] = line.split(" ", 3);
-        const coordsPattern = /^\d{3}\|\d{3}$/;
-        const amountPattern = /^\d+$/;
-        if (!coordsPattern.test(coords) || !amountPattern.test(amount)) {
+        const parsedInquiry = parseNewInquiryLine(line);
+        if (!parsedInquiry) {
             continue;
         }
-        optionalData = optionalData[0]?.split('"') || [];
-        requests.push({
-            coords: coords,
-            amount: Number(amount),
-            playerName: optionalData[1] || undefined,
-            comment: optionalData[2] || undefined,
-            dateFrom: normalizeDateCell(optionalData[3]) === "" ? undefined : (optionalData[3] ?? undefined),
-            dateUntil: normalizeDateCell(optionalData[4]) === "" ? undefined : (optionalData[4] ?? undefined)
-        });
+        requests.push(parsedInquiry);
     }
     return requests;
 }

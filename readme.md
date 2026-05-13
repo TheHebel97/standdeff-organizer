@@ -220,4 +220,7 @@ Build-Setup:
 
 Weitere Architektur-Details und geplante Refactors findest du in `docs/architecture.md`, `docs/refactor-ideas.md` und `docs/ui-components.md`.
 
+Hinweis zur Anfrage-Syntax:
+- Neben dem bisherigen Vollformat `123|123 123 """"` wird auch die Kurzform `123|123 123` unterstuetzt.
+
 

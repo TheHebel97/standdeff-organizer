@@ -32,7 +32,7 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 | --- | --- |
 | `components/sd-table.ts` | Kernansicht der SD-Tabelle: parst Posts (`parseSdPosts`), synchronisiert den lokalen Cache (`setSdTableState`), aktualisiert Paketstände (`displayUpdatedSdTable`, `updateSentPackagesInSdTable`) und blendet moderationsspezifische Aktionen ein/aus. |
 | `components/edit-sd-post.ts` | Unterstützt Moderator:innen beim Aktualisieren des Original-SD-Posts, indem bestehende Werte in das Formular geschrieben werden. |
-| `components/request-popup.ts` | UI für neue Bunkeranfragen, inkl. Validierung, Parsing der Koordinaten und Bulk-Editing-Funktionen. |
+| `components/request-popup.ts` | UI für neue Bunkeranfragen, inkl. Validierung, Parsing der Koordinaten, Support fuer das Vollformat `123\|123 123 """"` bzw. den Shortcut `123\|123 123` und Bulk-Editing-Funktionen. |
 | `components/post-layout.ts` | Ersetzt oder blockiert Textareas für Nicht-Admins, fügt Buttons für die Bunkeranfragen-Bearbeitung ein und verhindert versehentliche Änderungen. |
 | `components/options-sd-thread.ts` | Bindet Buttons an unbekannte Threads, um sie als SD-Thread zu registrieren oder aus der Liste zu entfernen. |
 | `components/first-start-thread-popup.ts` | Popup beim ersten Start, das erklärt, wie Threads verknüpft werden; abhängig vom Setting `firstStartPopup`.

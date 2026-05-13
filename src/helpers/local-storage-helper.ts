@@ -346,6 +346,20 @@ export class LocalStorageHelper {
         this.storeDataInLocalStorage(this._localStorageData, `setPackagesSent:${id}`);
     }
 
+    public resetPackagesSent(id: string) {
+        const threadData = this.getStoredThread(id);
+        if (!threadData) {
+            this.log.warn("Tried to reset sent packages for unknown thread", {threadId: id});
+            return;
+        }
+        threadData.packagesSent = [];
+        this.log.info("Reset sent packages", {
+            threadId: id,
+            packageCount: 0
+        });
+        this.storeDataInLocalStorage(this._localStorageData, `resetPackagesSent:${id}`);
+    }
+
     public getPackagesSent(id: string): Map<string, string> {
         this.updateFromLocalStorage(`getPackagesSent:${id}`);
         const threadData = this.getStoredThread(id);

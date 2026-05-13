@@ -11,7 +11,7 @@ Der Einstiegspunkt `src/index.ts` registriert ein `$(document).ready`-Callback u
 | `place` | `displayMassUt` (`src/ui/mass-ut.ts`) | Automatisiert Checkboxen im Massen-UT-Formular, setzt Filter/Gruppe/Vorlage und protokolliert verschickte Pakete pro SD-Thread. |
 | `forum-view_thread` | `viewThread` (`src/ui/view-thread.ts`) | Erkennt SD-Threads, ergänzt Buttons/Popups zum Registrieren neuer Threads und zeigt bei bekannten Threads die SD-Tabelle (`sdTable`) an. |
 | `forum-new_thread` | `createNewTable` (`src/ui/new-thread.ts`) | Stellt Eingabemasken für Paket-Vorlagen bereit und generiert beim Absenden den initialen Thread-Text inkl. SD-Tabelle und Spoiler-Erklärungen. |
-| `settings` | `displaySettings` (`src/ui/settings.ts`) | Rendert eine Konfigurations-Tabelle in den Spieleinstellungen, inkl. toggles, Dropdowns für Gruppen/Vorlagen und einer Liste aller bekannten SD-Threads. |
+| `settings` | `displaySettings` (`src/ui/settings.ts`) | Rendert eine Konfigurations-Tabelle in den Spieleinstellungen, inkl. toggles, Dropdowns für Gruppen/Vorlagen und einer Liste aller bekannten SD-Threads samt Reset fuer den gespeicherten Versandstatus pro Thread. |
 
 > **Hinweis:** Jede dieser Funktionen kapselt den kompletten jQuery-Manipulationscode für ihren Kontext. Dadurch lässt sich das Script gezielt auf den Seiten aktivieren, auf denen Tampermonkey es injiziert.
 

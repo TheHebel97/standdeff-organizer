@@ -1,4 +1,4 @@
-import {groupData, templateData, Threads} from "../types/types";
+import {groupData, templateData, ThreadData, Threads} from "../types/types";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
 import {PageContext} from "../helpers/script-context";
@@ -7,6 +7,48 @@ import {buildForumThreadUrl} from "../helpers/game-url-helper";
 
 const localStorageService = LocalStorageHelper.getInstance();
 const log = Log.scope("settings");
+
+function buildThreadRow(threadId: string, threadData: ThreadData): string {
+    const threadLink = buildForumThreadUrl(threadData.forumId, threadId);
+    const sentPackageCount = threadData.packagesSent.size;
+    const resetDisabled = sentPackageCount === 0 ? "disabled" : "";
+    const resetOpacity = sentPackageCount === 0 ? "opacity: 0.5;" : "";
+
+    return `<tr>
+             <td>
+                 <span style="font-size: larger; font-weight: bold">${threadData.forumName}</span> -
+                 <a href="${threadLink}">
+                     ${threadData.threadName}
+                 </a>
+                 <div style="font-size: x-small; margin-top: 4px;">Gespeicherte Versand-Eintraege: ${sentPackageCount}</div>
+             </td>
+             <td style="text-align: center;">
+                 <input type="button" value="Reset" class="btn reset-thread-packages" data-thread-id="${threadId}" ${resetDisabled}
+                        style="width: 70px; ${resetOpacity}">
+             </td>
+             <td style="text-align: center;"><button style="background: url(/graphic/delete.png); width: 20px; height: 20px;  border: none" class="delete-thread" data-thread-id="${threadId}"></button></td>
+         </tr>`;
+}
+
+function renderThreadRows(threads: Threads) {
+    let rowsHtml = `<tr>
+          <th width="75%">
+            Forenname
+          </th>
+          <th>
+            Pakete
+          </th>
+          <th> LÃ¶schen
+          </th>
+        </tr>`;
+
+    Object.entries(threads).forEach(([threadId, threadData]) => {
+        rowsHtml += buildThreadRow(threadId, threadData);
+    });
+
+    $("#activeSdThreads").html(rowsHtml);
+    $("#activeSdThreads th").last().text("Loeschen");
+}
 
 
 export function displaySettings(pageContext: PageContext) {
@@ -187,33 +229,30 @@ export function displaySettings(pageContext: PageContext) {
     }
 
     let threads: Threads = localStorageService.getAllThreads;
-
-    if (threads) {
-        Object.entries(threads).forEach(([threadId, threadData]) => {
-            let threadLink = buildForumThreadUrl(threadData.forumId, threadId);
-
-            let row = `<tr>
-             <td>
-                 <span style="font-size: larger; font-weight: bold">${threadData.forumName}</span> -
-                 <a href="${threadLink}">
-                     ${threadData.threadName}
-                 </a>
-             </td>
-             <td style="text-align: center;"><button style="background: url(/graphic/delete.png); width: 20px; height: 20px;  border: none" class="delete-thread" data-thread-id="${threadId}"></button></td>
-         </tr>`;
-
-            $("#activeSdThreads").append(row);
-        });
-    }
+    renderThreadRows(threads);
 
     //listener
 
-    $(".delete-thread").on("click", function () {
-        let threadIdToDelete = $(this).data("thread-id");
+    $("#activeSdThreads").on("click", ".delete-thread", function () {
+        const threadIdToDelete = String($(this).data("thread-id"));
         log.info("Deleting thread from settings", {threadIdToDelete});
         localStorageService.deleteThread(threadIdToDelete);
+        renderThreadRows(localStorageService.getAllThreads);
+    });
 
-        $(this).parent().parent().remove();
+    $("#activeSdThreads").on("click", ".reset-thread-packages", function () {
+        const threadId = String($(this).data("thread-id"));
+        const threadData = localStorageService.getThreadData(threadId);
+        if (!threadData || threadData.packagesSent.size === 0) {
+            return;
+        }
+        const shouldReset = window.confirm(`Geschickte Pakete fuer "${threadData.threadName}" zuruecksetzen?`);
+        if (!shouldReset) {
+            return;
+        }
+        localStorageService.resetPackagesSent(threadId);
+        log.info("Reset sent packages from settings", {threadId});
+        renderThreadRows(localStorageService.getAllThreads);
     });
 
 

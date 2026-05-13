@@ -23,7 +23,7 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 ### `displaySettings` (`src/ui/settings.ts`)
 - Rendert eine Settings-Tabelle in den Spieleinstellungen und spiegelt alle Flags aus `LocalStorageHelper.generalSettings` wider.
 - Falls bereits Gruppen- oder Vorlagen-Daten aus Massen-UT eingelesen wurden, werden die numerischen Inputs durch Dropdowns ersetzt.
-- Listet alle bekannten Threads (`getAllThreads`) inklusive Link und Delete-Button.
+- Listet alle bekannten Threads (`getAllThreads`) inklusive Link, Delete-Button und Reset fuer den gespeicherten Versandstatus (`packagesSent`) pro Thread.
 - Registriert Event-Listener für alle Buttons/Inputs, die den LocalStorage unmittelbar aktualisieren (z. B. `setAutomateMassenUt`, `setSdGroupId`, `setSelectedTemplate`).
 
 ## Komponenten innerhalb von `viewThread`

@@ -223,4 +223,7 @@ Weitere Architektur-Details und geplante Refactors findest du in `docs/architect
 Hinweis zur Anfrage-Syntax:
 - Neben dem bisherigen Vollformat `123|123 123 """"` wird auch die Kurzform `123|123 123` unterstuetzt.
 
+Hinweis zu den Settings:
+- Pro bekanntem SD-Thread kann der gespeicherte Versandstatus der bereits geschickten Pakete zurueckgesetzt werden.
+
 

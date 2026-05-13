@@ -1,9 +1,10 @@
-import {groupData, templateData, ThreadData, Threads} from "../types/types";
+import {ThreadData, Threads} from "../types/types";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
 import {PageContext} from "../helpers/script-context";
 import {ADD_THREAD_ICON_DATA_URI} from "./ui-assets";
 import {buildForumThreadUrl} from "../helpers/game-url-helper";
+import {initializeSdSettingsControls} from "./components/sd-settings-controls";
 
 const localStorageService = LocalStorageHelper.getInstance();
 const log = Log.scope("settings");
@@ -54,12 +55,7 @@ function renderThreadRows(threads: Threads) {
 export function displaySettings(pageContext: PageContext) {
     log.info("Initializing settings controller", {href: pageContext.href});
 
-    let unitDropDownOptions: string = '<option value="default"></option>';
-    game_data.units.forEach(unit => {
-        unitDropDownOptions += `<option value="${unit}">${unit}</option>`;
-    })
-
-    const settingsHtml = `<table class="vis settings" width="100%" style="margin-top: 15px">
+    const settingsHtml = `<table class="vis settings" id="sd-settings-root" width="100%" style="margin-top: 15px">
   <tbody>
   <tr>
     <th colspan="4" style="text-align: center">
@@ -105,7 +101,7 @@ export function displaySettings(pageContext: PageContext) {
                 sortieren nach:
             </td>
             <td>
-                <select id="sd-sort-by" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">` + unitDropDownOptions + `</select>
+                <select id="sd-sort-by" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"></select>
             </td>
       </tr>
         <tr>
@@ -158,30 +154,12 @@ export function displaySettings(pageContext: PageContext) {
 </table>`;
 
     $("#content_value > table > tbody > tr > td:nth-child(2)").append(settingsHtml);
+    const $settingsRoot = $("#sd-settings-root");
     //colorize the buttons depending on the value of the setting
     if (localStorageService.getFirstStartPopup) {
         $("#first-start-popup").val("An").css("background", "#0e7a0e");
     } else {
         $("#first-start-popup").val("Aus").css("background", "#8d0100");
-    }
-
-    if (localStorageService.getAutomateMassenUt) {
-        $("#automate-massen-ut").val("An").css("background", "#0e7a0e");
-
-    } else {
-        $("#automate-massen-ut").val("Aus").css("background", "#8d0100");
-    }
-
-    if (localStorageService.getPreventDuplicateDestination) {
-        $("#prevent-duplicate-destination").val("An").css("background", "#0e7a0e");
-    } else {
-        $("#prevent-duplicate-destination").val("Aus").css("background", "#8d0100");
-    }
-
-    if (localStorageService.getSortBy !== "default") {
-        $("#sd-sort-by").val(localStorageService.getSortBy).css("background", "#0e7a0e");
-    } else {
-        $("#sd-sort-by").val("default").css("background", "#8d0100");
     }
 
     if (localStorageService.getSwordLfz !== 0) {
@@ -190,43 +168,12 @@ export function displaySettings(pageContext: PageContext) {
         $("#sd-schwertLfz").val("0").css("background", "#8d0100");
     }
 
-    // get group data from local storage
-    let groupData: groupData[] = localStorageService.getGroupData;
     log.state("Loaded settings data sources", {
-        groupCount: groupData.length,
+        groupCount: localStorageService.getGroupData.length,
         templateCount: localStorageService.getTemplateData.length,
         threadCount: Object.keys(localStorageService.getAllThreads).length
     });
-    let templateData: templateData[] = localStorageService.getTemplateData;
-
-    if (groupData.length > 0) {
-        let dropdown = '<select id="sd-group-id" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">';
-        groupData.forEach(group => {
-            dropdown += `<option value="${group.id}">${group.name}</option>`;
-        });
-        dropdown += '</select>';
-
-        $("#sd-group-id").replaceWith(dropdown);
-
-        if (localStorageService.getSdGroupId !== "0") {
-            $("#sd-group-id").val(localStorageService.getSdGroupId).css("background", "#0e7a0e");
-        }
-    }
-
-    if (templateData.length > 0) {
-        let dropdown = '<select id="sd-template-id" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">';
-        dropdown += '<option value="">nicht gesetzt</option>';
-        templateData.forEach(template => {
-            dropdown += `<option value="${template.id}">${template.name}</option>`;
-        });
-        dropdown += '</select>';
-
-        $("#sd-template-id").replaceWith(dropdown);
-
-        if (localStorageService.getSelectedTemplate !== "") {
-            $("#sd-template-id").val(localStorageService.getSelectedTemplate).css("background", "#0e7a0e");
-        }
-    }
+    initializeSdSettingsControls($settingsRoot, localStorageService, log);
 
     let threads: Threads = localStorageService.getAllThreads;
     renderThreadRows(threads);
@@ -271,77 +218,6 @@ export function displaySettings(pageContext: PageContext) {
             log.info("Updated setting", {setting: "firstStartPopup", value: true});
         }
     });
-    $("#prevent-duplicate-destination").on("click", function () {
-        const value = $(this).val();
-
-        if (value === "An") {
-            $(this).val("Aus");
-            $("#prevent-duplicate-destination").css("background", "#8d0100");
-            localStorageService.setPreventDuplicateDestination = false;
-            log.info("Updated setting", {setting: "preventDuplicateDestination", value: false});
-
-        } else {
-            $(this).val("An");
-            $("#prevent-duplicate-destination").css("background", "#0e7a0e");
-            localStorageService.setPreventDuplicateDestination = true;
-            log.info("Updated setting", {setting: "preventDuplicateDestination", value: true});
-        }
-    });
-
-
-    $("#automate-massen-ut").on("click", function () {
-        const value = $(this).val();
-
-        if (value === "An") {
-            $(this).val("Aus");
-            $("#automate-massen-ut").css("background", "#8d0100");
-            localStorageService.setAutomateMassenUt = false;
-            log.info("Updated setting", {setting: "automateMassenUt", value: false});
-
-        } else {
-            $(this).val("An");
-            $("#automate-massen-ut").css("background", "#0e7a0e");
-            localStorageService.setAutomateMassenUt = true;
-            log.info("Updated setting", {setting: "automateMassenUt", value: true});
-        }
-    });
-
-    $("#sd-group-id").on("change", function () {
-        if ($(this).val() !== "0") {
-            localStorageService.setSdGroupId = String($(this).val());
-            $(this).css("background", "#0e7a0e");
-            log.info("Updated setting", {setting: "sdGroupId", value: String($(this).val())});
-            return;
-        }
-        localStorageService.setSdGroupId = "0";
-        $(this).css("background", "#8d0100");
-        log.info("Updated setting", {setting: "sdGroupId", value: "0"});
-    });
-
-    $("#sd-template-id").on("change", function () {
-        if ($(this).val() !== "0") {
-            localStorageService.setSelectedTemplate = String($(this).val());
-            $(this).css("background", "#0e7a0e");
-            log.info("Updated setting", {setting: "selectedTemplate", value: String($(this).val())});
-            return;
-        }
-        localStorageService.setSelectedTemplate = "0";
-        $(this).css("background", "#8d0100");
-        log.info("Updated setting", {setting: "selectedTemplate", value: "0"});
-    });
-
-    $("#sd-sort-by").on("change", function () {
-        if ($(this).val() !== "default") {
-            localStorageService.setSortBy = String($(this).val());
-            $(this).css("background", "#0e7a0e");
-            log.info("Updated setting", {setting: "sortBy", value: String($(this).val())});
-            return;
-        }
-        localStorageService.setSortBy = "default";
-        $(this).css("background", "#8d0100");
-        log.info("Updated setting", {setting: "sortBy", value: "default"});
-    });
-
     $("#sd-schwertLfz").on("change", function () {
         const value = Number($(this).val());
         if (!isNaN(value) && value >= 0) {

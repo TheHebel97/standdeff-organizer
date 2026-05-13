@@ -226,4 +226,8 @@ Hinweis zur Anfrage-Syntax:
 Hinweis zu den Settings:
 - Pro bekanntem SD-Thread kann der gespeicherte Versandstatus der bereits geschickten Pakete zurueckgesetzt werden.
 
+Hinweis zum Forum:
+- Auf Thread-Seiten steht ein verschiebbares Quick-Settings-Panel fuer Massen-UT, doppeltes Schicken, Sortierung, SD Gruppe und SD Vorlage zur Verfuegung.
+- In bestehenden Threads ist dort auch der Reset fuer bereits geschickte Pakete verfuegbar.
+
 

@@ -38,3 +38,9 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 | `components/first-start-thread-popup.ts` | Popup beim ersten Start, das erklärt, wie Threads verknüpft werden; abhängig vom Setting `firstStartPopup`.
 
 > Die Komponenten greifen intensiv auf Hilfsfunktionen aus `src/helpers/table-helper.ts` sowie `LocalStorageHelper` zu, sodass die Tabelle immer denselben Stand zwischen Forum und Massen-UT hat.
+
+## Quick Settings im Forum
+- `viewThread` und `createNewTable` blenden ein verschiebbares Quick-Settings-Panel auf Forum-Seiten ein.
+- `components/forum-quick-settings.ts` rendert das Panel.
+- `components/sd-settings-controls.ts` kapselt die gemeinsame Initialisierung und die Event-Bindings fuer Massen-UT, doppeltes Schicken, Sortierung, SD Gruppe und SD Vorlage.
+- Auf bestehenden Threads enthaelt das Panel zusaetzlich einen Reset fuer den gespeicherten Versandstatus; beim Erstellen neuer Threads bleibt dieser deaktiviert.

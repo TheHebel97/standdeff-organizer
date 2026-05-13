@@ -2,6 +2,7 @@ import {isUserForumMod} from "../helpers/tw-helper";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
 import {PageContext} from "../helpers/script-context";
+import {addForumQuickSettings} from "./components/forum-quick-settings";
 
 const log = Log.scope("new-thread");
 
@@ -9,6 +10,7 @@ export function createNewTable(pageContext: PageContext) {
     const localStorageService = LocalStorageHelper.getInstance();
     log.info("Initializing new-thread controller", {href: pageContext.href});
     localStorageService.setNewThread = false;
+    addForumQuickSettings();
 
     $(".clearfix > form > input[value=Senden]").on("mouseenter", function () {
         // @ts-ignore

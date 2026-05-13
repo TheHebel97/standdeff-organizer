@@ -9,6 +9,7 @@ import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
 import {PageContext} from "../helpers/script-context";
 import {getThreadIdFromContext, isKnownSdThread, shouldShowFirstStartPopup} from "../helpers/thread-guards";
+import {addForumQuickSettings} from "./components/forum-quick-settings";
 
 const log = Log.scope("view-thread");
 
@@ -30,6 +31,7 @@ export function viewThread(pageContext: PageContext) {
         currentThreadId,
         href: window.location.href
     });
+    addForumQuickSettings(currentThreadId);
 
     const pageState = readPageState(pageContext, localStorageService);
     const derivedState = deriveState(pageContext, pageState, localStorageService);

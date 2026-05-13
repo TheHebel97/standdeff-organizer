@@ -243,10 +243,10 @@ export function buildMassUtQuerySuffix(currentThreadId: string, automate: boolea
     if (!automate) {
         return additionalQuery;
     }
-    if (sdGroupId !== "") {
+    if (sdGroupId !== "" && sdGroupId !== "0") {
         additionalQuery += "&group=" + sdGroupId;
     }
-    if (orderBy !== "") {
+    if (orderBy !== "" && orderBy !== "default") {
         additionalQuery += "&order=" + orderBy;
     }
     return additionalQuery;

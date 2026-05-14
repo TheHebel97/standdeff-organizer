@@ -126,11 +126,17 @@ export function appendQueryToMassUtLinks(additionalQuery: string): number {
         if (!oldHref) {
             return;
         }
+        const $cells = $(this).closest("tr").find("td");
+        const hasDateConstraint = $cells.eq(6).text().trim() !== "" || $cells.eq(7).text().trim() !== "";
         const nextUrl = new URL(oldHref, window.location.origin);
         managedKeys.forEach((key) => nextUrl.searchParams.delete(key));
         additionalParams.forEach((value, key) => {
             nextUrl.searchParams.set(key, value);
         });
+        if (hasDateConstraint) {
+            nextUrl.searchParams.set("order", "distance");
+            nextUrl.searchParams.set("dir", "1");
+        }
         $(this).attr("href", nextUrl.toString());
         updatedLinkCount++;
     });

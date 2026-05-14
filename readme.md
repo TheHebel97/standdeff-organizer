@@ -230,5 +230,6 @@ Hinweis zum Forum:
 - Auf Thread-Seiten steht ein verschiebbares Quick-Settings-Panel fuer Massen-UT, doppeltes Schicken, Sortierung, SD Gruppe und SD Vorlage zur Verfuegung.
 - In bestehenden Threads ist dort auch der Reset fuer bereits geschickte Pakete verfuegbar.
 - Auf der SD-Tabellenansicht werden Aenderungen daraus sofort auf die sichtbaren Massen-UT-Links angewendet.
+- Falls in einer Tabellenzeile `ab` oder `bis` gesetzt ist, nutzt deren Massen-UT-Link automatisch `order=distance` und `dir=1`, also eine aufsteigende Entfernungs-Sortierung statt der normalen Truppen-Sortierung.
 
 

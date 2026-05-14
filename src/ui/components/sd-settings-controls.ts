@@ -10,6 +10,7 @@ type SettingsControlsLogger = Pick<ReturnType<typeof Log.scope>, "info">;
 
 type SettingsControlsOptions = {
     selectStyle?: string;
+    onSettingsChange?: () => void;
 };
 
 function buildSortOptionsHtml(): string {
@@ -113,6 +114,7 @@ function bindSettingsEvents(
     $root: JQuery<HTMLElement>,
     localStorageService: LocalStorageHelper,
     log: SettingsControlsLogger,
+    options?: SettingsControlsOptions,
 ) {
     $root.off(".sdSettingsControls");
 
@@ -122,6 +124,7 @@ function bindSettingsEvents(
         setControlColor($(this), nextValue);
         localStorageService.setPreventDuplicateDestination = nextValue;
         log.info("Updated setting", {setting: "preventDuplicateDestination", value: nextValue});
+        options?.onSettingsChange?.();
     });
 
     $root.on("click.sdSettingsControls", "#automate-massen-ut", function () {
@@ -130,6 +133,7 @@ function bindSettingsEvents(
         setControlColor($(this), nextValue);
         localStorageService.setAutomateMassenUt = nextValue;
         log.info("Updated setting", {setting: "automateMassenUt", value: nextValue});
+        options?.onSettingsChange?.();
     });
 
     $root.on("change.sdSettingsControls", "#sd-group-id", function () {
@@ -138,12 +142,14 @@ function bindSettingsEvents(
             localStorageService.setSdGroupId = value;
             setControlColor($(this), true);
             log.info("Updated setting", {setting: "sdGroupId", value});
+            options?.onSettingsChange?.();
             return;
         }
         localStorageService.setSdGroupId = "0";
         $(this).val("0");
         setControlColor($(this), false);
         log.info("Updated setting", {setting: "sdGroupId", value: "0"});
+        options?.onSettingsChange?.();
     });
 
     $root.on("change.sdSettingsControls", "#sd-template-id", function () {
@@ -152,12 +158,14 @@ function bindSettingsEvents(
             localStorageService.setSelectedTemplate = value;
             setControlColor($(this), true);
             log.info("Updated setting", {setting: "selectedTemplate", value});
+            options?.onSettingsChange?.();
             return;
         }
         localStorageService.setSelectedTemplate = "0";
         $(this).val("0");
         setControlColor($(this), false);
         log.info("Updated setting", {setting: "selectedTemplate", value: "0"});
+        options?.onSettingsChange?.();
     });
 
     $root.on("change.sdSettingsControls", "#sd-sort-by", function () {
@@ -166,12 +174,14 @@ function bindSettingsEvents(
             localStorageService.setSortBy = value;
             setControlColor($(this), true);
             log.info("Updated setting", {setting: "sortBy", value});
+            options?.onSettingsChange?.();
             return;
         }
         localStorageService.setSortBy = "default";
         $(this).val("default");
         setControlColor($(this), false);
         log.info("Updated setting", {setting: "sortBy", value: "default"});
+        options?.onSettingsChange?.();
     });
 }
 
@@ -185,5 +195,5 @@ export function initializeSdSettingsControls(
     syncSortByControl($root, localStorageService);
     syncGroupControl($root, localStorageService, options);
     syncTemplateControl($root, localStorageService, options);
-    bindSettingsEvents($root, localStorageService, log);
+    bindSettingsEvents($root, localStorageService, log, options);
 }

@@ -229,5 +229,6 @@ Hinweis zu den Settings:
 Hinweis zum Forum:
 - Auf Thread-Seiten steht ein verschiebbares Quick-Settings-Panel fuer Massen-UT, doppeltes Schicken, Sortierung, SD Gruppe und SD Vorlage zur Verfuegung.
 - In bestehenden Threads ist dort auch der Reset fuer bereits geschickte Pakete verfuegbar.
+- Auf der SD-Tabellenansicht werden Aenderungen daraus sofort auf die sichtbaren Massen-UT-Links angewendet.
 
 

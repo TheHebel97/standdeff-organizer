@@ -117,13 +117,21 @@ export function applySentPackageMarkers(sdPostId: string, markers: Map<string, s
 }
 
 export function appendQueryToMassUtLinks(additionalQuery: string): number {
+    const normalizedQuery = additionalQuery.startsWith("&") ? additionalQuery.slice(1) : additionalQuery;
+    const additionalParams = new URLSearchParams(normalizedQuery);
+    const managedKeys = ["dir", "sdTableId", "group", "order"];
     let updatedLinkCount = 0;
     $(".bbcodetable").find("a[referrerpolicy^='no-ref']").each(function () {
         const oldHref = $(this).attr("href");
         if (!oldHref) {
             return;
         }
-        $(this).attr("href", oldHref + additionalQuery);
+        const nextUrl = new URL(oldHref, window.location.origin);
+        managedKeys.forEach((key) => nextUrl.searchParams.delete(key));
+        additionalParams.forEach((value, key) => {
+            nextUrl.searchParams.set(key, value);
+        });
+        $(this).attr("href", nextUrl.toString());
         updatedLinkCount++;
     });
     return updatedLinkCount;

@@ -44,3 +44,4 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 - `components/forum-quick-settings.ts` rendert das Panel.
 - `components/sd-settings-controls.ts` kapselt die gemeinsame Initialisierung und die Event-Bindings fuer Massen-UT, doppeltes Schicken, Sortierung, SD Gruppe und SD Vorlage.
 - Auf bestehenden Threads enthaelt das Panel zusaetzlich einen Reset fuer den gespeicherten Versandstatus; beim Erstellen neuer Threads bleibt dieser deaktiviert.
+- Aenderungen an den Quick-Settings werden auf der SD-Tabellenansicht sofort auf die sichtbaren Massen-UT-Links angewendet.

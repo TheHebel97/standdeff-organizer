@@ -1,5 +1,6 @@
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 import {Log} from "../../helpers/logging-helper";
+import {applySettingsToMassUtLink} from "../../helpers/table-helper";
 import {initializeSdSettingsControls} from "./sd-settings-controls";
 
 const PANEL_ID = "sd-forum-quick-settings";
@@ -48,7 +49,7 @@ export function addForumQuickSettings(currentThreadId?: string) {
         $("body").append(panelHtml);
         $panel = $(`#${PANEL_ID}`);
 
-        initializeForumQuickSettingsControls($panel, localStorageService);
+        initializeForumQuickSettingsControls($panel, localStorageService, currentThreadId);
         enableDragging($panel);
 
         log.info("Injected forum quick settings panel");
@@ -110,9 +111,11 @@ function bindResetButton(
 function initializeForumQuickSettingsControls(
     $panel: JQuery<HTMLElement>,
     localStorageService: LocalStorageHelper,
+    currentThreadId?: string,
 ) {
     initializeSdSettingsControls($panel, localStorageService, log, {
-        selectStyle: "width:100%; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); box-sizing: border-box;"
+        selectStyle: "width:100%; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); box-sizing: border-box;",
+        onSettingsChange: currentThreadId ? () => applySettingsToMassUtLink(currentThreadId) : undefined
     });
 }
 

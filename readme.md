@@ -231,5 +231,6 @@ Hinweis zum Forum:
 - In bestehenden Threads ist dort auch der Reset fuer bereits geschickte Pakete verfuegbar.
 - Auf der SD-Tabellenansicht werden Aenderungen daraus sofort auf die sichtbaren Massen-UT-Links angewendet.
 - Falls in einer Tabellenzeile `ab` oder `bis` gesetzt ist, nutzt deren Massen-UT-Link automatisch `order=distance` und `dir=1`, also eine aufsteigende Entfernungs-Sortierung statt der normalen Truppen-Sortierung.
+- Der Reset wird ohne Rueckfrage direkt ausgefuehrt und raeumt die roten Versand-Markierungen in der SD-Tabelle sofort auf.
 
 

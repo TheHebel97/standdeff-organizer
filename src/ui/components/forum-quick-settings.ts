@@ -1,6 +1,6 @@
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 import {Log} from "../../helpers/logging-helper";
-import {applySettingsToMassUtLink} from "../../helpers/table-helper";
+import {applySettingsToMassUtLink, updateSentPackagesInSdTable} from "../../helpers/table-helper";
 import {initializeSdSettingsControls} from "./sd-settings-controls";
 
 const PANEL_ID = "sd-forum-quick-settings";
@@ -39,9 +39,8 @@ export function addForumQuickSettings(currentThreadId?: string) {
       <input type="number" value="0" id="sd-template-id" style="width:100%; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-sizing: border-box;">
     </div>
     <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(125, 81, 15, 0.35);">
-      <div style="font-weight: bold; margin-bottom: 4px;">Geschickte Pakete</div>
-      <div class="sd-forum-quick-settings-reset-status" style="font-size: 11px; margin-bottom: 6px; color: #4d2f00;"></div>
-      <input class="btn" type="button" value="Reset" id="reset-thread-packages" style="width:100%;">
+      <div class="sd-forum-quick-settings-reset-status" style="font-size: 12px; margin-bottom: 6px; color: #4d2f00; font-weight: bold;"></div>
+      <input class="btn" type="button" value="Zur&#252;cksetzen" id="reset-thread-packages" style="width:100%;">
     </div>
   </div>
 </div>`;
@@ -66,17 +65,14 @@ function syncResetButtonState(
 ) {
     const $resetButton = $panel.find("#reset-thread-packages");
     const $statusText = $panel.find(".sd-forum-quick-settings-reset-status");
+    $statusText.text("Geschickte Pakete");
 
     if (!currentThreadId) {
         $resetButton.prop("disabled", true).css("opacity", "0.5").data("thread-id", "");
-        $statusText.text("Erst in einem bestehenden SD-Thread verfuegbar.");
         return;
     }
 
-    const threadData = localStorageService.getThreadData(currentThreadId);
-    const sentPackageCount = threadData?.packagesSent.size ?? 0;
-    $resetButton.prop("disabled", sentPackageCount === 0).css("opacity", sentPackageCount === 0 ? "0.5" : "1").data("thread-id", currentThreadId);
-    $statusText.text(`Gespeicherte Versand-Eintraege: ${sentPackageCount}`);
+    $resetButton.prop("disabled", false).css("opacity", "1").data("thread-id", currentThreadId);
 }
 
 function bindResetButton(
@@ -91,18 +87,8 @@ function bindResetButton(
             return;
         }
 
-        const threadData = localStorageService.getThreadData(threadId);
-        if (!threadData || threadData.packagesSent.size === 0) {
-            syncResetButtonState($panel, localStorageService, threadId);
-            return;
-        }
-
-        const shouldReset = window.confirm(`Geschickte Pakete fuer "${threadData.threadName}" zuruecksetzen?`);
-        if (!shouldReset) {
-            return;
-        }
-
         localStorageService.resetPackagesSent(threadId);
+        updateSentPackagesInSdTable(threadId);
         syncResetButtonState($panel, localStorageService, threadId);
         log.info("Reset sent packages from forum quick settings", {threadId});
     });

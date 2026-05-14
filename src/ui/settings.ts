@@ -12,8 +12,6 @@ const log = Log.scope("settings");
 function buildThreadRow(threadId: string, threadData: ThreadData): string {
     const threadLink = buildForumThreadUrl(threadData.forumId, threadId);
     const sentPackageCount = threadData.packagesSent.size;
-    const resetDisabled = sentPackageCount === 0 ? "disabled" : "";
-    const resetOpacity = sentPackageCount === 0 ? "opacity: 0.5;" : "";
 
     return `<tr>
              <td>
@@ -24,8 +22,8 @@ function buildThreadRow(threadId: string, threadData: ThreadData): string {
                  <div style="font-size: x-small; margin-top: 4px;">Gespeicherte Versand-Eintraege: ${sentPackageCount}</div>
              </td>
              <td style="text-align: center;">
-                 <input type="button" value="Reset" class="btn reset-thread-packages" data-thread-id="${threadId}" ${resetDisabled}
-                        style="width: 70px; ${resetOpacity}">
+                 <input type="button" value="Reset" class="btn reset-thread-packages" data-thread-id="${threadId}"
+                        style="width: 70px;">
              </td>
              <td style="text-align: center;"><button style="background: url(/graphic/delete.png); width: 20px; height: 20px;  border: none" class="delete-thread" data-thread-id="${threadId}"></button></td>
          </tr>`;
@@ -189,14 +187,6 @@ export function displaySettings(pageContext: PageContext) {
 
     $("#activeSdThreads").on("click", ".reset-thread-packages", function () {
         const threadId = String($(this).data("thread-id"));
-        const threadData = localStorageService.getThreadData(threadId);
-        if (!threadData || threadData.packagesSent.size === 0) {
-            return;
-        }
-        const shouldReset = window.confirm(`Geschickte Pakete fuer "${threadData.threadName}" zuruecksetzen?`);
-        if (!shouldReset) {
-            return;
-        }
         localStorageService.resetPackagesSent(threadId);
         log.info("Reset sent packages from settings", {threadId});
         renderThreadRows(localStorageService.getAllThreads);

@@ -46,3 +46,4 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 - Auf bestehenden Threads enthaelt das Panel zusaetzlich einen Reset fuer den gespeicherten Versandstatus; beim Erstellen neuer Threads bleibt dieser deaktiviert.
 - Aenderungen an den Quick-Settings werden auf der SD-Tabellenansicht sofort auf die sichtbaren Massen-UT-Links angewendet.
 - Tabellenzeilen mit gesetztem `ab` oder `bis` erzwingen fuer ihren Massen-UT-Link `order=distance` und `dir=1`, also eine aufsteigende Entfernungs-Sortierung statt der normalen Truppen-Sortierung.
+- Der Reset wird ohne Rueckfrage ausgefuehrt und synchronisiert die roten Versand-Markierungen auf der SD-Tabelle sofort neu.

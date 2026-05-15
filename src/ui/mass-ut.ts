@@ -34,6 +34,13 @@ type RepeatSendTarget = {
     matchedBy: "villageId" | "coords";
 };
 
+type MassUtTemplateDefinition = {
+    id: string;
+    name?: string;
+    use_all?: string[];
+    [key: string]: unknown;
+};
+
 type SupportSpeedInsights = {
     configuredSwordMsPerField: number;
     effectiveSwordMsPerField: number;
@@ -46,8 +53,53 @@ type SupportSpeedInsights = {
 type RowTravelTimeResolution = {
     travelTimeMs: number;
     distance: number;
-    source: "displayedSwordTime" | "displayedDistance" | "coords";
+    source: "displayedTemplateUnitTime" | "calculatedTemplateUnitTime" | "displayedDistance" | "coords";
+    unit: string;
 };
+
+type CandidateSelectionEvaluation = {
+    index: number;
+    villageId: string;
+    sourceCoords: string;
+    distance: number;
+    travelTimeHours: number;
+    travelTimeSource: RowTravelTimeResolution["source"];
+    slowestTemplateUnit: string;
+    arrivalIso: string;
+    fromIso: string | null;
+    untilIso: string | null;
+    withinFrom: boolean;
+    withinUntil: boolean;
+    selected: boolean;
+    skipReason: "packages-exhausted" | "outside-window" | null;
+    packagesRemainingBeforeSelection: number;
+    packagesRemainingAfterSelection: number;
+};
+
+type TemplateTravelProfile = {
+    templateId: string | null;
+    templateName: string | null;
+    usedUnits: string[];
+    configuredSlowestUnit: string;
+    configuredSlowestMinutesPerField: number;
+};
+
+const UNIT_MINUTES_PER_FIELD: Record<string, number> = {
+    spear: 16,
+    sword: 22,
+    axe: 16,
+    archer: 16,
+    spy: 9,
+    light: 10,
+    marcher: 10,
+    heavy: 11,
+    ram: 30,
+    catapult: 30,
+    knight: 10,
+    snob: 35
+};
+
+const DEFAULT_TRAVEL_UNIT = "sword";
 
 function summarizeThreadData(threadId: string, threadData: ThreadData) {
     return {
@@ -71,6 +123,113 @@ function summarizeSendingRow(destinationVillageId: string | null, sendingObj: ro
         packagesToSend,
         dateFrom: sendingObj?.dateFrom ?? "",
         dateUntil: sendingObj?.dateUntil ?? ""
+    };
+}
+
+function getConfiguredSwordMinutesPerField(localStorageService: LocalStorageHelper): number {
+    const configuredSwordMinutesPerField = localStorageService.getSwordLfz;
+    return configuredSwordMinutesPerField > 0 ? configuredSwordMinutesPerField : 22;
+}
+
+function getConfiguredUnitMinutesPerField(unit: string, configuredSwordMinutesPerField: number): number {
+    const baseMinutesPerField = UNIT_MINUTES_PER_FIELD[unit];
+    if (baseMinutesPerField === undefined) {
+        return configuredSwordMinutesPerField;
+    }
+    return baseMinutesPerField * (configuredSwordMinutesPerField / 22);
+}
+
+function parseTemplateDefinition(rawValue: string): MassUtTemplateDefinition | null {
+    if (rawValue.trim() === "") {
+        return null;
+    }
+    try {
+        return JSON.parse(rawValue) as MassUtTemplateDefinition;
+    } catch (error) {
+        log.warn("Failed to parse template option value", {
+            rawValue,
+            error
+        });
+        return null;
+    }
+}
+
+function resolveSelectedTemplateDefinition(pageState: MassUtPageState): MassUtTemplateDefinition | null {
+    const $templateSelect = $("select[name='template']");
+    const selectedOptionValue = String($templateSelect.find("option:selected").val() ?? "").trim();
+    const selectedTemplateFromDom = parseTemplateDefinition(selectedOptionValue);
+    if (selectedTemplateFromDom) {
+        return selectedTemplateFromDom;
+    }
+
+    if (pageState.selectedTemplate === "" || pageState.selectedTemplate === "0") {
+        return null;
+    }
+
+    let matchingTemplate: MassUtTemplateDefinition | null = null;
+    $templateSelect.find("option").each(function () {
+        const optionValue = String($(this).val() ?? "").trim();
+        const parsedTemplate = parseTemplateDefinition(optionValue);
+        if (!parsedTemplate) {
+            return;
+        }
+        if (String(parsedTemplate.id) === pageState.selectedTemplate) {
+            matchingTemplate = parsedTemplate;
+            return false;
+        }
+    });
+
+    return matchingTemplate;
+}
+
+function resolveTemplateUsedUnits(templateDefinition: MassUtTemplateDefinition | null): string[] {
+    if (!templateDefinition) {
+        return [DEFAULT_TRAVEL_UNIT];
+    }
+
+    const usedUnits = new Set<string>();
+    Object.keys(UNIT_MINUTES_PER_FIELD).forEach((unit) => {
+        const configuredAmount = Number(templateDefinition[unit] ?? 0);
+        if (!isNaN(configuredAmount) && configuredAmount !== 0) {
+            usedUnits.add(unit);
+        }
+    });
+
+    const useAllUnits = Array.isArray(templateDefinition.use_all) ? templateDefinition.use_all : [];
+    useAllUnits.forEach((unit) => {
+        if (UNIT_MINUTES_PER_FIELD[unit] !== undefined) {
+            usedUnits.add(unit);
+        }
+    });
+
+    if (usedUnits.size === 0) {
+        usedUnits.add(DEFAULT_TRAVEL_UNIT);
+    }
+
+    return Array.from(usedUnits);
+}
+
+function resolveTemplateTravelProfile(pageState: MassUtPageState, localStorageService: LocalStorageHelper): TemplateTravelProfile {
+    const configuredSwordMinutesPerField = getConfiguredSwordMinutesPerField(localStorageService);
+    const templateDefinition = resolveSelectedTemplateDefinition(pageState);
+    const usedUnits = resolveTemplateUsedUnits(templateDefinition);
+
+    let configuredSlowestUnit = usedUnits[0] ?? DEFAULT_TRAVEL_UNIT;
+    let configuredSlowestMinutesPerField = getConfiguredUnitMinutesPerField(configuredSlowestUnit, configuredSwordMinutesPerField);
+    usedUnits.slice(1).forEach((unit) => {
+        const configuredMinutesPerField = getConfiguredUnitMinutesPerField(unit, configuredSwordMinutesPerField);
+        if (configuredMinutesPerField >= configuredSlowestMinutesPerField) {
+            configuredSlowestUnit = unit;
+            configuredSlowestMinutesPerField = configuredMinutesPerField;
+        }
+    });
+
+    return {
+        templateId: templateDefinition?.id ? String(templateDefinition.id) : null,
+        templateName: templateDefinition?.name ? String(templateDefinition.name) : null,
+        usedUnits,
+        configuredSlowestUnit,
+        configuredSlowestMinutesPerField
     };
 }
 
@@ -107,12 +266,17 @@ function readDisplayedSwordTravelTimeMs($row: JQuery<HTMLElement>): number {
     return parseTravelTimeTitleToMs(title);
 }
 
+function readDisplayedUnitTravelTimeMs($row: JQuery<HTMLElement>, unit: string): number {
+    const title = String($row.find(`td[data-unit='${unit}']`).attr("data-title") ?? "");
+    return parseTravelTimeTitleToMs(title);
+}
+
 function readDisplayedRowDistance($row: JQuery<HTMLElement>): number {
     return parseDisplayedDistance(String($row.find("td").eq(1).text() ?? ""));
 }
 
 function resolveSupportSpeedInsights(localStorageService: LocalStorageHelper): SupportSpeedInsights {
-    const configuredSwordMsPerField = localStorageService.getSwordLfz * 60 * 1000;
+    const configuredSwordMsPerField = getConfiguredSwordMinutesPerField(localStorageService) * 60 * 1000;
     const samples: number[] = [];
 
     $(".call-village").each(function () {
@@ -146,27 +310,69 @@ function resolveSupportSpeedInsights(localStorageService: LocalStorageHelper): S
     };
 }
 
+function resolveRowTemplateUnit(
+    $row: JQuery<HTMLElement>,
+    templateTravelProfile: TemplateTravelProfile,
+    configuredSwordMinutesPerField: number,
+): {unit: string; configuredMinutesPerField: number} {
+    let resolvedUnit: string | null = null;
+    let resolvedMinutesPerField = 0;
+
+    templateTravelProfile.usedUnits.forEach((unit) => {
+        const availableCount = parseInt(String($row.find(`td[data-unit='${unit}']`).attr("data-count") ?? "0"), 10);
+        if (isNaN(availableCount) || availableCount <= 0) {
+            return;
+        }
+
+        const configuredMinutesPerField = getConfiguredUnitMinutesPerField(unit, configuredSwordMinutesPerField);
+        if (configuredMinutesPerField >= resolvedMinutesPerField) {
+            resolvedUnit = unit;
+            resolvedMinutesPerField = configuredMinutesPerField;
+        }
+    });
+
+    if (resolvedUnit === null) {
+        return {
+            unit: templateTravelProfile.configuredSlowestUnit,
+            configuredMinutesPerField: templateTravelProfile.configuredSlowestMinutesPerField
+        };
+    }
+
+    return {
+        unit: resolvedUnit,
+        configuredMinutesPerField: resolvedMinutesPerField
+    };
+}
+
 function resolveRowTravelTime(
     $row: JQuery<HTMLElement>,
     sendingObj: rowSdTable,
     supportSpeedInsights: SupportSpeedInsights,
+    templateTravelProfile: TemplateTravelProfile,
 ): RowTravelTimeResolution {
-    const displayedSwordTravelTimeMs = readDisplayedSwordTravelTimeMs($row);
+    const rowTemplateUnit = resolveRowTemplateUnit(
+        $row,
+        templateTravelProfile,
+        supportSpeedInsights.configuredSwordMsPerField / 60000,
+    );
+    const displayedTemplateUnitTravelTimeMs = readDisplayedUnitTravelTimeMs($row, rowTemplateUnit.unit);
     const displayedDistance = readDisplayedRowDistance($row);
 
-    if (displayedSwordTravelTimeMs > 0 && displayedDistance > 0) {
+    if (displayedTemplateUnitTravelTimeMs > 0 && displayedDistance > 0) {
         return {
-            travelTimeMs: displayedSwordTravelTimeMs,
+            travelTimeMs: displayedTemplateUnitTravelTimeMs,
             distance: displayedDistance,
-            source: "displayedSwordTime"
+            source: "displayedTemplateUnitTime",
+            unit: rowTemplateUnit.unit
         };
     }
 
     if (displayedDistance > 0) {
         return {
-            travelTimeMs: displayedDistance * supportSpeedInsights.effectiveSwordMsPerField,
+            travelTimeMs: displayedDistance * rowTemplateUnit.configuredMinutesPerField * 60 * 1000 * supportSpeedInsights.speedModifier,
             distance: displayedDistance,
-            source: "displayedDistance"
+            source: "calculatedTemplateUnitTime",
+            unit: rowTemplateUnit.unit
         };
     }
 
@@ -174,9 +380,10 @@ function resolveRowTravelTime(
     const destinationCoords = villageBBCodeToCoordinates(sendingObj.coords);
     const coordinateDistance = Number(distanceXY(sourceCoords, destinationCoords).toFixed(3));
     return {
-        travelTimeMs: coordinateDistance * supportSpeedInsights.effectiveSwordMsPerField,
+        travelTimeMs: coordinateDistance * rowTemplateUnit.configuredMinutesPerField * 60 * 1000 * supportSpeedInsights.speedModifier,
         distance: coordinateDistance,
-        source: "coords"
+        source: "coords",
+        unit: rowTemplateUnit.unit
     };
 }
 
@@ -434,6 +641,10 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
         return;
     }
     const supportSpeedInsights = resolveSupportSpeedInsights(localStorageService);
+    const templateTravelProfile = resolveTemplateTravelProfile(pageState, localStorageService);
+    const selectionEvaluations: CandidateSelectionEvaluation[] = [];
+    const selectionStartIso = epochDateFrom > 0 ? new Date(epochDateFrom).toISOString() : null;
+    const selectionEndIso = epochDateUntil > 0 ? new Date(epochDateUntil).toISOString() : null;
 
     log.info("Computed sending target", summarizeSendingRow(pageState.destinationVillageId, sendingObj, alreadySentAmount, packagesToSend));
     log.state("Date window for package selection", {
@@ -444,7 +655,28 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
         speedModifier: Number(supportSpeedInsights.speedModifier.toFixed(4)),
         boostPercent: Number(supportSpeedInsights.boostPercent.toFixed(2)),
         isBoostActive: supportSpeedInsights.isBoostActive,
-        sampleCount: supportSpeedInsights.sampleCount
+        sampleCount: supportSpeedInsights.sampleCount,
+        templateId: templateTravelProfile.templateId,
+        templateName: templateTravelProfile.templateName,
+        templateUsedUnits: templateTravelProfile.usedUnits,
+        configuredSlowestTemplateUnit: templateTravelProfile.configuredSlowestUnit,
+        configuredSlowestTemplateMinutesPerField: templateTravelProfile.configuredSlowestMinutesPerField
+    });
+    log.state("Mass-ut checkbox selection boundaries", {
+        selectionStartIso,
+        selectionEndIso,
+        initialPackagesToSend: packagesToSend,
+        destinationCoords: sendingObj.coords,
+        targetVillageId: pageState.destinationVillageId,
+        templateId: templateTravelProfile.templateId,
+        templateName: templateTravelProfile.templateName,
+        templateUsedUnits: templateTravelProfile.usedUnits,
+        configuredSlowestTemplateUnit: templateTravelProfile.configuredSlowestUnit,
+        configuredSlowestTemplateMinutesPerField: templateTravelProfile.configuredSlowestMinutesPerField,
+        configuredSwordMinutesPerField: supportSpeedInsights.configuredSwordMsPerField / 60000,
+        effectiveSwordMinutesPerField: Number((supportSpeedInsights.effectiveSwordMsPerField / 60000).toFixed(3)),
+        speedModifier: Number(supportSpeedInsights.speedModifier.toFixed(4)),
+        boostPercent: Number(supportSpeedInsights.boostPercent.toFixed(2))
     });
 
     $(".unit_checkbox").each(function () {
@@ -462,46 +694,94 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
     } else {
         const currentTime = Date.now();
         $(".call-village").each(function (index) {
-            if (packagesToSend <= 0) {
-                return;
-            }
-
             const $row = $(this);
+            const villageId = String($row.find(".troop-request-selector").data("village-id") ?? "");
             const sourceCoords = villageBBCodeToCoordinates($row.find("a").text().trim());
-            const travelTimeResolution = resolveRowTravelTime($row, sendingObj, supportSpeedInsights);
+            const travelTimeResolution = resolveRowTravelTime($row, sendingObj, supportSpeedInsights, templateTravelProfile);
             const arrival = currentTime + travelTimeResolution.travelTimeMs;
+            const packagesRemainingBeforeSelection = packagesToSend;
 
             const fromIsSet = epochDateFrom > 0;
             const untilIsSet = epochDateUntil > 0;
             const withinFrom = fromIsSet ? arrival >= epochDateFrom : true;
             const withinUntil = untilIsSet ? arrival <= epochDateUntil : true;
+            const selected = packagesToSend > 0 && withinFrom && withinUntil;
+            let skipReason: CandidateSelectionEvaluation["skipReason"] = null;
+            if (!selected) {
+                skipReason = packagesToSend <= 0 ? "packages-exhausted" : "outside-window";
+            }
 
             log.trace("Evaluated candidate village", {
                 index,
+                villageId,
                 sourceCoords,
                 destinationCoords: sendingObj.coords,
                 distance: Number(travelTimeResolution.distance.toFixed(3)),
                 travelTimeHours: Number((travelTimeResolution.travelTimeMs / 3600000).toFixed(3)),
                 travelTimeSource: travelTimeResolution.source,
+                slowestTemplateUnit: travelTimeResolution.unit,
                 arrivalIso: new Date(arrival).toISOString(),
                 fromIso: fromIsSet ? new Date(epochDateFrom).toISOString() : null,
                 untilIso: untilIsSet ? new Date(epochDateUntil).toISOString() : null,
                 withinFrom,
                 withinUntil,
-                packagesRemainingBeforeSelection: packagesToSend
+                selected,
+                skipReason,
+                packagesRemainingBeforeSelection
             });
 
-            if (withinFrom && withinUntil) {
+            if (selected) {
                 $row.find(".troop-request-selector").trigger("click");
                 packagesToSend--;
             }
+
+            selectionEvaluations.push({
+                index,
+                villageId,
+                sourceCoords,
+                distance: Number(travelTimeResolution.distance.toFixed(3)),
+                travelTimeHours: Number((travelTimeResolution.travelTimeMs / 3600000).toFixed(3)),
+                travelTimeSource: travelTimeResolution.source,
+                slowestTemplateUnit: travelTimeResolution.unit,
+                arrivalIso: new Date(arrival).toISOString(),
+                fromIso: selectionStartIso,
+                untilIso: selectionEndIso,
+                withinFrom,
+                withinUntil,
+                selected,
+                skipReason,
+                packagesRemainingBeforeSelection,
+                packagesRemainingAfterSelection: packagesToSend
+            });
         });
     }
 
     derivedState.packagesToSend = packagesToSend;
+    const selectedEvaluations = selectionEvaluations.filter((evaluation) => evaluation.selected);
+    const lastSelectedEvaluation = selectedEvaluations.length > 0
+        ? selectedEvaluations[selectedEvaluations.length - 1]
+        : null;
+    const firstRejectedEvaluation = selectionEvaluations.find((evaluation) => !evaluation.selected) ?? null;
+    if (selectionEvaluations.length > 0) {
+        log.state("Mass-ut checkbox selection evaluation", {
+            totalCandidatesEvaluated: selectionEvaluations.length,
+            selectedCandidateCount: selectedEvaluations.length,
+            remainingPackagesAfterSelection: packagesToSend,
+            lastSelectedEvaluation,
+            firstRejectedEvaluation,
+            evaluations: selectionEvaluations
+        });
+    }
     log.info("Auto-selection completed", {
         checkedBoxes: $(".troop-request-selector:checked").length,
-        packagesRemainingAfterSelection: packagesToSend
+        packagesRemainingAfterSelection: packagesToSend,
+        selectionStartIso,
+        selectionEndIso,
+        selectedCandidateCount: selectedEvaluations.length,
+        lastSelectedVillageId: lastSelectedEvaluation?.villageId ?? null,
+        lastSelectedArrivalIso: lastSelectedEvaluation?.arrivalIso ?? null,
+        firstRejectedVillageId: firstRejectedEvaluation?.villageId ?? null,
+        firstRejectedArrivalIso: firstRejectedEvaluation?.arrivalIso ?? null
     });
 
     $("#place_call_form_submit").prop("disabled", true);

@@ -8,6 +8,7 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 - Läuft ausschließlich auf `screen=place` und initialisiert beim Laden sofort `storeGroupData` und `storeTemplateData`, um aktuelle Gruppen/Vorlagen für spätere Settings bereitzustellen.
 - Liest `sdTableId`, Ziel-Dorf (`target`) sowie Einstellungen wie `getPreventDuplicateDestination` oder `getAutomateMassenUt` aus dem `LocalStorageHelper`.
 - Wählt automatisch die passende Vorlage im Dropdown, setzt Checkboxen für Truppenanfragen und berücksichtigt dabei das UI-Setting `Doppeltes Schicken`, während gesendete Pakete im `ThreadData.packagesSent`-Map aktualisiert werden.
+- Für `ab`/`bis` liest der Controller auf der Massen-UT-Seite die angezeigte Schwert-Laufzeit und Distanz aus, leitet daraus einen eventuellen Support-Speedboost ab und nutzt bevorzugt die echte Zeilen-Laufzeit für die Checkbox-Auswahl.
 
 - Neben dem Uebernehmen-Button wird ein `SD erneut schicken`-Button eingeblendet, der die Massen-UT-Seite mit den passenden SD-Parametern (`sdTableId`, `group`, `order`, `dir`) neu aufruft; wenn kein passendes Zieldorf in einer gespeicherten SD-Tabelle gefunden wird, bleibt der Button deaktiviert.
 

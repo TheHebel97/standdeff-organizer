@@ -34,6 +34,21 @@ type RepeatSendTarget = {
     matchedBy: "villageId" | "coords";
 };
 
+type SupportSpeedInsights = {
+    configuredSwordMsPerField: number;
+    effectiveSwordMsPerField: number;
+    speedModifier: number;
+    boostPercent: number;
+    sampleCount: number;
+    isBoostActive: boolean;
+};
+
+type RowTravelTimeResolution = {
+    travelTimeMs: number;
+    distance: number;
+    source: "displayedSwordTime" | "displayedDistance" | "coords";
+};
+
 function summarizeThreadData(threadId: string, threadData: ThreadData) {
     return {
         threadId,
@@ -63,6 +78,106 @@ function readCurrentTargetCoords(): string | null {
     const targetText = $("#place_target .village-name").first().text().trim();
     const coordsMatch = targetText.match(/(\d{3}\|\d{3})/);
     return coordsMatch?.[1] ?? null;
+}
+
+function parseDisplayedDistance(value: string): number {
+    const normalizedValue = value.trim().replace(",", ".");
+    const parsedValue = parseFloat(normalizedValue);
+    return isNaN(parsedValue) ? 0 : parsedValue;
+}
+
+function parseTravelTimeTitleToMs(title: string): number {
+    const timeMatch = title.match(/(\d+):(\d{2}):(\d{2})/);
+    if (!timeMatch) {
+        return 0;
+    }
+
+    const hours = parseInt(timeMatch[1], 10);
+    const minutes = parseInt(timeMatch[2], 10);
+    const seconds = parseInt(timeMatch[3], 10);
+    if ([hours, minutes, seconds].some((value) => isNaN(value))) {
+        return 0;
+    }
+
+    return (((hours * 60) + minutes) * 60 + seconds) * 1000;
+}
+
+function readDisplayedSwordTravelTimeMs($row: JQuery<HTMLElement>): number {
+    const title = String($row.find("td[data-unit='sword']").attr("data-title") ?? "");
+    return parseTravelTimeTitleToMs(title);
+}
+
+function readDisplayedRowDistance($row: JQuery<HTMLElement>): number {
+    return parseDisplayedDistance(String($row.find("td").eq(1).text() ?? ""));
+}
+
+function resolveSupportSpeedInsights(localStorageService: LocalStorageHelper): SupportSpeedInsights {
+    const configuredSwordMsPerField = localStorageService.getSwordLfz * 60 * 1000;
+    const samples: number[] = [];
+
+    $(".call-village").each(function () {
+        const $row = $(this);
+        const displayedDistance = readDisplayedRowDistance($row);
+        const displayedSwordTravelTimeMs = readDisplayedSwordTravelTimeMs($row);
+
+        if (displayedDistance <= 0 || displayedSwordTravelTimeMs <= 0) {
+            return;
+        }
+
+        samples.push(displayedSwordTravelTimeMs / displayedDistance);
+    });
+
+    const effectiveSwordMsPerField = samples.length > 0
+        ? samples.reduce((sum, sample) => sum + sample, 0) / samples.length
+        : configuredSwordMsPerField;
+    const speedModifier = configuredSwordMsPerField > 0
+        ? effectiveSwordMsPerField / configuredSwordMsPerField
+        : 1;
+    const boostPercent = Math.max(0, (1 - speedModifier) * 100);
+    const isBoostActive = Math.abs(speedModifier - 1) > 0.01;
+
+    return {
+        configuredSwordMsPerField,
+        effectiveSwordMsPerField,
+        speedModifier,
+        boostPercent,
+        sampleCount: samples.length,
+        isBoostActive
+    };
+}
+
+function resolveRowTravelTime(
+    $row: JQuery<HTMLElement>,
+    sendingObj: rowSdTable,
+    supportSpeedInsights: SupportSpeedInsights,
+): RowTravelTimeResolution {
+    const displayedSwordTravelTimeMs = readDisplayedSwordTravelTimeMs($row);
+    const displayedDistance = readDisplayedRowDistance($row);
+
+    if (displayedSwordTravelTimeMs > 0 && displayedDistance > 0) {
+        return {
+            travelTimeMs: displayedSwordTravelTimeMs,
+            distance: displayedDistance,
+            source: "displayedSwordTime"
+        };
+    }
+
+    if (displayedDistance > 0) {
+        return {
+            travelTimeMs: displayedDistance * supportSpeedInsights.effectiveSwordMsPerField,
+            distance: displayedDistance,
+            source: "displayedDistance"
+        };
+    }
+
+    const sourceCoords = villageBBCodeToCoordinates($row.find("a").text().trim());
+    const destinationCoords = villageBBCodeToCoordinates(sendingObj.coords);
+    const coordinateDistance = Number(distanceXY(sourceCoords, destinationCoords).toFixed(3));
+    return {
+        travelTimeMs: coordinateDistance * supportSpeedInsights.effectiveSwordMsPerField,
+        distance: coordinateDistance,
+        source: "coords"
+    };
 }
 
 function hasDateConstraint(row: rowSdTable): boolean {
@@ -318,11 +433,18 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
     if (!sendingObj) {
         return;
     }
+    const supportSpeedInsights = resolveSupportSpeedInsights(localStorageService);
 
     log.info("Computed sending target", summarizeSendingRow(pageState.destinationVillageId, sendingObj, alreadySentAmount, packagesToSend));
     log.state("Date window for package selection", {
         dateFrom: epochDateFrom > 0 ? new Date(epochDateFrom).toISOString() : null,
-        dateUntil: epochDateUntil > 0 ? new Date(epochDateUntil).toISOString() : null
+        dateUntil: epochDateUntil > 0 ? new Date(epochDateUntil).toISOString() : null,
+        configuredSwordMinutesPerField: supportSpeedInsights.configuredSwordMsPerField / 60000,
+        effectiveSwordMinutesPerField: Number((supportSpeedInsights.effectiveSwordMsPerField / 60000).toFixed(3)),
+        speedModifier: Number(supportSpeedInsights.speedModifier.toFixed(4)),
+        boostPercent: Number(supportSpeedInsights.boostPercent.toFixed(2)),
+        isBoostActive: supportSpeedInsights.isBoostActive,
+        sampleCount: supportSpeedInsights.sampleCount
     });
 
     $(".unit_checkbox").each(function () {
@@ -338,18 +460,16 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
         });
         $("#place_call_select_all").trigger("click");
     } else {
-        const slowestUnitLfz = localStorageService.getSwordLfz * 60 * 1000;
         const currentTime = Date.now();
         $(".call-village").each(function (index) {
             if (packagesToSend <= 0) {
                 return;
             }
 
-            const sourceCoords = villageBBCodeToCoordinates($(this).find("a").text().trim());
-            const destinationCoords = villageBBCodeToCoordinates(sendingObj.coords);
-            const distance = Number(distanceXY(sourceCoords, destinationCoords).toFixed(3));
-            const travelTime = distance * slowestUnitLfz;
-            const arrival = currentTime + travelTime;
+            const $row = $(this);
+            const sourceCoords = villageBBCodeToCoordinates($row.find("a").text().trim());
+            const travelTimeResolution = resolveRowTravelTime($row, sendingObj, supportSpeedInsights);
+            const arrival = currentTime + travelTimeResolution.travelTimeMs;
 
             const fromIsSet = epochDateFrom > 0;
             const untilIsSet = epochDateUntil > 0;
@@ -359,8 +479,10 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
             log.trace("Evaluated candidate village", {
                 index,
                 sourceCoords,
-                destinationCoords,
-                distance,
+                destinationCoords: sendingObj.coords,
+                distance: Number(travelTimeResolution.distance.toFixed(3)),
+                travelTimeHours: Number((travelTimeResolution.travelTimeMs / 3600000).toFixed(3)),
+                travelTimeSource: travelTimeResolution.source,
                 arrivalIso: new Date(arrival).toISOString(),
                 fromIso: fromIsSet ? new Date(epochDateFrom).toISOString() : null,
                 untilIso: untilIsSet ? new Date(epochDateUntil).toISOString() : null,
@@ -370,7 +492,7 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
             });
 
             if (withinFrom && withinUntil) {
-                $(this).find(".troop-request-selector").trigger("click");
+                $row.find(".troop-request-selector").trigger("click");
                 packagesToSend--;
             }
         });

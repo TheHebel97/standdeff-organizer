@@ -83,6 +83,7 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
 - **Setting: Doppeltes Schicken**
   - Aus: Checkboxen werden nur gesetzt, wenn noch nicht geschickt wurde.
   - An: Checkboxen werden auch bei Zieldörfern gesetzt, zu denen bereits Pakete geschickt wurden.
+- Für das `ab`/`bis`-Feature wird die tatsächliche Schwert-Laufzeit aus der Massen-UT-Tabelle mit der Distanz verglichen, damit ein aktiver Support-Speedboost automatisch erkannt und bei der Checkbox-Auswahl berücksichtigt wird.
 - Neben dem Uebernehmen-Button gibt es einen `SD erneut schicken`-Button, der die Massen-UT-Seite mit den passenden SD-Parametern aus den Settings neu aufruft; ohne passende SD-Zuordnung fuer das aktuelle Zieldorf bleibt er deaktiviert.
 - Unabhängig von den Settings:
   - Es wird gezeigt, welche Buttons in welcher Reihenfolge zu drücken sind.
@@ -183,7 +184,8 @@ Bereits implementierte Settings:
   - Beeinflusst die verwendete Vorlage beim Verschicken
 - ✅ **Schwert Laufzeit**
     - Initial als Input mit Default `0`
-    - Sollte die Laufzeit der Schwerttruppen in Minuten angegeben werden
+    - Sollte die Laufzeit der Schwerttruppen in Minuten pro Feld angegeben werden
+    - Dient als Basiswert, um auf der Massen-UT-Seite einen eventuellen Support-Speedboost zu erkennen
     - Beeinflusst die Berechnung des "ab bis" Zeitraums
 
 ---

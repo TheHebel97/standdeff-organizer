@@ -1,4 +1,4 @@
-import {forumQuickSettingsPosition, sdInquiry} from "./types";
+import {forumQuickSettingsPosition, sdInquiry, unitNumberMap} from "./types";
 
 export type LocalStorageData = {
     generalSettings: generalSettings,
@@ -15,6 +15,10 @@ export type generalSettings = {
     preventDuplicateDestination: boolean,
     swordLfz: number,
     forumQuickSettingsPosition: forumQuickSettingsPosition | null,
+    bunkerImportPanelPosition: forumQuickSettingsPosition | null,
+    bunkerImportTargetThreadId: string,
+    bunkerUnitPowers: unitNumberMap,
+    bunkerSplitConfig: unitNumberMap,
     templateData: templateData[],
     groupData: groupData[]
 }

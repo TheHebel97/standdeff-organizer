@@ -41,6 +41,7 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
 - ✅ Post-Cache zur Vermeidung doppelter Einlesungen
 - ✅ Vereinfachte Bedienung beim Bunkeranfragen-UI
 - ✅ "Ab"- und "Bis"-Zeitraum-Feature für die SD-Tabelle
+- ✅ Import von abgestellter Deff aus `overview_villages -> away_detail` direkt ins Bunkeranfragen-UI
 
 ---
 
@@ -69,6 +70,8 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
   - Einen Button, um das **Bunkeranfragen-UI** zu öffnen.
   - Einen Button, um **bearbeitete Bunker** einzufügen (wird gehighlightet, wenn Pakete verschickt wurden).
 - Bereits erstellte, aber noch nicht abgeschickte Anfragen werden beim erneuten Öffnen wiederhergestellt.
+- Wenn fuer einen Thread noch zwischengespeicherte Bunkeranfragen vorliegen, wird der Button `Bunker anfragen` mit einer blauen Badge markiert.
+- Auf `overview_villages -> away_detail` kann abgestellte Deff per `SD Bunker auslesen` direkt in den Anfrage-Cache eines bekannten SD-Threads übernommen werden.
 - Koordinaten können in nahezu beliebigem Format eingegeben werden; eine Regex fasst die Eingabe sinnvoll zusammen.
 - Fehlerhafte Angaben werden rot im Input markiert.
 - Leere Inputfelder in derselben Spalte können automatisch befüllt werden.
@@ -237,5 +240,9 @@ Hinweis zum Forum:
 - Auf der SD-Tabellenansicht werden Aenderungen daraus sofort auf die sichtbaren Massen-UT-Links angewendet.
 - Falls in einer Tabellenzeile `ab` oder `bis` gesetzt ist, nutzt deren Massen-UT-Link automatisch `order=distance` und `dir=1`, also eine aufsteigende Entfernungs-Sortierung statt der normalen Truppen-Sortierung.
 - Der Reset wird ohne Rueckfrage direkt ausgefuehrt und raeumt die roten Versand-Markierungen in der SD-Tabelle sofort auf.
+
+Hinweis zum Bunker-Import:
+- Auf `overview_villages -> away_detail` steht ein eigenes verschiebbares Import-Panel bereit.
+- Dort werden Ziel-Thread, Split-Zusammensetzung und Unit-Power-Werte gespeichert und fuer spaetere Imports wiederverwendet.
 
 

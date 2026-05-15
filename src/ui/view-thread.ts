@@ -66,6 +66,7 @@ export function viewThread(pageContext: PageContext) {
     });
 
     if (derivedState.isKnownThread) {
+        localStorageService.setBunkerImportTargetThreadId = pageState.currentThreadId;
         log.info("Thread is registered as SD thread; rendering SD table", {
             currentThreadId: pageState.currentThreadId
         });

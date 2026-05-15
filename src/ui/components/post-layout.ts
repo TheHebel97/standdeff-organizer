@@ -1,11 +1,13 @@
 import {isUserForumMod} from "../../helpers/tw-helper";
 import {showRequestPopup} from "./request-popup";
+import {syncRequestBunkerBadge} from "./request-button-badge";
 
 import {updateData, sdInquiry} from "../../types/types";
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 import {Log} from "../../helpers/logging-helper";
 
 const log = Log.scope("post-layout");
+const PACKAGE_BADGE_STYLE_ID = "packageStatusNotificationBadgeStyle";
 
 export function postLayout(currentThreadId: string, isAnswerMode: boolean, updateData: updateData) {
     log.state("Preparing post layout", {
@@ -41,10 +43,13 @@ export function postLayout(currentThreadId: string, isAnswerMode: boolean, updat
 <input class="btn" type="button" value="Bearbeitung eintragen" id="addBearbeitung">`;
     $("input[name=preview]").remove();
     $("input[name=send]").parent().prepend(postLayoutHtml);
+    syncRequestBunkerBadge(currentThreadId);
     if (finishedRequests > 0) {
         $("#addBearbeitung").after('<span class="notification-badge" id="notificationBadge">!</span>');
-        const style = document.createElement("style");
-        style.innerHTML = `
+        if (!document.getElementById(PACKAGE_BADGE_STYLE_ID)) {
+            const style = document.createElement("style");
+            style.id = PACKAGE_BADGE_STYLE_ID;
+            style.innerHTML = `
 .notification-badge {
   position: relative;
   top: -10px;
@@ -55,7 +60,8 @@ export function postLayout(currentThreadId: string, isAnswerMode: boolean, updat
   padding: 5px 10px;
   font-size: 12px;
 }`;
-        document.head.appendChild(style);
+            document.head.appendChild(style);
+        }
     }
 
     log.info("Binding thread reply helpers", {
@@ -88,5 +94,6 @@ export function postLayout(currentThreadId: string, isAnswerMode: boolean, updat
     $("input[name=send]").on("click", function () {
         let emptyRequestData: sdInquiry[] = [] as sdInquiry[];
         localStorageService.setSdInquiry(currentThreadId, emptyRequestData);
+        syncRequestBunkerBadge(currentThreadId);
     });
 }

@@ -79,6 +79,8 @@ declare global {
             elem: JQuery,
             tooltip: { bodyHandler: () => string; extraClass: string }
         ) => void;
+        SuccessMessage: (message: string, duration?: number) => void;
+        ErrorMessage: (message: string, duration?: number) => void;
     };
     const TribalWars: {
         redirect: (screen: string, args: { [key: string]: any }) => void;

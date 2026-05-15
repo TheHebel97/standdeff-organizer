@@ -6,6 +6,7 @@ import {convertRequestArrayToMessageString} from "../../helpers/table-domain";
 import {sdInquiry} from "../../types/types";
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 import {Log} from "../../helpers/logging-helper";
+import {syncRequestBunkerBadge} from "./request-button-badge";
 
 const log = Log.scope("request-popup");
 
@@ -129,6 +130,7 @@ function renderTableRows(currentThreadId: string): void {
         returnHtml += "</td></tr>";
     })
     $(".requestContent").append(returnHtml);
+    syncRequestBunkerBadge(currentThreadId);
 
     $(".deleteRequest").on("click", function () {
         let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
@@ -327,6 +329,7 @@ function addNewRequestsToArray(currentThreadId: string, input: string[]) {
         count: sdInquiryCollection.length
     });
     localStorageService.setSdInquiry(currentThreadId, sdInquiryCollection);
+    syncRequestBunkerBadge(currentThreadId);
 
 }
 

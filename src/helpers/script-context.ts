@@ -1,5 +1,6 @@
 export type ScriptContext =
     | "place"
+    | "overview-away_detail"
     | "forum-view_thread"
     | "forum-new_thread"
     | "settings"
@@ -33,6 +34,7 @@ export function resolveScriptContext(): ScriptContextResolution {
     const urlParams = new URLSearchParams(window.location.search);
     const screen = urlParams.get("screen") || "";
     const mode = urlParams.get("mode") ?? urlParams.get("screenmode") ?? "";
+    const type = urlParams.get("type") || "";
     const modeSource = urlParams.get("mode") !== null
         ? "mode"
         : urlParams.get("screenmode") !== null
@@ -42,6 +44,8 @@ export function resolveScriptContext(): ScriptContextResolution {
     let context: ScriptContext = "unknown";
     if (screen === "place") {
         context = "place";
+    } else if (screen === "overview_villages" && mode === "units" && type === "away_detail") {
+        context = "overview-away_detail";
     } else if (screen === "forum") {
         if (mode === "view_thread") {
             context = "forum-view_thread";

@@ -11,7 +11,12 @@ export type generalSettings = {
     sortBy: string,
     selectedTemplate: string,
     preventDuplicateDestination: boolean,
+    swordLfz: number,
     forumQuickSettingsPosition: forumQuickSettingsPosition | null,
+    bunkerImportPanelPosition: forumQuickSettingsPosition | null,
+    bunkerImportTargetThreadId: string,
+    bunkerUnitPowers: unitNumberMap,
+    bunkerSplitConfig: unitNumberMap,
     templateData: templateData[],
     groupData: groupData[]
 }
@@ -29,6 +34,8 @@ export type templateData = {
     id: string;
     name: string;
 }
+
+export type unitNumberMap = Record<Unit, number>;
 
 export type Threads = {
     [threadId: string]: ThreadData

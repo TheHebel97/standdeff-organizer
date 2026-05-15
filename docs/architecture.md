@@ -9,6 +9,7 @@ Der Einstiegspunkt `src/index.ts` registriert ein `$(document).ready`-Callback u
 | Kontext (screen) | Einstiegsfunktion | Beschreibung |
 | --- | --- | --- |
 | `place` | `displayMassUt` (`src/ui/mass-ut.ts`) | Automatisiert Checkboxen im Massen-UT-Formular, setzt Filter/Gruppe/Vorlage und protokolliert verschickte Pakete pro SD-Thread. |
+| `overview_villages` (`mode=units&type=away_detail`) | `displayAwayDetail` (`src/ui/away-detail.ts`) | Liest abgestellte Deff pro Dorf aus, rechnet sie ueber konfigurierbare Unit-Power- und Split-Werte in Bunkeranfragen um und schreibt das Ergebnis direkt in den ausgewaehlten SD-Thread-Cache. |
 | `forum-view_thread` | `viewThread` (`src/ui/view-thread.ts`) | Erkennt SD-Threads, ergänzt Buttons/Popups zum Registrieren neuer Threads und zeigt bei bekannten Threads die SD-Tabelle (`sdTable`) an. |
 | `forum-new_thread` | `createNewTable` (`src/ui/new-thread.ts`) | Stellt Eingabemasken für Paket-Vorlagen bereit und generiert beim Absenden den initialen Thread-Text inkl. SD-Tabelle und Spoiler-Erklärungen. |
 | `settings` | `displaySettings` (`src/ui/settings.ts`) | Rendert eine Konfigurations-Tabelle in den Spieleinstellungen, inkl. toggles, Dropdowns für Gruppen/Vorlagen und einer Liste aller bekannten SD-Threads samt Reset fuer den gespeicherten Versandstatus pro Thread. |
@@ -21,6 +22,7 @@ Alle nutzerbezogenen Informationen (allgemeine Settings, bekannte Threads, Threa
 - Beim Instanziieren wird der Schlüssel `standdeff-organizer` aus dem LocalStorage geladen oder mit Default-Werten initialisiert.
 - Getter/Setter aktualisieren vor jedem Zugriff den lokalen Cache (`updateFromLocalStorage`) und serialisieren Maps zu Arrays, um sie persistieren zu können.
 - Thread-Daten bestehen aus Metadaten (`threadName`, `forumId`, `sdPostId`), einem Post-Cache für Bunkeranfragen sowie zwei Maps: `stateOfSdTable` (Stand der Tabellenzeilen, key = Dorf-ID) und `packagesSent` (gesendete Paketanzahl pro interner SD-ID).
+- Zusaetzlich liegen in den allgemeinen Settings jetzt auch die zuletzt gewaehlte Ziel-Thread-ID fuer den Bunker-Import, die Position des Import-Panels sowie die konfigurierten Split-/Unit-Power-Werte.
 
 ## Helfer & Komponenten
 - **Helper** (`src/helpers/`):

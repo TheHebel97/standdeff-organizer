@@ -12,6 +12,12 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 
 - Neben dem Uebernehmen-Button wird ein `SD erneut schicken`-Button eingeblendet, der die Massen-UT-Seite mit den passenden SD-Parametern (`sdTableId`, `group`, `order`, `dir`) neu aufruft; wenn kein passendes Zieldorf in einer gespeicherten SD-Tabelle gefunden wird, bleibt der Button deaktiviert.
 
+### `displayAwayDetail` (`src/ui/away-detail.ts`)
+- Laeuft auf `screen=overview_villages&mode=units&type=away_detail`.
+- Fuegt oberhalb der Tabelle einen `SD Bunker auslesen`-Button ein und rendert ein verschiebbares Panel fuer Ziel-Thread, Split-Zusammensetzung und Unit-Power-Werte.
+- Liest die auf der Seite abgestellten Truppen pro Koordinate aus, summiert deren Power und wandelt das Ergebnis in Paketmengen um.
+- Schreibt die berechneten Bunkeranfragen direkt in denselben `sdInquiry`-Cache, den spaeter das Forum-Request-Popup rendert.
+
 ### `viewThread` (`src/ui/view-thread.ts`)
 - Erkennt nach dem Laden, ob gerade ein neuer SD-Thread erstellt wurde (`getNewThread`). Falls ja, werden Thread-Metadaten zusammen mit der `sdPostId` über `addThreadIdToLocalStorage` persistiert.
 - Prüft anhand des LocalStorage, ob das aktuelle `thread_id` bekannt ist.
@@ -36,7 +42,7 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 | `components/sd-table.ts` | Kernansicht der SD-Tabelle: parst Posts (`parseSdPosts`), synchronisiert den lokalen Cache (`setSdTableState`), aktualisiert Paketstände (`displayUpdatedSdTable`, `updateSentPackagesInSdTable`) und blendet moderationsspezifische Aktionen ein/aus. |
 | `components/edit-sd-post.ts` | Unterstützt Moderator:innen beim Aktualisieren des Original-SD-Posts, indem bestehende Werte in das Formular geschrieben werden; Restmengen werden dabei nie negativ fortgeschrieben. |
 | `components/request-popup.ts` | UI für neue Bunkeranfragen, inkl. Validierung, Parsing der Koordinaten, Support fuer das Vollformat `123\|123 123 """"` bzw. den Shortcut `123\|123 123` und Bulk-Editing-Funktionen. |
-| `components/post-layout.ts` | Ersetzt oder blockiert Textareas für Nicht-Admins, fügt Buttons für die Bunkeranfragen-Bearbeitung ein und verhindert versehentliche Änderungen. |
+| `components/post-layout.ts` | Ersetzt oder blockiert Textareas für Nicht-Admins, fügt Buttons für die Bunkeranfragen-Bearbeitung ein und zeigt Badges für gespeicherte Versandstatus- bzw. Bunkeranfrage-Daten an. |
 | `components/options-sd-thread.ts` | Bindet Buttons an unbekannte Threads, um sie als SD-Thread zu registrieren oder aus der Liste zu entfernen. |
 | `components/first-start-thread-popup.ts` | Popup beim ersten Start, das erklärt, wie Threads verknüpft werden; abhängig vom Setting `firstStartPopup`.
 

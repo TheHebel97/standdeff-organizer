@@ -1,8 +1,13 @@
-import {forumQuickSettingsPosition, groupData, rowSdTable, sdInquiry, ThreadData, Threads, templateData} from "../types/types";
-import {LocalStorageData, lsThreadData} from "../types/localStorageTypes";
+import {forumQuickSettingsPosition, groupData, rowSdTable, sdInquiry, ThreadData, Threads, templateData, unitNumberMap} from "../types/types";
+import {generalSettings, LocalStorageData, lsThreadData} from "../types/localStorageTypes";
 import {Log} from "./logging-helper";
 import {StandDeffStorageRepository} from "./local-storage-repository";
 import {deserializeThreadData, serializeThreadData} from "./local-storage-serializer";
+import {
+    DEFAULT_BUNKER_SPLIT_CONFIG,
+    DEFAULT_BUNKER_UNIT_POWERS,
+    normalizeUnitNumberMap
+} from "./bunker-import-settings";
 
 export class LocalStorageHelper {
     private _localStorageData: LocalStorageData;
@@ -13,31 +18,43 @@ export class LocalStorageHelper {
     constructor() {
         const initData = this.repository.load();
         if (initData !== null && this.isStringValidJson(initData)) {
-            this._localStorageData = JSON.parse(initData);
-            if (this._localStorageData.generalSettings.forumQuickSettingsPosition === undefined) {
-                this._localStorageData.generalSettings.forumQuickSettingsPosition = null;
-            }
+            this._localStorageData = this.normalizeLocalStorageData(JSON.parse(initData));
             this.log.info("Loaded existing localStorage data", this.summarizeLocalStorageData(this._localStorageData));
             return;
         }
-        this._localStorageData = {
-            generalSettings: {
-                newThread: false,
-                firstStartPopup: true,
-                automateMassenUt: false,
-                sdGroupId: "0",
-                sortBy: "",
-                selectedTemplate: "",
-                preventDuplicateDestination: true,
-                swordLfz: 22,
-                forumQuickSettingsPosition: null,
-                templateData: [],
-                groupData: []
-            },
+        this._localStorageData = this.normalizeLocalStorageData({
+            generalSettings: {} as generalSettings,
             threads: {}
-        };
+        });
         this.log.info("Initialized localStorage with default values");
         this.storeDataInLocalStorage(this._localStorageData, "constructor:init-default");
+    }
+
+    private normalizeGeneralSettings(settings?: Partial<generalSettings>): generalSettings {
+        return {
+            newThread: settings?.newThread ?? false,
+            firstStartPopup: settings?.firstStartPopup ?? true,
+            automateMassenUt: settings?.automateMassenUt ?? false,
+            sdGroupId: settings?.sdGroupId ?? "0",
+            sortBy: settings?.sortBy ?? "",
+            selectedTemplate: settings?.selectedTemplate ?? "",
+            preventDuplicateDestination: settings?.preventDuplicateDestination ?? true,
+            swordLfz: settings?.swordLfz ?? 22,
+            forumQuickSettingsPosition: settings?.forumQuickSettingsPosition ?? null,
+            bunkerImportPanelPosition: settings?.bunkerImportPanelPosition ?? null,
+            bunkerImportTargetThreadId: settings?.bunkerImportTargetThreadId ?? "",
+            bunkerUnitPowers: normalizeUnitNumberMap(settings?.bunkerUnitPowers, DEFAULT_BUNKER_UNIT_POWERS),
+            bunkerSplitConfig: normalizeUnitNumberMap(settings?.bunkerSplitConfig, DEFAULT_BUNKER_SPLIT_CONFIG),
+            templateData: settings?.templateData ?? [],
+            groupData: settings?.groupData ?? []
+        };
+    }
+
+    private normalizeLocalStorageData(data: Partial<LocalStorageData>): LocalStorageData {
+        return {
+            generalSettings: this.normalizeGeneralSettings(data.generalSettings),
+            threads: data.threads ?? {}
+        };
     }
 
     private isStringValidJson(str: string) {
@@ -85,6 +102,8 @@ export class LocalStorageHelper {
                 sortBy: data.generalSettings.sortBy,
                 swordLfz: data.generalSettings.swordLfz,
                 forumQuickSettingsPosition: data.generalSettings.forumQuickSettingsPosition ?? null,
+                bunkerImportPanelPosition: data.generalSettings.bunkerImportPanelPosition ?? null,
+                bunkerImportTargetThreadId: data.generalSettings.bunkerImportTargetThreadId,
                 groupCount: data.generalSettings.groupData.length,
                 templateCount: data.generalSettings.templateData.length
             }
@@ -114,7 +133,7 @@ export class LocalStorageHelper {
             return;
         }
         if (this.isStringValidJson(data)) {
-            this._localStorageData = JSON.parse(data);
+            this._localStorageData = this.normalizeLocalStorageData(JSON.parse(data));
             this.log.trace("Refreshed localStorage cache", {
                 reason,
                 summary: this.summarizeLocalStorageData(this._localStorageData)
@@ -239,6 +258,58 @@ export class LocalStorageHelper {
         this.storeDataInLocalStorage(this._localStorageData, "setSelectedTemplate");
     }
 
+    public get getBunkerImportPanelPosition(): forumQuickSettingsPosition | null {
+        this.updateFromLocalStorage("getBunkerImportPanelPosition");
+        return this._localStorageData.generalSettings.bunkerImportPanelPosition ?? null;
+    }
+
+    public set setBunkerImportPanelPosition(value: forumQuickSettingsPosition | null) {
+        this._localStorageData.generalSettings.bunkerImportPanelPosition = value;
+        this.storeDataInLocalStorage(this._localStorageData, "setBunkerImportPanelPosition");
+    }
+
+    public get getBunkerImportTargetThreadId(): string {
+        this.updateFromLocalStorage("getBunkerImportTargetThreadId");
+        return this._localStorageData.generalSettings.bunkerImportTargetThreadId;
+    }
+
+    public set setBunkerImportTargetThreadId(value: string) {
+        this._localStorageData.generalSettings.bunkerImportTargetThreadId = value;
+        this.storeDataInLocalStorage(this._localStorageData, "setBunkerImportTargetThreadId");
+    }
+
+    public get getBunkerUnitPowers(): unitNumberMap {
+        this.updateFromLocalStorage("getBunkerUnitPowers");
+        return normalizeUnitNumberMap(
+            this._localStorageData.generalSettings.bunkerUnitPowers,
+            DEFAULT_BUNKER_UNIT_POWERS
+        );
+    }
+
+    public set setBunkerUnitPowers(value: unitNumberMap) {
+        this._localStorageData.generalSettings.bunkerUnitPowers = normalizeUnitNumberMap(
+            value,
+            DEFAULT_BUNKER_UNIT_POWERS
+        );
+        this.storeDataInLocalStorage(this._localStorageData, "setBunkerUnitPowers");
+    }
+
+    public get getBunkerSplitConfig(): unitNumberMap {
+        this.updateFromLocalStorage("getBunkerSplitConfig");
+        return normalizeUnitNumberMap(
+            this._localStorageData.generalSettings.bunkerSplitConfig,
+            DEFAULT_BUNKER_SPLIT_CONFIG
+        );
+    }
+
+    public set setBunkerSplitConfig(value: unitNumberMap) {
+        this._localStorageData.generalSettings.bunkerSplitConfig = normalizeUnitNumberMap(
+            value,
+            DEFAULT_BUNKER_SPLIT_CONFIG
+        );
+        this.storeDataInLocalStorage(this._localStorageData, "setBunkerSplitConfig");
+    }
+
     public getThreadData(id: string): ThreadData | undefined {
         this.updateFromLocalStorage(`getThreadData:${id}`);
         const storedThreadData = this.getStoredThread(id);
@@ -285,6 +356,9 @@ export class LocalStorageHelper {
             return;
         }
         delete this._localStorageData.threads[id];
+        if (this._localStorageData.generalSettings.bunkerImportTargetThreadId === id) {
+            this._localStorageData.generalSettings.bunkerImportTargetThreadId = "";
+        }
         this.log.info("Deleted thread from localStorage", {threadId: id});
         this.storeDataInLocalStorage(this._localStorageData, `deleteThread:${id}`);
     }

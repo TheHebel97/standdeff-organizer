@@ -1,4 +1,4 @@
-import {sdInquiry} from "./types";
+import {forumQuickSettingsPosition, sdInquiry} from "./types";
 
 export type LocalStorageData = {
     generalSettings: generalSettings,
@@ -14,6 +14,7 @@ export type generalSettings = {
     selectedTemplate: string,
     preventDuplicateDestination: boolean,
     swordLfz: number,
+    forumQuickSettingsPosition: forumQuickSettingsPosition | null,
     templateData: templateData[],
     groupData: groupData[]
 }

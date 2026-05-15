@@ -1,4 +1,4 @@
-import {groupData, rowSdTable, sdInquiry, ThreadData, Threads, templateData} from "../types/types";
+import {forumQuickSettingsPosition, groupData, rowSdTable, sdInquiry, ThreadData, Threads, templateData} from "../types/types";
 import {LocalStorageData, lsThreadData} from "../types/localStorageTypes";
 import {Log} from "./logging-helper";
 import {StandDeffStorageRepository} from "./local-storage-repository";
@@ -14,6 +14,9 @@ export class LocalStorageHelper {
         const initData = this.repository.load();
         if (initData !== null && this.isStringValidJson(initData)) {
             this._localStorageData = JSON.parse(initData);
+            if (this._localStorageData.generalSettings.forumQuickSettingsPosition === undefined) {
+                this._localStorageData.generalSettings.forumQuickSettingsPosition = null;
+            }
             this.log.info("Loaded existing localStorage data", this.summarizeLocalStorageData(this._localStorageData));
             return;
         }
@@ -27,6 +30,7 @@ export class LocalStorageHelper {
                 selectedTemplate: "",
                 preventDuplicateDestination: true,
                 swordLfz: 22,
+                forumQuickSettingsPosition: null,
                 templateData: [],
                 groupData: []
             },
@@ -80,6 +84,7 @@ export class LocalStorageHelper {
                 selectedTemplate: data.generalSettings.selectedTemplate,
                 sortBy: data.generalSettings.sortBy,
                 swordLfz: data.generalSettings.swordLfz,
+                forumQuickSettingsPosition: data.generalSettings.forumQuickSettingsPosition ?? null,
                 groupCount: data.generalSettings.groupData.length,
                 templateCount: data.generalSettings.templateData.length
             }
@@ -212,6 +217,16 @@ export class LocalStorageHelper {
     public set setTemplateData(value: templateData[]) {
         this._localStorageData.generalSettings.templateData = value;
         this.storeDataInLocalStorage(this._localStorageData, "setTemplateData");
+    }
+
+    public get getForumQuickSettingsPosition(): forumQuickSettingsPosition | null {
+        this.updateFromLocalStorage("getForumQuickSettingsPosition");
+        return this._localStorageData.generalSettings.forumQuickSettingsPosition ?? null;
+    }
+
+    public set setForumQuickSettingsPosition(value: forumQuickSettingsPosition | null) {
+        this._localStorageData.generalSettings.forumQuickSettingsPosition = value;
+        this.storeDataInLocalStorage(this._localStorageData, "setForumQuickSettingsPosition");
     }
 
     public get getSelectedTemplate(): string {

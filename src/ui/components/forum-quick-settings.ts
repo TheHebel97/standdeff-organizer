@@ -1,6 +1,7 @@
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 import {Log} from "../../helpers/logging-helper";
 import {applySettingsToMassUtLink, updateSentPackagesInSdTable} from "../../helpers/table-helper";
+import {forumQuickSettingsPosition} from "../../types/types";
 import {initializeSdSettingsControls} from "./sd-settings-controls";
 
 const PANEL_ID = "sd-forum-quick-settings";
@@ -8,6 +9,32 @@ const DRAG_NAMESPACE = ".forumQuickSettingsDrag";
 const RESET_NAMESPACE = ".forumQuickReset";
 
 const log = Log.scope("forum-quick-settings");
+
+function clampPanelPosition($panel: JQuery<HTMLElement>, position: forumQuickSettingsPosition): forumQuickSettingsPosition {
+    const panelWidth = $panel.outerWidth() ?? 0;
+    const panelHeight = $panel.outerHeight() ?? 0;
+    const maxLeft = Math.max(0, window.innerWidth - panelWidth);
+    const maxTop = Math.max(0, window.innerHeight - panelHeight);
+
+    return {
+        left: Math.min(Math.max(0, position.left), maxLeft),
+        top: Math.min(Math.max(0, position.top), maxTop)
+    };
+}
+
+function applyStoredPanelPosition($panel: JQuery<HTMLElement>, localStorageService: LocalStorageHelper) {
+    const storedPosition = localStorageService.getForumQuickSettingsPosition;
+    if (!storedPosition) {
+        return;
+    }
+
+    const clampedPosition = clampPanelPosition($panel, storedPosition);
+    $panel.css({
+        left: `${clampedPosition.left}px`,
+        top: `${clampedPosition.top}px`,
+        right: "auto"
+    });
+}
 
 export function addForumQuickSettings(currentThreadId?: string) {
     const localStorageService = LocalStorageHelper.getInstance();
@@ -48,8 +75,9 @@ export function addForumQuickSettings(currentThreadId?: string) {
         $("body").append(panelHtml);
         $panel = $(`#${PANEL_ID}`);
 
+        applyStoredPanelPosition($panel, localStorageService);
         initializeForumQuickSettingsControls($panel, localStorageService, currentThreadId);
-        enableDragging($panel);
+        enableDragging($panel, localStorageService);
 
         log.info("Injected forum quick settings panel");
     }
@@ -105,7 +133,7 @@ function initializeForumQuickSettingsControls(
     });
 }
 
-function enableDragging($panel: JQuery<HTMLElement>) {
+function enableDragging($panel: JQuery<HTMLElement>, localStorageService: LocalStorageHelper) {
     const $document = $(document);
     let isDragging = false;
     let panelLeft = 0;
@@ -145,16 +173,30 @@ function enableDragging($panel: JQuery<HTMLElement>) {
 
         const clientX = event.clientX ?? 0;
         const clientY = event.clientY ?? 0;
-        panelLeft = clientX - pointerOffsetX;
-        panelTop = clientY - pointerOffsetY;
+        const clampedPosition = clampPanelPosition($panel, {
+            left: clientX - pointerOffsetX,
+            top: clientY - pointerOffsetY
+        });
+        panelLeft = clampedPosition.left;
+        panelTop = clampedPosition.top;
 
         $panel.css({
-            left: `${Math.max(0, panelLeft)}px`,
-            top: `${Math.max(0, panelTop)}px`
+            left: `${panelLeft}px`,
+            top: `${panelTop}px`
         });
     });
 
     $document.on(`mouseup${DRAG_NAMESPACE}`, function () {
+        if (isDragging) {
+            localStorageService.setForumQuickSettingsPosition = {
+                left: panelLeft,
+                top: panelTop
+            };
+            log.info("Stored forum quick settings panel position", {
+                left: panelLeft,
+                top: panelTop
+            });
+        }
         isDragging = false;
     });
 }

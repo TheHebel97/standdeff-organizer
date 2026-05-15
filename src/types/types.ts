@@ -11,8 +11,14 @@ export type generalSettings = {
     sortBy: string,
     selectedTemplate: string,
     preventDuplicateDestination: boolean,
+    forumQuickSettingsPosition: forumQuickSettingsPosition | null,
     templateData: templateData[],
     groupData: groupData[]
+}
+
+export type forumQuickSettingsPosition = {
+    left: number;
+    top: number;
 }
 export type groupData = {
     id: string;

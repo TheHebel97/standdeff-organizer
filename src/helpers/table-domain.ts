@@ -419,7 +419,22 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
         let matchingEntry = Array.from(sdTableState.entries()).find(([_, row]) => row.sdId === sdId);
         if (matchingEntry) {
             let [villageId, row] = matchingEntry;
-            row.leftAmount -= isDoneValue(amount) ? row.leftAmount : parseInt(amount, 10);
+            const requestedPackages = isDoneValue(amount)
+                ? row.leftAmount
+                : parseInt(amount, 10);
+            const normalizedRequestedPackages = isNaN(requestedPackages) ? 0 : requestedPackages;
+            const nextLeftAmount = Math.max(0, row.leftAmount - normalizedRequestedPackages);
+
+            if (nextLeftAmount !== row.leftAmount - normalizedRequestedPackages) {
+                log.warn("Clamped SD row leftAmount to zero during post update", {
+                    villageId,
+                    sdId,
+                    previousLeftAmount: row.leftAmount,
+                    requestedPackages: normalizedRequestedPackages
+                });
+            }
+
+            row.leftAmount = nextLeftAmount;
             sdTableState.set(villageId, row);
         } else {
             log.error(`no matching sdTableRowEntry found for package Id: ${sdId} -> I will ignore it :)`);
@@ -428,7 +443,7 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
 
     let newId = 1;
     sdTableState.forEach((row, villageId) => {
-        if (row.leftAmount === 0) {
+        if (row.leftAmount <= 0) {
             sdTableState.delete(villageId);
             newId--;
         }

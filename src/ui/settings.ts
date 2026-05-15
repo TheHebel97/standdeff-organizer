@@ -87,10 +87,10 @@ export function displaySettings(pageContext: PageContext) {
         </tr>
         <tr>
           <td>
-            verhindere doppeltes Schicken:
+            Doppeltes Schicken:
           </td>
           <td>
-            <input class="btn btn-confirm-no"  type="button" value="An" id="prevent-duplicate-destination" style="width:75px;  background-color: #8d0100;color: #ffffff "/>
+            <input class="btn btn-confirm-no"  type="button" value="Aus" id="prevent-duplicate-destination" style="width:75px;  background-color: #8d0100;color: #ffffff "/>
           </td>
 
         </tr>

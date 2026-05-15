@@ -4,6 +4,7 @@ import {Log} from "../helpers/logging-helper";
 import {distanceXY, villageBBCodeToCoordinates} from "../helpers/tw-helper";
 import {parseGermanDate} from "../helpers/helper-functions";
 import {PageContext} from "../helpers/script-context";
+import {buildMassUtCallUrl} from "../helpers/game-url-helper";
 
 const log = Log.scope("mass-ut");
 
@@ -12,6 +13,8 @@ type MassUtPageState = {
     destinationVillageId: string | null;
     automateMassenUt: boolean;
     preventDuplicateDestination: boolean;
+    sdGroupId: string;
+    sortBy: string;
     selectedTemplate: string;
     threadData?: ThreadData;
 };
@@ -22,6 +25,13 @@ type MassUtDerivedState = {
     packagesToSend: number;
     epochDateFrom: number;
     epochDateUntil: number;
+};
+
+type RepeatSendTarget = {
+    threadId: string;
+    sendingObj: rowSdTable;
+    returnUrl: string;
+    matchedBy: "villageId" | "coords";
 };
 
 function summarizeThreadData(threadId: string, threadData: ThreadData) {
@@ -49,6 +59,139 @@ function summarizeSendingRow(destinationVillageId: string | null, sendingObj: ro
     };
 }
 
+function readCurrentTargetCoords(): string | null {
+    const targetText = $("#place_target .village-name").first().text().trim();
+    const coordsMatch = targetText.match(/(\d{3}\|\d{3})/);
+    return coordsMatch?.[1] ?? null;
+}
+
+function hasDateConstraint(row: rowSdTable): boolean {
+    const dateFrom = String(row.dateFrom ?? "").trim();
+    const dateUntil = String(row.dateUntil ?? "").trim();
+    return (dateFrom !== "" && dateFrom !== "0") || (dateUntil !== "" && dateUntil !== "0");
+}
+
+function buildRepeatSendUrl(pageState: MassUtPageState, threadId: string, targetVillageId: string, sendingObj: rowSdTable): string {
+    const nextUrl = new URL(buildMassUtCallUrl(targetVillageId), window.location.origin);
+    nextUrl.searchParams.set("sdTableId", threadId);
+    nextUrl.searchParams.set("dir", "0");
+
+    if (pageState.automateMassenUt) {
+        if (pageState.sdGroupId !== "" && pageState.sdGroupId !== "0") {
+            nextUrl.searchParams.set("group", pageState.sdGroupId);
+        }
+        if (pageState.sortBy !== "" && pageState.sortBy !== "default") {
+            nextUrl.searchParams.set("order", pageState.sortBy);
+        }
+    }
+
+    if (hasDateConstraint(sendingObj)) {
+        nextUrl.searchParams.set("order", "distance");
+        nextUrl.searchParams.set("dir", "1");
+    }
+
+    return nextUrl.toString();
+}
+
+function resolveRepeatSendTarget(pageState: MassUtPageState, localStorageService: LocalStorageHelper): RepeatSendTarget | null {
+    const targetVillageId = pageState.destinationVillageId;
+    const targetCoords = readCurrentTargetCoords();
+    const allThreads = localStorageService.getAllThreads;
+    const matches: RepeatSendTarget[] = [];
+
+    Object.entries(allThreads).forEach(([threadId, threadData]) => {
+        if (targetVillageId) {
+            const sendingObjByVillageId = threadData.stateOfSdTable.get(Number(targetVillageId));
+            if (sendingObjByVillageId) {
+                matches.push({
+                    threadId,
+                    sendingObj: sendingObjByVillageId,
+                    returnUrl: buildRepeatSendUrl(pageState, threadId, targetVillageId, sendingObjByVillageId),
+                    matchedBy: "villageId"
+                });
+                return;
+            }
+        }
+
+        if (!targetCoords) {
+            return;
+        }
+
+        const matchingEntryByCoords = Array.from(threadData.stateOfSdTable.entries()).find(([_, row]) => row.coords === targetCoords);
+        if (!matchingEntryByCoords) {
+            return;
+        }
+        const [matchedVillageId, sendingObjByCoords] = matchingEntryByCoords;
+        matches.push({
+            threadId,
+            sendingObj: sendingObjByCoords,
+            returnUrl: buildRepeatSendUrl(pageState, threadId, String(matchedVillageId), sendingObjByCoords),
+            matchedBy: "coords"
+        });
+    });
+
+    if (matches.length === 0) {
+        log.info("No matching SD target found for repeat-send button", {
+            targetVillageId,
+            targetCoords
+        });
+        return null;
+    }
+
+    const preferredMatch = pageState.refererThreadId
+        ? matches.find((match) => match.threadId === pageState.refererThreadId) ?? matches[0]
+        : matches[0];
+
+    if (matches.length > 1) {
+        log.warn("Found multiple SD targets for repeat-send button; using first matching entry", {
+            targetVillageId,
+            targetCoords,
+            preferredThreadId: preferredMatch.threadId,
+            candidateThreadIds: matches.map((match) => match.threadId)
+        });
+    }
+
+    return preferredMatch;
+}
+
+function renderRepeatSendButton(repeatSendTarget: RepeatSendTarget | null) {
+    const $anchorButton = $(".evt-button-fill").first().length > 0
+        ? $(".evt-button-fill").first()
+        : $("#place_call_form_submit").first();
+
+    if ($anchorButton.length === 0) {
+        log.warn("No anchor button found for repeat-send button");
+        return;
+    }
+
+    let $repeatButton = $("#sd-repeat-send-button");
+    if ($repeatButton.length === 0) {
+        $repeatButton = $('<input type="button" id="sd-repeat-send-button" class="btn" value="SD erneut schicken" style="margin-left: 8px;">');
+        $anchorButton.after($repeatButton);
+    }
+
+    const isEnabled = repeatSendTarget !== null;
+    $repeatButton.prop("disabled", !isEnabled)
+        .css("opacity", isEnabled ? "1" : "0.5")
+        .attr("title", isEnabled
+            ? "Ruft die Massen-UT-Seite mit SD-Parametern erneut auf."
+            : "Zieldorf wurde in keiner gespeicherten SD-Tabelle gefunden.");
+
+    $repeatButton.off(".sdRepeatSend");
+    $repeatButton.on("click.sdRepeatSend", function () {
+        if (!repeatSendTarget) {
+            return;
+        }
+        log.info("Navigating via repeat-send button", {
+            threadId: repeatSendTarget.threadId,
+            matchedBy: repeatSendTarget.matchedBy,
+            targetCoords: repeatSendTarget.sendingObj.coords,
+            returnUrl: repeatSendTarget.returnUrl
+        });
+        window.location.href = repeatSendTarget.returnUrl;
+    });
+}
+
 export function displayMassUt(pageContext: PageContext) {
     log.info("Initializing mass-ut controller", {href: window.location.href});
     storeGroupData();
@@ -61,11 +204,17 @@ export function displayMassUt(pageContext: PageContext) {
         refererThreadId: pageState.refererThreadId,
         destinationVillageId: pageState.destinationVillageId,
         automateMassenUt: pageState.automateMassenUt,
-        preventDuplicateDestination: pageState.preventDuplicateDestination
+        preventDuplicateDestination: pageState.preventDuplicateDestination,
+        sdGroupId: pageState.sdGroupId,
+        sortBy: pageState.sortBy,
+        duplicateSendingEnabled: !pageState.preventDuplicateDestination
     });
 
+    const repeatSendTarget = resolveRepeatSendTarget(pageState, localStorageService);
+    renderRepeatSendButton(repeatSendTarget);
+
     if (pageState.refererThreadId === null) {
-        log.info("No sdTableId present; only caching groups and templates on this page");
+        log.info("No sdTableId present; only caching groups, templates and repeat-send target on this page");
         return;
     }
 
@@ -99,6 +248,8 @@ function readPageState(pageContext: PageContext, localStorageService: LocalStora
         destinationVillageId: pageContext.targetVillageId,
         automateMassenUt: localStorageService.getAutomateMassenUt,
         preventDuplicateDestination: localStorageService.getPreventDuplicateDestination,
+        sdGroupId: localStorageService.getSdGroupId,
+        sortBy: localStorageService.getSortBy,
         selectedTemplate: localStorageService.getSelectedTemplate,
         threadData: refererThreadId ? localStorageService.getThreadData(refererThreadId) : undefined
     };

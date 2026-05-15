@@ -7,7 +7,9 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 ### `displayMassUt` (`src/ui/mass-ut.ts`)
 - Läuft ausschließlich auf `screen=place` und initialisiert beim Laden sofort `storeGroupData` und `storeTemplateData`, um aktuelle Gruppen/Vorlagen für spätere Settings bereitzustellen.
 - Liest `sdTableId`, Ziel-Dorf (`target`) sowie Einstellungen wie `getPreventDuplicateDestination` oder `getAutomateMassenUt` aus dem `LocalStorageHelper`.
-- Wählt automatisch die passende Vorlage im Dropdown, setzt Checkboxen für Truppenanfragen und verhindert (je nach Einstellung) Doppel-Sendungen, indem gesendete Pakete im `ThreadData.packagesSent`-Map aktualisiert werden.
+- Wählt automatisch die passende Vorlage im Dropdown, setzt Checkboxen für Truppenanfragen und berücksichtigt dabei das UI-Setting `Doppeltes Schicken`, während gesendete Pakete im `ThreadData.packagesSent`-Map aktualisiert werden.
+
+- Neben dem Uebernehmen-Button wird ein `SD erneut schicken`-Button eingeblendet, der die Massen-UT-Seite mit den passenden SD-Parametern (`sdTableId`, `group`, `order`, `dir`) neu aufruft; wenn kein passendes Zieldorf in einer gespeicherten SD-Tabelle gefunden wird, bleibt der Button deaktiviert.
 
 ### `viewThread` (`src/ui/view-thread.ts`)
 - Erkennt nach dem Laden, ob gerade ein neuer SD-Thread erstellt wurde (`getNewThread`). Falls ja, werden Thread-Metadaten zusammen mit der `sdPostId` über `addThreadIdToLocalStorage` persistiert.
@@ -31,7 +33,7 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 | Datei | Kurzbeschreibung |
 | --- | --- |
 | `components/sd-table.ts` | Kernansicht der SD-Tabelle: parst Posts (`parseSdPosts`), synchronisiert den lokalen Cache (`setSdTableState`), aktualisiert Paketstände (`displayUpdatedSdTable`, `updateSentPackagesInSdTable`) und blendet moderationsspezifische Aktionen ein/aus. |
-| `components/edit-sd-post.ts` | Unterstützt Moderator:innen beim Aktualisieren des Original-SD-Posts, indem bestehende Werte in das Formular geschrieben werden. |
+| `components/edit-sd-post.ts` | Unterstützt Moderator:innen beim Aktualisieren des Original-SD-Posts, indem bestehende Werte in das Formular geschrieben werden; Restmengen werden dabei nie negativ fortgeschrieben. |
 | `components/request-popup.ts` | UI für neue Bunkeranfragen, inkl. Validierung, Parsing der Koordinaten, Support fuer das Vollformat `123\|123 123 """"` bzw. den Shortcut `123\|123 123` und Bulk-Editing-Funktionen. |
 | `components/post-layout.ts` | Ersetzt oder blockiert Textareas für Nicht-Admins, fügt Buttons für die Bunkeranfragen-Bearbeitung ein und verhindert versehentliche Änderungen. |
 | `components/options-sd-thread.ts` | Bindet Buttons an unbekannte Threads, um sie als SD-Thread zu registrieren oder aus der Liste zu entfernen. |

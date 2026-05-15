@@ -61,6 +61,7 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
 - Veränderungen an der SD-Tabelle durch spätere Posts werden nach dem Laden der Seite in die Tabelle übernommen.
 - Über Massen-UT geschickte Pakete werden in der Tabelle gesondert hervorgehoben.
 - Die im Massen-UT eingestellten Filter werden im erzeugten Massenunterstützungs-Link berücksichtigt.
+- Beim Aktualisieren des SD-Posts werden Restmengen im Feld `Noch benötigt` auf `0` begrenzt und nicht negativ geschrieben.
 
 ### Neuen Beitrag erstellen & Bunkeranfragen
 
@@ -79,9 +80,10 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
 - **Setting: Massen UT vereinfachen**
   - Aus: Vorlage wird nicht automatisch ausgewählt; Filter und Gruppen werden nicht angewendet.
   - An: Vorlage wird automatisch ausgewählt; Filter und Gruppen werden angewendet.
-- **Setting: Verhindere doppeltes Schicken**
-  - Aus: Checkboxen werden unabhängig von bereits geschickten Paketen gesetzt.
-  - An: Checkboxen werden nur gesetzt, wenn noch nicht geschickt wurde.
+- **Setting: Doppeltes Schicken**
+  - Aus: Checkboxen werden nur gesetzt, wenn noch nicht geschickt wurde.
+  - An: Checkboxen werden auch bei Zieldörfern gesetzt, zu denen bereits Pakete geschickt wurden.
+- Neben dem Uebernehmen-Button gibt es einen `SD erneut schicken`-Button, der die Massen-UT-Seite mit den passenden SD-Parametern aus den Settings neu aufruft; ohne passende SD-Zuordnung fuer das aktuelle Zieldorf bleibt er deaktiviert.
 - Unabhängig von den Settings:
   - Es wird gezeigt, welche Buttons in welcher Reihenfolge zu drücken sind.
   - Es wird die passende Anzahl an Checkboxen gesetzt.
@@ -165,9 +167,9 @@ Bereits implementierte Settings:
 - ✅ **Massen UT vereinfachen**
   - Default: `false`
   - Steuert, ob Komfortfunktionen bei Massen-UT aktiviert werden
-- ✅ **Verhindere doppeltes Schicken**
+- ✅ **Doppeltes Schicken**
   - Default: `false`
-  - Steuert, ob bereits geschickte Pakete erkannt und ausgeschlossen werden
+  - Steuert, ob bereits geschickte Zieldörfer erneut vorausgewählt werden dürfen
 - ✅ **Sortieren nach**
   - Default: leer
   - Beeinflusst Sortierung der Truppen (z.B. durch Parameter im Link)

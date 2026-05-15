@@ -24,7 +24,7 @@ export function addForumQuickSettings(currentThreadId?: string) {
     </div>
     <div style="margin-bottom: 10px;">
       <div style="font-weight: bold; margin-bottom: 4px;">Doppeltes Schicken</div>
-      <input class="btn btn-confirm-no" type="button" value="An" id="prevent-duplicate-destination" style="width:100%; background-color: #8d0100; color: #ffffff">
+      <input class="btn btn-confirm-no" type="button" value="Aus" id="prevent-duplicate-destination" style="width:100%; background-color: #8d0100; color: #ffffff">
     </div>
     <div style="margin-bottom: 10px;">
       <div style="font-weight: bold; margin-bottom: 4px;">sortieren nach</div>

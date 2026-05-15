@@ -25,6 +25,15 @@ function setControlColor($control: JQuery<HTMLElement>, isActive: boolean) {
     $control.css("background", isActive ? ACTIVE_BG : INACTIVE_BG);
 }
 
+function isDuplicateSendingEnabled(localStorageService: LocalStorageHelper): boolean {
+    return !localStorageService.getPreventDuplicateDestination;
+}
+
+function syncDuplicateToggle($control: JQuery<HTMLElement>, duplicateSendingEnabled: boolean) {
+    $control.val(duplicateSendingEnabled ? "An" : "Aus");
+    setControlColor($control, duplicateSendingEnabled);
+}
+
 function buildGroupSelectHtml(groups: groupData[], style: string): string {
     let dropdown = `<select id="sd-group-id" style="${style}">`;
     dropdown += '<option value="0">nicht gesetzt</option>';
@@ -61,9 +70,7 @@ function syncToggleButtons($root: JQuery<HTMLElement>, localStorageService: Loca
     $automateToggle.val(automateEnabled ? "An" : "Aus");
     setControlColor($automateToggle, automateEnabled);
 
-    const preventDuplicateEnabled = localStorageService.getPreventDuplicateDestination;
-    $duplicateToggle.val(preventDuplicateEnabled ? "An" : "Aus");
-    setControlColor($duplicateToggle, preventDuplicateEnabled);
+    syncDuplicateToggle($duplicateToggle, isDuplicateSendingEnabled(localStorageService));
 }
 
 function syncSortByControl($root: JQuery<HTMLElement>, localStorageService: LocalStorageHelper) {
@@ -119,11 +126,14 @@ function bindSettingsEvents(
     $root.off(".sdSettingsControls");
 
     $root.on("click.sdSettingsControls", "#prevent-duplicate-destination", function () {
-        const nextValue = $(this).val() !== "An";
-        $(this).val(nextValue ? "An" : "Aus");
-        setControlColor($(this), nextValue);
-        localStorageService.setPreventDuplicateDestination = nextValue;
-        log.info("Updated setting", {setting: "preventDuplicateDestination", value: nextValue});
+        const nextDuplicateSendingEnabled = $(this).val() !== "An";
+        syncDuplicateToggle($(this), nextDuplicateSendingEnabled);
+        localStorageService.setPreventDuplicateDestination = !nextDuplicateSendingEnabled;
+        log.info("Updated setting", {
+            setting: "preventDuplicateDestination",
+            preventDuplicateDestination: !nextDuplicateSendingEnabled,
+            duplicateSendingEnabled: nextDuplicateSendingEnabled
+        });
         options?.onSettingsChange?.();
     });
 

@@ -3,9 +3,12 @@
 // @version      0.1
 // @description  try to take over the world!
 // @author       You
-// @match        https://*/game.php?village=*&screen=place&*mode=call*
-// @match        https://*/game.php?*village=*&screen=forum*
-// @match        https://*/game.php?*village=*&screen=settings*
+// @match        https://*.die-staemme.de/game.php?village=*&screen=place&*mode=call*
+// @match        https://*.die-staemme.de/game.php?*village=*&screen=forum*
+// @match        https://*.die-staemme.de/game.php?*village=*&screen=settings*
+// @match        https://*.die-staemme.de/game.php?screen=place&mode=call&target=*&village=*
+// @match        https://*.die-staemme.de/game.php?*screen=overview_villages&mode=units&type=away_detail&*
+// @match        https://*.die-staemme.de/game.php?village=*&screen=overview_villages&type=away_detail&filter_villages=*&mode=units&group=*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue

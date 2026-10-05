@@ -27,6 +27,7 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 ### `createNewTable` (`src/ui/new-thread.ts`)
 - Nur für Forum-Moderator:innen aktiv. Rendert Paketzeilen und Generator im SD Organizer. Infanterie skaliert dieselbe Zeile, Späher werden auf 5 % gerundet; ein Klick leert das einzelne befüllte Feld.
 - `newThread()` sammelt die Eingaben, setzt Defaultwerte falls alles leer ist, generiert daraus `[unit]`-Zeilen und ersetzt den Post-Inhalt durch einen vorgefertigten Block (inkl. Tabelle, Spoiler-Erklärungen und PostCache-Sektion).
+- Beim Generieren wird ein leerer Titel mit „SD Tabelle“ vorgeschlagen. Ein Klick leert nur den vom Skript gesetzten Vorschlag; eigene Eingaben werden auch beim erneuten Generieren erhalten.
 - Beim Absenden wird `setNewThread = true` gesetzt, sodass `viewThread` im Anschluss die `sdPostId` auslesen kann.
 
 ### `displaySettings` (`src/ui/settings.ts`)

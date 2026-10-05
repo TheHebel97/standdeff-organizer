@@ -6,6 +6,7 @@ import {PageContext} from "../helpers/script-context";
 import {addForumQuickSettings} from "./components/forum-quick-settings";
 
 const log = Log.scope("new-thread");
+const DEFAULT_THREAD_TITLE = 'SD Tabelle';
 
 export function createNewTable(pageContext: PageContext) {
     const localStorageService = LocalStorageHelper.getInstance();
@@ -46,6 +47,12 @@ export function createNewTable(pageContext: PageContext) {
           $row.find('.inputSpy').val(Math.round(amount * 0.05));
       }).on('click.sdGenerator', '#setupTable', newThread);
     const $form = $('#message').closest('form');
+    $form.find('input[name=subject]').off('.sdTitleSuggestion')
+        .on('click.sdTitleSuggestion', function () {
+            const $title = $(this);
+            if ($title.data('sd-title-suggestion') && $title.val() === DEFAULT_THREAD_TITLE) $title.val('');
+            $title.removeData('sd-title-suggestion');
+        }).on('input.sdTitleSuggestion', function () { $(this).removeData('sd-title-suggestion'); });
     $form[0]?.addEventListener('submit', function (event) {
         if (String($form.find('input[name=subject]').val() ?? '').trim().length < 3) {
             event.preventDefault();
@@ -196,6 +203,10 @@ Moin SFs:
 `
 
     $("#message").val(text);
+    const $title = $('#message').closest('form').find('input[name=subject]');
+    if (String($title.val() ?? '').trim() === '') {
+        $title.val(DEFAULT_THREAD_TITLE).data('sd-title-suggestion', true);
+    }
     log.info("Inserted generated SD thread template into message textarea", {
         messageLength: text.length
     });

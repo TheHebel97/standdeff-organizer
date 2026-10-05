@@ -5,6 +5,7 @@ Testkandidat vom 2026-10-06. Keine Veröffentlichung oder Übertragung an einen 
 ## Änderungen
 
 - Einheitlicher SD Organizer mit Spielstilen; Erstellung vollständig im Panel.
+- Generator schlägt für leere Titel „SD Tabelle“ vor; ein Klick entfernt den Vorschlag und eigene Titel bleiben erhalten.
 - Automatische Infanterie-Skalierung mit 5 % Spähern, unabhängige Paketzeilen und Leeren per Klick.
 - 100/200 Dual und Trial beim Bunkerimport, eigene Paketgrößen, getrennte Power-Einstellungen und aktive Auswahl.
 - Kurze Einführungen für Erstellung, Import, Anfragen, Massen-UT und Tabellenpflege.

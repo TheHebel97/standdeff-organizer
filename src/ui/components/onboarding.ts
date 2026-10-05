@@ -8,7 +8,7 @@ type Step={target:string; title:string; text:string};
 export function getOnboardingSteps(context:PageContext, mod:boolean):Step[] {
     if (context.context === 'forum-new_thread' && mod) return [
         {target:'.sd-package-row',title:'Pakete definieren',text:'Eine Menge in Speer, Schwert oder Bogen skaliert diese Paketzeile. Späher sind 5 %. Ein Klick leert ein befülltes Feld. Weitere Pakete sind unabhängig.'},
-        {target:'#setupTable',title:'SD-Tabelle vorbereiten',text:'„SD Tabelle generieren“ füllt den Forenbeitrag aus. Prüfe den Text, gib einen Titel ein und sende den Thread im Spiel ab.'},
+        {target:'#setupTable',title:'SD-Tabelle vorbereiten',text:'„SD Tabelle generieren“ füllt den Forenbeitrag aus und schlägt bei leerem Titel „SD Tabelle“ vor. Ein Klick ins Titelfeld entfernt diesen Vorschlag; eigene Titel bleiben erhalten. Prüfe Titel und Text und sende den Thread im Spiel ab.'},
         {target:'input[name=subject]',title:'Thread erstellen und zuordnen',text:'Nach erfolgreichem Erstellen erkennt der Organizer deinen SD-Thread und speichert die Zuordnung. Bestehende Tabellen ordnest du im jeweiligen Thread über „Als SD-Tabelle festlegen“ im SD Organizer zu.'}
     ];
     if (context.context === 'overview-away_detail') return [

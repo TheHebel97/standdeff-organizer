@@ -52,6 +52,7 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
 - Admins können in jedem Thread eine eigene SD-Tabelle anlegen.
 - Es werden je nach Welt passende Truppentypen angezeigt.
 - Paketkonfiguration und „SD Tabelle generieren“ stehen im verschiebbaren **SD Organizer**, nicht neben der Thread-Überschrift.
+- Beim Generieren erhält ein leeres Titelfeld den Vorschlag „SD Tabelle“. Ein Klick entfernt nur diesen Vorschlag; selbst eingegebene Titel bleiben erhalten.
 - 200 in Speer, Schwert oder Bogen setzt diese Paketzeile auf 200/200/200/10 (ohne Bogen auf 200/200/10). Ein Klick leert nur das angeklickte Feld; eine neue Infanteriemenge skaliert die Zeile. Späher werden auf ganze Einheiten gerundet und lassen sich separat ändern.
 - Bei komplett leeren Feldern gilt 100 je Infanterieeinheit und 5 Späher.
 - Das Formular kann erst abgeschickt werden, wenn ein Name eingetragen ist.

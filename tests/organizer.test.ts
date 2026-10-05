@@ -5,9 +5,43 @@ import {buildBunkerPreset, describeBunkerPreset} from '../src/helpers/bunker-imp
 jest.mock('../src/helpers/tw-helper', () => ({isUserForumMod: () => true}));
 
 beforeEach(() => {
+    sessionStorage.clear();
     (LocalStorageHelper as any).instance = undefined;
     (global as any).game_data = {units:['spear','sword','archer','spy']};
     document.body.innerHTML = '<div class="clearfix"><h2>Neuer Thread</h2><form><input name="subject"><textarea id="message"></textarea><input type="submit" value="Senden"></form></div>';
+});
+
+test('generation suggests a title only for an empty field and clicking clears the suggestion', () => {
+    createNewTable(resolveScriptContext());
+    const $title = $('input[name=subject]');
+    expect($title.val()).toBe('');
+    $('#setupTable').trigger('click');
+    expect($title.val()).toBe('SD Tabelle');
+    $title.trigger('click');
+    expect($title.val()).toBe('');
+    $title.val('Meine Standdeff').trigger('input');
+    $('#setupTable').trigger('click');
+    $title.trigger('click');
+    expect($title.val()).toBe('Meine Standdeff');
+});
+
+test('a manually entered default title is preserved even after repeated generation', () => {
+    createNewTable(resolveScriptContext());
+    $('#setupTable').trigger('click');
+    const $title = $('input[name=subject]').val('SD Tabelle').trigger('input');
+    $('#setupTable').trigger('click');
+    $title.trigger('click');
+    expect($title.val()).toBe('SD Tabelle');
+});
+
+test('suggested title is accepted at submit and used for automatic thread registration', () => {
+    createNewTable(resolveScriptContext());
+    $('#setupTable').trigger('click');
+    const event = new Event('submit',{bubbles:true,cancelable:true});
+    $('form')[0].dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    expect(sessionStorage.getItem('sd-created-title')).toBe('SD Tabelle');
+    expect(LocalStorageHelper.getInstance().getNewThread).toBe(true);
 });
 
 test('generator lives in organizer; infantry scales its own row and click clears only that field', () => {

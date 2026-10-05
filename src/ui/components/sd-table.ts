@@ -194,7 +194,7 @@ function renderRoleSpecificView(pageState: SdTablePageState, postCacheText: stri
             postsToDelete: postCacheText
         });
         if (postCacheText.length > 1) {
-            let postToDelete = postCacheText.split(",");
+            let postToDelete = parsePostCacheIds(postCacheText);
             postToDelete.forEach((postId: string) => {
                 $(`input[value=${postId}]`)
                     .prop("checked", true)

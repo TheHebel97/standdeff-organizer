@@ -1,3 +1,4 @@
+import {normalizeDateEpoch} from "./date-helper";
 import {rowSdTable, ThreadData, Threads} from "../types/types";
 import {LocalStorageHelper} from "./local-storage-helper";
 import {Log} from "./logging-helper";
@@ -58,34 +59,8 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
     }
 }
 
-export function convertEpochToDate(epoch: number): string {
-    // Convert the epoch to milliseconds and create a new Date object
-    let date = new Date(epoch * 1000);
-    // Format the date and time in the 'YYYY-MM-DDTHH:mm' format
-    return date.toISOString().substring(0, 16);
+export {formatLocalDateInput as convertEpochToDate, normalizeDateEpoch as convertDateToEpoch} from "./date-helper";
+
+export function parseGermanDate(dateStr: string): number {
+    return normalizeDateEpoch(dateStr) * 1000;
 }
-
-export function convertDateToEpoch(date: string): number {
-    // Create a new Date object from the date string
-    let datetime = new Date(date);
-    // Get the time in milliseconds and convert it to seconds
-    return datetime.getTime() / 1000;
-}
-
-export function parseGermanDate(dateStr:string) {
-    if (!dateStr || typeof dateStr !== "string") return 0;
-
-    // Erwartetes Format: "DD.MM.YYYY HH:MM"
-    const [d, t] = dateStr.split(" ");
-    const [day, month, year] = d.split(".").map(Number);
-    const [hour, minute] = t.split(":").map(Number);
-
-    // gültiges Date-Objekt erzeugen → richtig interpretiert
-    return new Date(year, month - 1, day, hour, minute).getTime();
-}
-
-
-
-
-
-

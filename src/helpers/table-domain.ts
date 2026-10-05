@@ -1,3 +1,4 @@
+import {formatGermanDate, normalizeDateEpoch} from "./date-helper";
 import {
     forumPostSource,
     newInquiry,
@@ -17,12 +18,19 @@ const log = Log.scope("table-domain");
 
 const NEW_INQUIRY_FORUM_REGEX = /(\d{3}\|\d{3})\)\sK\d+\s+(\d+)(?:\s+(.*))?/;
 const NEW_INQUIRY_SHORTCUT_REGEX = /^(\d{3}\|\d{3})\s+(\d+)(?:\s+(.*))?$/;
-const NEW_INQUIRY_OPTIONAL_DATA_REGEX = /^["\u201c](.*?)["\u201c](.*?)["\u201c](.*?)["\u201c](.*?)$/;
-const PACKAGES_SENT_REGEX = /(\d+)\s(\d+|done)/i;
+const NEW_INQUIRY_OPTIONAL_DATA_REGEX = /^["“”„](.*?)["“”„](.*?)["“”„](.*?)["“”„](.*?)$/;
+const PACKAGES_SENT_REGEX = /^\s*(?:id)?(\d+)\s+(\d+|done)(?:\s*Pakete)?\s*$/i;
 const VILLAGE_ID_PATTERN = /target=(\d+)/;
 
-function isDoneValue(value: string | undefined | null): boolean {
+export function isDoneValue(value: string | undefined | null): boolean {
     return String(value ?? "").toLowerCase() === "done";
+}
+
+export function calculatePackagesToSend(leftAmount: number, sent: string | undefined, preventDuplicate: boolean): number {
+    if (!Number.isFinite(leftAmount) || leftAmount <= 0) return 0;
+    if (isDoneValue(sent)) return preventDuplicate ? 0 : leftAmount;
+    const alreadySent = Math.max(0, Number(sent) || 0);
+    return preventDuplicate && alreadySent > 0 ? 0 : Math.max(0, leftAmount - alreadySent);
 }
 
 function parseTwCoordsText(coordsText: string): string {
@@ -36,15 +44,8 @@ function parseVillageIdFromHref(href: string): number {
     return found ? parseInt(found[1], 10) : 0;
 }
 
-export function normalizeDateCell(value: any): string {
-    if (value === undefined || value === null) return "";
-    if (typeof value === "string") {
-        const trimmed = value.trim();
-        if (trimmed === "" || trimmed === "0") return "";
-        return trimmed;
-    }
-    if (typeof value === "number" && (value === 0 || isNaN(value))) return "";
-    return String(value);
+export function normalizeDateCell(value: unknown): string {
+    return formatGermanDate(value);
 }
 
 export function buildCoordVillageIdMap(villageAnchors: villageAnchorSource[]): Map<string, number> {
@@ -58,7 +59,7 @@ export function buildCoordVillageIdMap(villageAnchors: villageAnchorSource[]): M
 function parseNewInquiryLine(line: string): sdInquiry | null {
     const trimmedLine = line.trim();
     const baseMatch = trimmedLine.match(NEW_INQUIRY_FORUM_REGEX) ?? trimmedLine.match(NEW_INQUIRY_SHORTCUT_REGEX);
-    if (!baseMatch) {
+    if (!baseMatch || !Number.isSafeInteger(Number(baseMatch[2])) || Number(baseMatch[2]) <= 0) {
         return null;
     }
 
@@ -75,7 +76,7 @@ function parseNewInquiryLine(line: string): sdInquiry | null {
     }
 
     const optionalDataMatch = optionalDataRaw.match(NEW_INQUIRY_OPTIONAL_DATA_REGEX);
-    if (!optionalDataMatch) {
+    if (!optionalDataMatch || (optionalDataMatch[3] && !normalizeDateEpoch(optionalDataMatch[3])) || (optionalDataMatch[4] && !normalizeDateEpoch(optionalDataMatch[4]))) {
         return null;
     }
 
@@ -84,8 +85,8 @@ function parseNewInquiryLine(line: string): sdInquiry | null {
         amount: parseInt(baseMatch[2], 10),
         playerName: optionalDataMatch[1] || undefined,
         comment: optionalDataMatch[2] || undefined,
-        dateFrom: normalizeDateCell(optionalDataMatch[3]) === "" ? undefined : (optionalDataMatch[3] ?? undefined),
-        dateUntil: normalizeDateCell(optionalDataMatch[4]) === "" ? undefined : (optionalDataMatch[4] ?? undefined)
+        dateFrom: normalizeDateEpoch(optionalDataMatch[3]) || undefined,
+        dateUntil: normalizeDateEpoch(optionalDataMatch[4]) || undefined
     };
 }
 
@@ -107,7 +108,8 @@ export function parseForumPostUpdates(posts: forumPostSource[], coordVillageIdMa
             const packagesMatch = line.match(PACKAGES_SENT_REGEX);
             if (parsedInquiry) {
                 if (!coordVillageIdMap.has(parsedInquiry.coords)) {
-                    log.error("coords not found in village map", {coords: parsedInquiry.coords});
+                    log.error("coords not found in village map; inquiry not applied", {coords: parsedInquiry.coords});
+                    return;
                 }
                 const villageId = coordVillageIdMap.get(parsedInquiry.coords) || 0;
                 inquiries.set(villageId, parsedInquiry);
@@ -146,6 +148,7 @@ export function parseSdTableRows(rows: sdTableRowSource[]): sdTableState {
     const parsedState = new Map<number, rowSdTable>();
     rows.forEach((row) => {
         const villageId = parseVillageIdFromHref(row.villageHref);
+        if (!villageId || !/^\d+$/.test(row.sdId.trim())) return;
         parsedState.set(villageId, {
             coords: parseTwCoordsText(row.coordsText),
             sdId: row.sdId,
@@ -161,10 +164,7 @@ export function parseSdTableRows(rows: sdTableRowSource[]): sdTableState {
 }
 
 export function parsePostCacheIds(postCacheText: string): string[] {
-    if (postCacheText.length <= 2) {
-        return [];
-    }
-    return postCacheText.split(",");
+    return Array.from(new Set(postCacheText.split(",").map(id => id.trim()).filter(id => /^\d+$/.test(id))));
 }
 
 export function aggregatePackageUpdates(updateData: updateData): packages {
@@ -269,42 +269,9 @@ export function convertMessageRequestStringToRequestArray(messageString: String)
 export function convertRequestArrayToMessageString(requests: sdInquiry[]): string {
     let lines: string[] = [];
 
-    function pad(n: number) { return n < 10 ? "0" + n : String(n); }
-    function formatDate(value?: number): string {
-        if (value === undefined || value === null) return "";
-        const v = Number(value);
-        if (isNaN(v) || v === 0) return "";
-
-        let date: Date | null = null;
-
-        if (v > 1e12) {
-            date = new Date(v);
-        } else if (v > 1e9) {
-            date = new Date(v * 1000);
-        } else if (/^\d{8}$/.test(String(v))) {
-            const s = String(v);
-            const y = parseInt(s.slice(0, 4), 10);
-            const m = parseInt(s.slice(4, 6), 10);
-            const d = parseInt(s.slice(6, 8), 10);
-            date = new Date(y, m - 1, d, 0, 0);
-        } else if (v >= 1970 && v <= 3000) {
-            date = new Date(v, 0, 1, 0, 0);
-        } else {
-            return String(v);
-        }
-
-        if (!date || isNaN(date.getTime())) return String(v);
-        const day = pad(date.getDate());
-        const month = pad(date.getMonth() + 1);
-        const year = date.getFullYear();
-        const hours = pad(date.getHours());
-        const minutes = pad(date.getMinutes());
-        return `${day}.${month}.${year} ${hours}:${minutes}`;
-    }
-
     for (const request of requests) {
-        let dateFrom = formatDate(request.dateFrom as any);
-        let dateUntil = formatDate(request.dateUntil as any);
+        let dateFrom = formatGermanDate(request.dateFrom);
+        let dateUntil = formatGermanDate(request.dateUntil);
         let line = `${request.coords} ${request.amount} "${request.playerName || ''}"${request.comment || ''}"${dateFrom}"${dateUntil}`;
         lines.push(line);
     }
@@ -326,7 +293,7 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
         const dateUntil = normalizeDateCell(cells[7] ? cells[7].trim() : "");
         sdTableState.set(parseInt(cells[8], 10), {
             coords: cells[1].trim(),
-            sdId: cells[0],
+            sdId: cells[0].trim(),
             startAmount: parseInt(cells[2], 10),
             leftAmount: parseInt(cells[3], 10),
             playerName: cells[4],
@@ -342,15 +309,18 @@ export function parseEditSdTableData(tableText: string, cacheText: string): sdSt
 
 export function calculateSdTableState(updateData: updateData, sdState: sdState): sdState {
     const addUpSetting = true;
-    const [sdTableState, postCache] = sdState;
+    const [previousTableState, postCache] = sdState;
+    const sdTableState = new Map(Array.from(previousTableState, ([id, row]) => [id, {...row}]));
     let updateDataWithoutCache: updateData = new Map();
-    let newPostCache: string[] = [];
+    let newPostCache = parsePostCacheIds(postCache.join(","));
+    let nextId = Math.max(1, ...Array.from(sdTableState.values(), row => Number(row.sdId) + 1),
+        ...postCache.filter(entry => entry.startsWith("sd-next-id=")).map(entry => Number(entry.split("=")[1]) || 1));
 
     updateData.forEach((postData, postId) => {
         if (!postCache.includes(postId)) {
             updateDataWithoutCache.set(postId, postData);
         }
-        newPostCache.push(postId);
+        if (!newPostCache.includes(postId)) newPostCache.push(postId);
     });
 
     let summarizedData: { inquiries: newInquiry, packagesSent: packages } = {
@@ -379,7 +349,7 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
                         : (parseInt(existingPackage || "0", 10) + parseInt(packageSent, 10)).toString();
                     summarizedData.packagesSent.set(sdId, newPackage);
                 } else {
-                    summarizedData.packagesSent.set(sdId, packageSent);
+                    summarizedData.packagesSent.set(sdId, "done");
                 }
             } else {
                 summarizedData.packagesSent.set(sdId, packageSent);
@@ -404,7 +374,7 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
         } else {
             sdTableState.set(villageId, {
                 coords: inquiry.coords,
-                sdId: String(sdTableState.size + 1),
+                sdId: String(nextId++),
                 startAmount: inquiry.amount,
                 leftAmount: inquiry.amount,
                 playerName: inquiry.playerName || "",
@@ -441,15 +411,10 @@ export function calculateSdTableState(updateData: updateData, sdState: sdState):
         }
     });
 
-    let newId = 1;
     sdTableState.forEach((row, villageId) => {
-        if (row.leftAmount <= 0) {
-            sdTableState.delete(villageId);
-            newId--;
-        }
-        row.sdId = String(newId);
-        newId++;
+        if (row.leftAmount <= 0) sdTableState.delete(villageId);
     });
+    newPostCache.push(`sd-next-id=${nextId}`);
 
     return [sdTableState, newPostCache] as sdState;
 }

@@ -5,6 +5,7 @@ import {distanceXY, villageBBCodeToCoordinates} from "../helpers/tw-helper";
 import {parseGermanDate} from "../helpers/helper-functions";
 import {PageContext} from "../helpers/script-context";
 import {buildMassUtCallUrl} from "../helpers/game-url-helper";
+import {calculatePackagesToSend} from "../helpers/table-domain";
 
 const log = Log.scope("mass-ut");
 
@@ -582,7 +583,7 @@ function deriveState(pageState: MassUtPageState): MassUtDerivedState {
     const alreadySentAmount = sendingObj
         ? parseInt(String(pageState.threadData?.packagesSent.get(sendingObj.sdId)), 10) || 0
         : 0;
-    let packagesToSend = sendingObj ? sendingObj.leftAmount - alreadySentAmount : 0;
+    let packagesToSend = sendingObj ? calculatePackagesToSend(sendingObj.leftAmount, pageState.threadData?.packagesSent.get(sendingObj.sdId), pageState.preventDuplicateDestination) : 0;
     const epochDateUntil = parseGermanDate(sendingObj?.dateUntil ?? "");
     const epochDateFrom = parseGermanDate(sendingObj?.dateFrom ?? "");
 
@@ -622,8 +623,8 @@ function applyTemplateSelection(pageState: MassUtPageState) {
         if (!optionValue) {
             return;
         }
-        const optionObj = JSON.parse(String(optionValue));
-        if (optionObj.id === pageState.selectedTemplate) {
+        const optionObj = parseTemplateDefinition(String(optionValue));
+        if (optionObj && String(optionObj.id) === pageState.selectedTemplate) {
             $(this).prop("selected", true);
             matchingTemplateFound = true;
             return false;
@@ -679,6 +680,7 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
         boostPercent: Number(supportSpeedInsights.boostPercent.toFixed(2))
     });
 
+    $(".troop-request-selector:checked").each(function () { $(this).trigger("click"); });
     $(".unit_checkbox").each(function () {
         if (!$(this).is(":checked")) {
             $(this).trigger("click");
@@ -705,7 +707,7 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
             const untilIsSet = epochDateUntil > 0;
             const withinFrom = fromIsSet ? arrival >= epochDateFrom : true;
             const withinUntil = untilIsSet ? arrival <= epochDateUntil : true;
-            const selected = packagesToSend > 0 && withinFrom && withinUntil;
+            const selected = packagesToSend > 0 && withinFrom && withinUntil && Number.isFinite(arrival) && !$row.find(".troop-request-selector").prop("disabled");
             let skipReason: CandidateSelectionEvaluation["skipReason"] = null;
             if (!selected) {
                 skipReason = packagesToSend <= 0 ? "packages-exhausted" : "outside-window";
@@ -853,8 +855,8 @@ function storeTemplateData() {
             return;
         }
         const optionValue = String($(this).val());
-        const optionObj = JSON.parse(optionValue);
-        optionArray.push({id: optionObj.id, name: optionObj.name});
+        const optionObj = parseTemplateDefinition(optionValue);
+        if (optionObj) optionArray.push({id: String(optionObj.id), name: optionObj.name ?? String(optionObj.id)});
     });
 
     localStorageService.setTemplateData = optionArray;

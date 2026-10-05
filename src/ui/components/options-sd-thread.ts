@@ -1,28 +1,20 @@
-import {addThreadIdToLocalStorage} from "../../helpers/helper-functions";
+import {registerSdThread} from "../../helpers/thread-registration";
 import {Log} from "../../helpers/logging-helper";
 import {ADD_THREAD_ICON_DATA_URI} from "../ui-assets";
 
 const log = Log.scope("options-sd-thread");
 
-export function addSdOptions(currentThreadId: string | null, forumId: string | null) {
+export function addSdOptions(currentThreadId: string | null, forumId: string | null, onRegistered?: () => void) {
     log.info("thread id is not in thread ids");
-    const addThreadELem = `<img class="addThread" style="cursor: pointer" src="${ADD_THREAD_ICON_DATA_URI}"/>`;
+    const addThreadELem = `<img alt="Als SD-Tabelle speichern" title="Als SD-Tabelle speichern" class="addThread" style="cursor: pointer" src="${ADD_THREAD_ICON_DATA_URI}"/>`;
 
     $(".thread_answer").parent().parent().append(addThreadELem);
     $(".addThread").on("click", function () {
-        const edit_post_id = $(".post > a").attr("name");
-        const thread_name: string | null = $(".clearfix > table").first().find("h2").text();
-        const forum_name: string | null = $(".forum-container").find(".selected").text().trim();
-        if (edit_post_id !== undefined) {
-            addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name, forumId);
+        if (registerSdThread(currentThreadId, forumId)) {
             $(".addThread").remove();
-            $("#tooltip").css({
-                "display": "none",
-            });
-            const sdTableTitle = `<span style="color: #002bff; font-size: x-small"> (SD Tabelle)</span>`;
-            $(".clearfix > table").first().find("h2").append(sdTableTitle);
-        } else {
-            log.error("edit_post_id is undefined");
+            $("#tooltip").hide();
+            $("#dbInfo_popup_box").remove();
+            onRegistered?.();
         }
 
     });

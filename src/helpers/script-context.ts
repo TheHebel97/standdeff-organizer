@@ -22,6 +22,19 @@ export type ScriptContextResolution = {
 
 export type PageContext = ScriptContextResolution;
 
+export function resolveForumId(urlParams: URLSearchParams): string | null {
+    const fromUrl = urlParams.get("forum_id");
+    if (fromUrl && /^\d+$/.test(fromUrl)) return fromUrl;
+    const selectedLinks = document.querySelectorAll<HTMLAnchorElement>(
+        ".forum-container .selected a[href], .forum-container a.selected[href]"
+    );
+    for (const link of selectedLinks) {
+        const id = new URL(link.href, window.location.href).searchParams.get("forum_id");
+        if (id && /^\d+$/.test(id)) return id;
+    }
+    return null;
+}
+
 function urlParamsToObject(urlParams: URLSearchParams): Record<string, string> {
     const result: Record<string, string> = {};
     urlParams.forEach((value, key) => {
@@ -66,7 +79,7 @@ export function resolveScriptContext(): ScriptContextResolution {
         href: window.location.href,
         query: urlParamsToObject(urlParams),
         villageId: urlParams.get("village"),
-        forumId: urlParams.get("forum_id"),
+        forumId: resolveForumId(urlParams),
         threadId: urlParams.get("thread_id"),
         targetVillageId: urlParams.get("target")
     };

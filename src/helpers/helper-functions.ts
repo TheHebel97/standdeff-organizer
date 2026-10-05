@@ -4,7 +4,7 @@ import {Log} from "./logging-helper";
 
 const log = Log.scope("helper-functions");
 
-export function addThreadIdToLocalStorage(currentThreadId: string | null, postId: string | null, threadName: string | null, forumName: string | null, forumId: string | null) {
+export function addThreadIdToLocalStorage(currentThreadId: string | null, postId: string | null, threadName: string | null, forumName: string | null, forumId: string | null): boolean {
     const localStorageService = LocalStorageHelper.getInstance();
 
     let threads: Threads = localStorageService.getAllThreads;
@@ -23,7 +23,12 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
                 updatedPostIds: []
             }
 
-            localStorageService.addThread(currentThreadId, threadData);
+            try {
+                localStorageService.addThread(currentThreadId, threadData);
+            } catch (error) {
+                log.error("Could not persist SD thread", error);
+                return false;
+            }
             log.info("Registered SD thread in localStorage", {
                 currentThreadId,
                 postId,
@@ -31,9 +36,9 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
                 forumName,
                 forumId
             });
+            return true;
         } else {
-            log.error("thread id is already in thread ids");
-            return;
+            return true;
         }
     } else {
         if (currentThreadId === null) {
@@ -48,7 +53,8 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
         if (forumName === null) {
             log.error("forum name is null");
         }
-        return;
+        if (forumId === null) log.error("forum id is missing");
+        return false;
     }
 }
 

@@ -123,6 +123,8 @@ export class LocalStorageHelper {
             this.repository.save(data);
         } catch (error) {
             this.log.error("Error storing data in LocalStorage", error);
+            this.updateFromLocalStorage("failed-write:rollback");
+            throw error;
         }
     }
 

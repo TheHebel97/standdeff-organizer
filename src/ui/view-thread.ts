@@ -1,6 +1,4 @@
-import {
-    addThreadIdToLocalStorage,
-} from "../helpers/helper-functions";
+import {registerSdThread, readSdPostId} from "../helpers/thread-registration";
 import {addSdOptions} from "./components/options-sd-thread";
 import {addSdPopup} from "./components/first-start-thread-popup";
 import {sdTable} from "./components/sd-table";
@@ -33,30 +31,15 @@ export function viewThread(pageContext: PageContext) {
     });
     addForumQuickSettings(currentThreadId);
 
-    const pageState = readPageState(pageContext, localStorageService);
-    const derivedState = deriveState(pageContext, pageState, localStorageService);
+    let pageState = readPageState(pageContext, localStorageService);
+    let derivedState = deriveState(pageContext, pageState, localStorageService);
 
-    if (derivedState.hasPendingNewThreadMarker) {
-        log.info("Detected pending new-thread marker");
-        localStorageService.setNewThread = false;
-        const edit_post_id: string | undefined = $(".post > a").attr("name")
-        const thread_name: string | null = $(".clearfix > table").first().find("h2").text();
-        const forum_name: string | null = $(".forum-container").find(".selected").text().trim();
-        const forum_id: string | null = pageContext.forumId;
-        if (edit_post_id !== undefined) {
-            log.info("Persisting newly created SD thread", {
-                currentThreadId,
-                edit_post_id,
-                thread_name,
-                forum_name,
-                forum_id
-            });
-            addThreadIdToLocalStorage(currentThreadId, edit_post_id, thread_name, forum_name, forum_id);
-        } else {
-            log.error("edit_post_id is undefined");
+    if (derivedState.hasPendingNewThreadMarker && readSdPostId()) {
+        if (registerSdThread(currentThreadId, pageContext.forumId)) {
+            localStorageService.setNewThread = false;
+            pageState = readPageState(pageContext, localStorageService);
+            derivedState = deriveState(pageContext, pageState, localStorageService);
         }
-    } else {
-        log.info("No pending new-thread marker found");
     }
 
     log.state("Known thread ids in localStorage", {
@@ -76,12 +59,12 @@ export function viewThread(pageContext: PageContext) {
             log.info("No known threads stored yet; showing first-start popup", {
                 currentThreadId: pageState.currentThreadId
             });
-            addSdPopup(pageState.currentThreadId, pageContext.forumId);
+            addSdPopup(pageState.currentThreadId, pageContext.forumId, () => viewThread(pageContext));
         }
         log.info("Thread not registered; showing SD thread options", {
             currentThreadId: pageState.currentThreadId
         });
-        addSdOptions(pageState.currentThreadId, pageContext.forumId);
+        addSdOptions(pageState.currentThreadId, pageContext.forumId, () => viewThread(pageContext));
     }
 }
 

@@ -6,7 +6,7 @@ Stand: 2026-10-06. Branch: `codex/next-major-update`. Export: `2.0.0-rc.1`.
 
 Alle sieben Arbeitspakete des [Plans](next-major-update-plan.md) sind im Code umgesetzt; die abschließende Browser-Abnahme ist noch nicht vollständig.
 
-1. Registrierung mit Forum-ID-Fallback, numerischem SD-Post, Erfolgs-/Fehlerstatus und sofortiger Initialisierung. Erstellungsvormerkung ist an Tab, Titel und zuvor bekannte Threads gebunden.
+1. Registrierung mit Forum-ID-Fallback, Reparatur ungültiger alter Post-Anker ohne Entwurfsverlust, numerischem SD-Post, Erfolgs-/Fehlerstatus und sofortiger Initialisierung. Erstellungsvormerkung ist an Tab, Titel und zuvor bekannte Threads gebunden.
 2. `done`, stabile IDs, erhaltener Post-Cache, Migration der lokalen Dorfzuordnung sowie persistente, idempotente Versand-/Post-Vorgänge. Unklare Ergebnisse bleiben sichtbar und bestätigen sich nicht allein durch Klicks.
 3. Zentrale lokale Datumswerte, Handy-Feldtrenner, sichere Mengen, Escaping und Beschränkung auf den SD-Post. Nicht aufgelöste Dorf-Anfragen erzeugen einen Hinweis und bleiben für ein weiteres Update offen.
 4. Gemeinsame beige/braune Oberfläche; Generator im Organizer, Infanterie-Skalierung, Leeren per Klick und Titelprüfung auch bei Tastatur-Submit.
@@ -16,7 +16,7 @@ Alle sieben Arbeitspakete des [Plans](next-major-update-plan.md) sind im Code um
 
 ## Prüfung
 
-- Jest/jsdom: 44 Regressionstests bestehen (Registrierung, Parser/Datum, stabile IDs, Zwei-Tab-Änderungen, Sendungen, Komprimierung, Kontext/Checkboxen, Generator, Import und Einführung).
+- Jest/jsdom: 45 Regressionstests bestehen (Registrierung, Parser/Datum, stabile IDs, Zwei-Tab-Änderungen, Sendungen, Komprimierung, Kontext/Checkboxen, Generator, Import und Einführung).
 - TypeScript-/webpack-Build und Production-Export bestehen; JavaScript-Syntax und fehlendes Development-eval werden geprüft.
 - Live auf Welt 259: Organizer-Umbenennung/-Design, Dual setzt Bogen und andere Anteile auf 0, 200er-Generator ergibt 200/200/200/10, Vorlage wird eingefüllt, Einführung erscheint, tatsächlicher Forenadmin-Link und Massen-UT-Formular geprüft.
 - Im geöffneten Account sind keine Massen-UT-Quelldörfer auswählbar und keine abgestellten Truppen sichtbar. Die Rechnung/Vorschau wurde zusätzlich mit DOM-Fixtures geprüft.

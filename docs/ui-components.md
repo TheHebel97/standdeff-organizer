@@ -14,9 +14,9 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 
 ### `displayAwayDetail` (`src/ui/away-detail.ts`)
 - Laeuft auf `screen=overview_villages&mode=units&type=away_detail`.
-- Fuegt oberhalb der Tabelle einen `SD Bunker auslesen`-Button ein und rendert ein verschiebbares Panel fuer Ziel-Thread, Split-Zusammensetzung und Unit-Power-Werte.
+- Rendert ein verschiebbares Panel fuer Ziel-Thread, Split-Zusammensetzung, Unit-Power-Werte und eine Import-Vorschau.
 - Liest die auf der Seite abgestellten Truppen pro Koordinate aus, summiert deren Power und wandelt das Ergebnis in Paketmengen um.
-- Schreibt die berechneten Bunkeranfragen direkt in denselben `sdInquiry`-Cache, den spaeter das Forum-Request-Popup rendert.
+- Schreibt die berechneten Bunkeranfragen direkt in denselben `sdInquiry`-Cache, den spaeter das Forum-Request-Popup rendert; einzelne importierte Koordinaten koennen vor dem Uebernehmen ab- oder angewaehlt werden. Ein Schnellbutton entfernt dabei auf Wunsch alle Vorschau-Eintraege unter 5 Paketen aus der aktuellen Auswahl und bereinigt die betroffenen Eintraege im Ziel-Thread.
 
 ### `viewThread` (`src/ui/view-thread.ts`)
 - Erkennt nach dem Laden, ob gerade ein neuer SD-Thread erstellt wurde (`getNewThread`). Falls ja, werden Thread-Metadaten zusammen mit der `sdPostId` über `addThreadIdToLocalStorage` persistiert.
@@ -25,7 +25,7 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
   - **Unbekannt:** Zeigt ein Popup (`addSdPopup`) bzw. Optionselemente (`addSdOptions`), damit Nutzer:innen den Thread als SD-Thread markieren können.
 
 ### `createNewTable` (`src/ui/new-thread.ts`)
-- Nur für Forum-Moderator:innen aktiv. Fügt neben der Thread-Überschrift einen Konfigurationsbutton ein, der Eingabefelder für Standard-Paketgrößen (Speer, Schwert, Bogenschütze, Späher) anzeigt.
+- Nur für Forum-Moderator:innen aktiv. Rendert Paketzeilen und Generator im SD Organizer. Infanterie skaliert dieselbe Zeile, Späher werden auf 5 % gerundet; ein Klick leert das einzelne befüllte Feld.
 - `newThread()` sammelt die Eingaben, setzt Defaultwerte falls alles leer ist, generiert daraus `[unit]`-Zeilen und ersetzt den Post-Inhalt durch einen vorgefertigten Block (inkl. Tabelle, Spoiler-Erklärungen und PostCache-Sektion).
 - Beim Absenden wird `setNewThread = true` gesetzt, sodass `viewThread` im Anschluss die `sdPostId` auslesen kann.
 
@@ -48,12 +48,21 @@ Dieses Dokument fasst zusammen, welche UI-Bausteine in welchem Kontext greifen u
 
 > Die Komponenten greifen intensiv auf Hilfsfunktionen aus `src/helpers/table-helper.ts` sowie `LocalStorageHelper` zu, sodass die Tabelle immer denselben Stand zwischen Forum und Massen-UT hat.
 
-## Quick Settings im Forum
-- `viewThread` und `createNewTable` blenden ein verschiebbares Quick-Settings-Panel auf Forum-Seiten ein.
+## SD Organizer im Forum und beim Import
+- `viewThread` und `createNewTable` blenden ein verschiebbares SD-Organizer-Panel auf Forum-Seiten ein.
 - `components/forum-quick-settings.ts` rendert das Panel.
 - Die zuletzt verschobene Position des Panels wird in den allgemeinen Script-Settings gespeichert und beim naechsten Einblenden wiederhergestellt.
 - `components/sd-settings-controls.ts` kapselt die gemeinsame Initialisierung und die Event-Bindings fuer Massen-UT, doppeltes Schicken, Sortierung, SD Gruppe und SD Vorlage.
-- Auf bestehenden Threads enthaelt das Panel zusaetzlich einen Reset fuer den gespeicherten Versandstatus; beim Erstellen neuer Threads bleibt dieser deaktiviert.
+- Auf bestehenden Threads enthält das Panel Versandoptionen und Reset. Beim Erstellen zeigt es ausschließlich Paketkonfiguration und Generator.
 - Aenderungen an den Quick-Settings werden auf der SD-Tabellenansicht sofort auf die sichtbaren Massen-UT-Links angewendet.
 - Tabellenzeilen mit gesetztem `ab` oder `bis` erzwingen fuer ihren Massen-UT-Link `order=distance` und `dir=1`, also eine aufsteigende Entfernungs-Sortierung statt der normalen Truppen-Sortierung.
-- Der Reset wird ohne Rueckfrage ausgefuehrt und synchronisiert die roten Versand-Markierungen auf der SD-Tabelle sofort neu.
+- Der Reset wird ohne Rueckfrage ausgefuehrt und synchronisiert die Versand-Markierungen auf der SD-Tabelle sofort neu.
+
+
+## Import, offene Vorgänge und Einführung
+
+- Import: oben 100/200 Dual; auf Bogenwelten zusätzlich 100/200 Trial. Andere Split-Anteile werden auf 0 gesetzt, Power-Gewichtungen bleiben erhalten. Aktive Wahl und Vorschau werden sofort aktualisiert.
+- `Eigene Paketgröße` und `Erweiterte Berechnung: Power` sind getrennte, zunächst geschlossene Bereiche. Vorschau/Auswahl und die Unter-5-Aktion bleiben erhalten; der Hinweis benennt die Auswirkung auf bestehende Entwürfe.
+- `pending-operations.ts` zeigt unbestätigte Versand-/Post-Vorgänge. Bei Teilversand kann die tatsächlich geschickte Menge reduziert werden; Verwerfen erhält den fachlichen Entwurf. Automatische Post-Bestätigung verlangt einen neuen eigenen Post mit exakt passendem Text.
+- `onboarding.ts` erklärt die aktuelle Seite und Rolle, markiert vorhandene Ziele und toleriert fehlende Bedienelemente. Weiter/Zurück, Pausieren, Überspringen, Fortsetzen und Neustart sind verfügbar; keine Touraktion sendet Posts oder Truppen.
+- Panels verwenden neutrale beige/braune Spielstile, Textstatus, native Buttons und sichtbare Tastaturfokusse. Nach Größenänderungen werden gespeicherte Positionen auf den sichtbaren Bereich begrenzt.

@@ -21,3 +21,15 @@ Die folgenden Punkte sind bei der Analyse der aktuellen Codebasis aufgefallen un
 ## 5. Typsichere DOM-Zugriffe
 - **Problem:** Viele Selektoren werden mehrfach wiederholt (z. B. `$(".clearfix > form > input[value=Senden]")`). Ein Tippfehler bleibt unbemerkt, bis Tampermonkey die Seite lädt.
 - **Idee:** Konstanten für wiederkehrende Selektoren oder kleine Wrapper-Komponenten ("`ForumForm`", "`MassUtForm`") würden Redundanzen verringern. In Kombination mit `data-*`-Attributen auf eigenen Elementen könnte man sogar auf fragile Struktur-Selektoren verzichten.
+
+
+## Bereits umgesetzt (2026-10-06)
+
+- Gemeinsamer `PageContext`, klarer Kontext-Router und Thread-Guards.
+- Tabellen-Domain und DOM-Adapter getrennt; Forum-Mod-Check auf den tatsächlichen Admin-Link begrenzt.
+- Repository/Serializer getrennt, Thread-Felder validiert, Schema-Version 2, Journal mit idempotenten Versandvorgängen und koordinierter Komprimierung.
+- Gemeinsames Settings-Control-Modul, Organizer-Stile und kontextbezogene Einführung.
+- Zentrale lokale Datums-Konvertierung sowie Regressionstests für Kernlogik und DOM-Fixtures.
+- Reproduzierbarer Production-Export und Windows-kompatible Entwicklungsbefehle.
+
+Offen als spätere Wartungsarbeit bleiben insbesondere kleinere Controller und ausgelagerte BBCode-Vorlagen. Die obigen historischen Vorschläge sind entsprechend teilweise erledigt; keine zusätzliche Komplett-Refaktorierung ist für 2.0 vorgesehen.

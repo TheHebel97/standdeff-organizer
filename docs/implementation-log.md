@@ -1,26 +1,32 @@
-# Umsetzung des grossen Updates
+# Umsetzung des großen Updates
 
-Beginn: 2026-10-06. Branch: `codex/next-major-update`.
+Stand: 2026-10-06. Branch: `codex/next-major-update`. Export: `2.0.0-rc.1`.
 
-## Abgeschlossene Etappen
+## Implementiert
 
-### Thread-Registrierung
+Alle sieben Arbeitspakete des [Plans](next-major-update-plan.md) sind im Code umgesetzt; die abschließende Browser-Abnahme ist noch nicht vollständig.
 
-- Forum-ID wird aus dem ausgewaehlten Forum ermittelt, wenn sie in der URL fehlt.
-- Registrierung verwendet den numerischen Anker des SD-Posts und meldet Speicherfehler.
-- Popup und Hinzufuegen-Button aktualisieren die Ansicht erst nach erfolgreichem Speichern.
-- Neu erstellte SD-Threads werden sofort mit dem neuen Zustand gerendert.
-- Validierung: vier Jest-Regressionstests und TypeScript-/webpack-Build.
+1. Registrierung mit Forum-ID-Fallback, numerischem SD-Post, Erfolgs-/Fehlerstatus und sofortiger Initialisierung. Erstellungsvormerkung ist an Tab, Titel und zuvor bekannte Threads gebunden.
+2. `done`, stabile IDs, erhaltener Post-Cache, Migration der lokalen Dorfzuordnung sowie persistente, idempotente Versand-/Post-Vorgänge. Unklare Ergebnisse bleiben sichtbar und bestätigen sich nicht allein durch Klicks.
+3. Zentrale lokale Datumswerte, Handy-Feldtrenner, sichere Mengen, Escaping und Beschränkung auf den SD-Post. Nicht aufgelöste Dorf-Anfragen erzeugen einen Hinweis und bleiben für ein weiteres Update offen.
+4. Gemeinsame beige/braune Oberfläche; Generator im Organizer, Infanterie-Skalierung, Leeren per Klick und Titelprüfung auch bei Tastatur-Submit.
+5. Dual-/Trial-Presets, einklappbare eigene Mengen, separate Power und sofortige Vorschau. Vorhandene Auswahl-/Unter-5-Änderungen integriert.
+6. Kontext-/rollenspezifische Einführung mit gespeichertem Fortschritt, Pause, Fortsetzen, Überspringen und Neustart.
+7. Port- und Metadatenabgleich, Production-Export ohne Development-eval, portable Befehle, aktuelle Doku und Release-Notizen.
 
-## Noch ausstehend
+## Prüfung
 
-### Tabellenstatus, Parser und lokale Datumswerte
+- Jest/jsdom: 44 Regressionstests bestehen (Registrierung, Parser/Datum, stabile IDs, Zwei-Tab-Änderungen, Sendungen, Komprimierung, Kontext/Checkboxen, Generator, Import und Einführung).
+- TypeScript-/webpack-Build und Production-Export bestehen; JavaScript-Syntax und fehlendes Development-eval werden geprüft.
+- Live auf Welt 259: Organizer-Umbenennung/-Design, Dual setzt Bogen und andere Anteile auf 0, 200er-Generator ergibt 200/200/200/10, Vorlage wird eingefüllt, Einführung erscheint, tatsächlicher Forenadmin-Link und Massen-UT-Formular geprüft.
+- Im geöffneten Account sind keine Massen-UT-Quelldörfer auswählbar und keine abgestellten Truppen sichtbar. Die Rechnung/Vorschau wurde zusätzlich mit DOM-Fixtures geprüft.
 
-- Erledigte Anfragen verhindern erneut automatische Auswahl; `done` bleibt bei spaeteren Mengenmeldungen erhalten.
-- IDs werden nicht umnummeriert. Ein Zaehler im bestehenden Post-Cache verhindert das Wiederverwenden geloeschter IDs; bisherige Post-IDs bleiben erhalten.
-- Gerade und typografische Handy-Anfuehrungszeichen werden als Anfrage-Trenner akzeptiert.
-- Datumswerte werden zentral validiert und lokal formatiert; Sommer-/Winter-Rundlaeufe behalten die Uhrzeit.
-- Normaler Zahlentext und unbekannte Dorfkoordinaten werden nicht als Tabellenupdates angewendet.
-- Validierung: 17 Jest-Regressionstests und webpack-Build.
+## Vor endgültigem Release offen
 
-Weitere Arbeitspakete und Abnahmekriterien: [next-major-update-plan.md](next-major-update-plan.md).
+- Production-Script in Tampermonkey installieren und einen vollständigen Foren- und Versanddurchlauf mit passenden Testdörfern prüfen.
+- Erfolg, Fehler und Teilversand im echten Spiel bestätigen; insbesondere Abgleich der tatsächlichen Paketanzahl.
+- Mod und normalen Nutzer, Welt ohne Bogen, gefilterte/paginierte Truppen und Support-Speedboost live prüfen. Automatisierte Abdeckung ersetzt diese Prüfung der Spiel-DOM nicht.
+
+Diese offenen Punkte sind Abnahme, keine bereits erfolgreich getesteten Live-Abläufe. Der aktuelle Commit-Stand und Export bleiben bis dahin ein Testkandidat. Es wurden keine Forenbeiträge oder Truppen durch den Agenten versendet.
+
+UI-Vorschau: [Generator und Einführung](screenshots/organizer-2.0-preview.jpg).

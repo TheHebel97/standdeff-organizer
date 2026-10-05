@@ -62,8 +62,8 @@ Technisch ist das Projekt ein TypeScript-/jQuery-Skript, das ueber webpack zu Ja
 
 ## Bekannte technische Stolperstellen
 
-- Es gibt aktuell keine echten Projekttests.
-  - `npm test` endet derzeit mit "No tests found".
+- Jest/jsdom-Regressionstests liegen in `tests/`.
+  - `npm test -- --runInBand` prueft Parser, Tabellenstatus, Persistenz, Kontextaufloesung und UI-Ablaeufe.
 - Das Skript laeuft real nur ueber Tampermonkey auf der echten Seite.
   - Lokales Validieren ist deshalb praktisch auf zwei Dinge begrenzt:
   - `npm run build` prueft, ob der TypeScript-Code sauber nach JavaScript kompiliert.
@@ -74,15 +74,15 @@ Technisch ist das Projekt ein TypeScript-/jQuery-Skript, das ueber webpack zu Ja
   - Auf Zeitzonen- und UTC-/Lokalzeit-Verhalten achten.
 - `LocalStorageHelper` serialisiert `Map`-Strukturen manuell zu Arrays und zurueck.
   - Bei Schemaaenderungen diese Pfade vollstaendig mitdenken.
-- `package.json` enthaelt mit `build2` ein Unix-lastiges Skript via `sed`.
-  - Unter Windows nicht blind als portable Build-Variante annehmen.
+- `npm run release` exportiert plattformunabhaengig Production-Script und Dev-Loader.
+  - `build2` ist ein Alias fuer `release`; Dev-Server und Loader verwenden Port 9000.
 
 ## Nuetzliche Befehle
 
 - `npm run build`
   - Baut das TypeScript-Bundle nach `dist/bundle.js`
 - `npm test`
-  - Derzeit kein echter Testlauf, da keine Tests vorhanden sind
+  - Fuehrt die Regressionstests aus (fuer deterministischen Lauf `-- --runInBand`).
 
 ## Doku-Hinweise
 

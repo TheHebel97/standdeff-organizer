@@ -4,7 +4,7 @@ Stand: 2026-10-06. Grundlage: Repo-Sichtung und abgeschlossene UI-Feedbackrunde.
 
 Ziel: Ein einheitlicher SD Organizer mit einfacherer Paketkonfiguration, verlaesslicher Thread-Registrierung, korrektem Pakettracking und einer kurzen Einfuehrung in die wichtigsten Ablaeufe.
 
-Dies ist der Umsetzungsplan. Die beschriebenen Codeaenderungen sind noch nicht implementiert. Befunde und Reproduktionsbeispiele stehen in [review-2026-10-05.md](review-2026-10-05.md).
+Dies ist der ursprüngliche Umsetzungsplan. Die Codeänderungen sind inzwischen implementiert; aktueller Prüfstand und verbleibende Browser-Abnahme stehen in [implementation-log.md](implementation-log.md). Befunde und Reproduktionsbeispiele stehen in [review-2026-10-05.md](review-2026-10-05.md).
 
 ## Prioritaeten und Reihenfolge
 

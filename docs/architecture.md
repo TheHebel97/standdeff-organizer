@@ -4,14 +4,14 @@
 Das Projekt liefert ein Tampermonkey-Userscript, das an mehreren Stellen von *Die Stämme* (Massen-Unterstützen, Forum, Spieleinstellungen) zusätzliche UI- und Automatisierungsfunktionen anbietet. Der produktive Userscript-Code wird aus den TypeScript-Quellen unter `src/` kompiliert (siehe `devUserscript.js`).
 
 ## Einstiegspunkt & Kontexte
-Der Einstiegspunkt `src/index.ts` registriert ein `$(document).ready`-Callback und ermittelt anhand der URL-Parameter den aktuellen Seitenkontext. Anschließend wird genau eine der vier UI-Routinen geladen:
+Der Einstiegspunkt `src/index.ts` registriert ein `$(document).ready`-Callback und ermittelt anhand der URL-Parameter den aktuellen Seitenkontext. Anschließend wird genau eine der fünf UI-Routinen geladen:
 
 | Kontext (screen) | Einstiegsfunktion | Beschreibung |
 | --- | --- | --- |
 | `place` | `displayMassUt` (`src/ui/mass-ut.ts`) | Automatisiert Checkboxen im Massen-UT-Formular, setzt Filter/Gruppe/Vorlage und protokolliert verschickte Pakete pro SD-Thread. |
-| `overview_villages` (`mode=units&type=away_detail`) | `displayAwayDetail` (`src/ui/away-detail.ts`) | Liest abgestellte Deff pro Dorf aus, rechnet sie ueber konfigurierbare Unit-Power- und Split-Werte in Bunkeranfragen um und schreibt das Ergebnis direkt in den ausgewaehlten SD-Thread-Cache. |
+| `overview_villages` (`mode=units&type=away_detail`) | `displayAwayDetail` (`src/ui/away-detail.ts`) | Liest abgestellte Deff pro Dorf aus, rechnet sie ueber konfigurierbare Unit-Power- und Split-Werte in Bunkeranfragen um, zeigt die Ergebnisse als auswaehlbare Vorschau und schreibt die markierten Eintraege in den ausgewaehlten SD-Thread-Cache. |
 | `forum-view_thread` | `viewThread` (`src/ui/view-thread.ts`) | Erkennt SD-Threads, ergänzt Buttons/Popups zum Registrieren neuer Threads und zeigt bei bekannten Threads die SD-Tabelle (`sdTable`) an. |
-| `forum-new_thread` | `createNewTable` (`src/ui/new-thread.ts`) | Stellt Eingabemasken für Paket-Vorlagen bereit und generiert beim Absenden den initialen Thread-Text inkl. SD-Tabelle und Spoiler-Erklärungen. |
+| `forum-new_thread` | `createNewTable` (`src/ui/new-thread.ts`) | Stellt Eingabemasken für Paket-Vorlagen bereit und generiert auf Knopfdruck den initialen Thread-Text inkl. SD-Tabelle und Spoiler-Erklärungen. |
 | `settings` | `displaySettings` (`src/ui/settings.ts`) | Rendert eine Konfigurations-Tabelle in den Spieleinstellungen, inkl. toggles, Dropdowns für Gruppen/Vorlagen und einer Liste aller bekannten SD-Threads samt Reset fuer den gespeicherten Versandstatus pro Thread. |
 
 > **Hinweis:** Jede dieser Funktionen kapselt den kompletten jQuery-Manipulationscode für ihren Kontext. Dadurch lässt sich das Script gezielt auf den Seiten aktivieren, auf denen Tampermonkey es injiziert.
@@ -33,7 +33,20 @@ Alle nutzerbezogenen Informationen (allgemeine Settings, bekannte Threads, Threa
 - **UI-Komponenten** (`src/ui/components/`): Teilroutinen, die innerhalb von `viewThread` eingebunden werden, z. B. Popups, Request-Formulare oder die Visualisierung/Edition der SD-Tabelle.
 
 ## Build & Ausführung
-- **Entwicklung:** TypeScript-Quellen werden über webpack/babel gebündelt. `npm run dev` baut `devUserscript.js`, welches direkt in Tampermonkey importiert werden kann.
-- **Produktion:** Tampermonkey führt ausschließlich die gebaute Datei aus; alle TypeScript/ES-Modul-Features werden während des Builds transpiliert.
+- **Entwicklung:** `npm run dev`/`npm start` startet webpack auf Port 9000. Der versionierte `devUserscript.js` lädt das aktuelle Bundle beim Seitenaufruf. `npm run build` prüft die TypeScript-Quellen.
+- **Produktion:** `npm run release` bündelt ohne Development-eval und exportiert `compiledScript.js` mit Metadaten sowie den Dev-Loader. Version und Match-Regeln werden zentral erzeugt.
 
 Dieses Dokument dient als Ausgangspunkt, wenn neue Contributor:innen sich schnell orientieren oder weitere Kontexte ergänzen möchten.
+
+
+## Stand des Updates 2.0
+
+- `resolveScriptContext()` liefert allen Controllern einen gemeinsamen `PageContext`. Fehlende Forum-IDs werden aus dem ausgewählten Forum aufgelöst; Massen-UT läuft nur auf `mode=call`, Post-Bearbeitung bleibt im Thread-Kontext.
+- `table-domain.ts` enthält Parser, Berechnungen und Formatter; `table-dom.ts` liest/rendert gezielt den registrierten SD-Post. `date-helper.ts` konvertiert Epoch-Sekunden, lokale Eingaben und deutsches Datumsformat.
+- `local-storage-repository.ts` speichert Änderungen mit eindeutigen Schlüsseln und reproduzierbarer Reihenfolge. Versand-/Post-Erfolge werden als idempotente Vorgänge projiziert; `local-storage-serializer.ts` validiert Thread-Felder und Map-Arrays.
+- Journal-Komprimierung schreibt zuerst einen vollständigen Snapshot mit den bereits enthaltenen Änderungsschlüsseln. Erst danach werden genau diese Einträge entfernt. Web Locks koordinieren parallele Komprimierungen; spätere Tab-Änderungen bleiben replaybar.
+- Neue Anfrage-IDs werden nicht recycelt. `sd-next-id=N` im bestehenden postCache-Spoiler hält den nächsten freien Wert fest; numerische Post-IDs werden weiterhin gesondert geparst.
+- `pending-operation.ts` hält Vorbereitung und Erfolgsbestätigung getrennt. Unklare Rückmeldungen erhalten Entwürfe und eine sichtbare Prüfung, inklusive tatsächlicher Menge bei Teilversand.
+- `organizer-style.ts` und `onboarding.ts` stellen gemeinsame Spielstile sowie versionierte Touren pro Kontext/Rolle bereit.
+
+Regressionen werden mit Jest/jsdom geprüft. Die reale DOM-Kopplung erfordert zusätzlich Browser-Abnahme; deren Grenzen stehen in `implementation-log.md`.

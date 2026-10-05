@@ -51,7 +51,9 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
 
 - Admins können in jedem Thread eine eigene SD-Tabelle anlegen.
 - Es werden je nach Welt passende Truppentypen angezeigt.
-- Standard-/Default-Truppen werden automatisch verwendet.
+- Paketkonfiguration und „SD Tabelle generieren“ stehen im verschiebbaren **SD Organizer**, nicht neben der Thread-Überschrift.
+- 200 in Speer, Schwert oder Bogen setzt diese Paketzeile auf 200/200/200/10 (ohne Bogen auf 200/200/10). Ein Klick leert nur das angeklickte Feld; eine neue Infanteriemenge skaliert die Zeile. Späher werden auf ganze Einheiten gerundet und lassen sich separat ändern.
+- Bei komplett leeren Feldern gilt 100 je Infanterieeinheit und 5 Späher.
 - Das Formular kann erst abgeschickt werden, wenn ein Name eingetragen ist.
 - Wenn das Formular nicht abschickbar ist, wird ein Hinweis angezeigt.
 
@@ -70,8 +72,12 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
   - Einen Button, um das **Bunkeranfragen-UI** zu öffnen.
   - Einen Button, um **bearbeitete Bunker** einzufügen (wird gehighlightet, wenn Pakete verschickt wurden).
 - Bereits erstellte, aber noch nicht abgeschickte Anfragen werden beim erneuten Öffnen wiederhergestellt.
+- „Übernehmen“ und „Bunker anfragen“ erstellen bzw. füllen nur einen Entwurf. Erst der Spielbutton **Senden** veröffentlicht den Beitrag.
+- Entwürfe bleiben erhalten, bis ein neuer eigener Beitrag mit exakt passendem Text erkannt oder der Vorgang ausdrücklich bestätigt wird. Bei Fehlern kann der Beitrag erneut eingefüllt werden.
 - Wenn fuer einen Thread noch zwischengespeicherte Bunkeranfragen vorliegen, wird der Button `Bunker anfragen` mit einer blauen Badge markiert.
-- Auf `overview_villages -> away_detail` kann abgestellte Deff per `SD Bunker auslesen` direkt in den Anfrage-Cache eines bekannten SD-Threads übernommen werden.
+- Auf `overview_villages -> away_detail` kann abgestellte Deff über den **SD Organizer** mit 100/200 Dual bzw. auf Bogenwelten 100/200 Trial direkt in den Anfrage-Cache eines bekannten SD-Threads übernommen werden.
+- Vor dem Uebernehmen koennen einzelne importierte Koordinaten gezielt an- oder abgewaehlt werden.
+- In der Import-Vorschau gibt es zusaetzlich einen Schnellbutton, der alle Eintraege unter 5 Paketen aus der aktuellen Auswahl entfernt und die betroffenen Ziel-Thread-Anfragen entsprechend bereinigt.
 - Koordinaten können in nahezu beliebigem Format eingegeben werden; eine Regex fasst die Eingabe sinnvoll zusammen.
 - Fehlerhafte Angaben werden rot im Input markiert.
 - Leere Inputfelder in derselben Spalte können automatisch befüllt werden.
@@ -88,6 +94,8 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
   - An: Checkboxen werden auch bei Zieldörfern gesetzt, zu denen bereits Pakete geschickt wurden.
 - Für das `ab`/`bis`-Feature wird die tatsächliche Schwert-Laufzeit aus der Massen-UT-Tabelle mit der Distanz verglichen, damit ein aktiver Support-Speedboost automatisch erkannt und bei der Checkbox-Auswahl berücksichtigt wird.
 - Neben dem Uebernehmen-Button gibt es einen `SD erneut schicken`-Button, der die Massen-UT-Seite mit den passenden SD-Parametern aus den Settings neu aufruft; ohne passende SD-Zuordnung fuer das aktuelle Zieldorf bleibt er deaktiviert.
+- Ein Versand wird zunächst als **offener Vorgang** vorgemerkt. Prüfe im Spiel, ob er erfolgreich war, und bestätige die tatsächlich verschickte Paketzahl. Bei Teilversand kannst du diese Menge reduzieren; bei Fehlern den Versuch verwerfen. Ein Buttonklick allein bucht keine Pakete.
+- `done` und bereits bearbeitete Anfragen werden bei aktivem Doppelversandschutz nicht erneut vorausgewählt.
 - Unabhängig von den Settings:
   - Es wird gezeigt, welche Buttons in welcher Reihenfolge zu drücken sind.
   - Es wird die passende Anzahl an Checkboxen gesetzt.
@@ -109,7 +117,7 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
 - Im SD-Tabellen-View werden bereits eingelesene, aber noch nicht gelöschte Posts rot hervorgehoben, damit der Admin sie löschen kann.
 - Bereits eingelesene Posts werden im Cache hinterlegt, um doppeltes Einlesen zu verhindern.
 - Der Button „SD-Post bearbeiten“ ist nur für Admins sichtbar.
-- Der Button „SD-Tabelle updaten“ ist immer sichtbar, mehrfaches Drücken verändert die Daten dank Cache nicht.
+- Der Button „Update SD Tabelle“ steht Mods beim Bearbeiten des SD-Posts zur Verfügung. Der Post-Cache verhindert doppeltes Einlesen; IDs anderer Anfragen bleiben beim Entfernen einer Zeile erhalten.
 
 ---
 
@@ -143,16 +151,20 @@ Installieren der Abhängigkeiten:
 npm install
 ```
 
-Build / Entwicklung (abhängig von deiner bestehenden Toolchain, z.B. Webpack/Babel):
+Build / Entwicklung (Windows-kompatibel):
 
 ```bash
-# Beispiel
-npm run build
-# oder
-npm run dev
+npm run build       # TypeScript/webpack -> dist/bundle.js
+npm test -- --runInBand
+npm run dev         # Server auf http://localhost:9000; entspricht npm start
+npm run release     # Production-Bundle + compiledScript.js + devUserscript.js
 ```
 
-Das gebaute Userscript (z.B. `compiledScript.js` oder `devUserscript.js`) kann dann in Tampermonkey importiert werden.
+`compiledScript.js` ist das eigenständige Userscript für Nutzung/Abgabe. `devUserscript.js` bleibt versioniert und lädt zur Entwicklung vom lokalen Server auf Port 9000. Nur eine Variante gleichzeitig aktivieren. `build2` ist ein Alias für `release`; `sed` wird nicht benötigt.
+
+Die Metadaten kommen aus `scripts/export-userscript.cjs` und der Paketversion. Matches unterstützen `*.die-staemme.de` und `*.tribalwars.net` unabhängig von URL-Parameterreihenfolge; die Controller begrenzen die Ausführung auf passende Kontexte. Sitter-Parameter bleiben beim Linkbau erhalten.
+
+Der aktuelle Export **2.0.0-rc.1** ist ein Testkandidat. Der vollständige Versand-/Post-Durchlauf mit dem installierten Production-Script steht noch aus; siehe [Umsetzungsstand](docs/implementation-log.md).
 
 ---
 
@@ -246,3 +258,26 @@ Hinweis zum Bunker-Import:
 - Dort werden Ziel-Thread, Split-Zusammensetzung und Unit-Power-Werte gespeichert und fuer spaetere Imports wiederverwendet.
 
 
+
+
+## Einführung und manuelle Handy-Anfragen
+
+Im Organizer und auf Massen-UT findest du **Einführung starten**. Die Tour erklärt den aktuellen Ablauf, zeigt passende Bedienelemente und lässt sich überspringen, später fortsetzen oder neu starten. Fortschritt wird pro Kontext und Rolle gespeichert.
+
+Manuelle Anfragen verwenden vier Feldtrenner: `Koordinate Menge "Spieler"Bemerkung"ab"bis`. Leere optionale Felder sind erlaubt:
+
+```text
+123|123 200 """"
+123|123 200 “StarSlayer700”ohne Zeitfenster“”
+123|123 200 „StarSlayer700“bis morgen„06.10.2026 12:00“07.10.2026 12:00
+```
+
+Gerade, typografische und gemischte Apple-/Handy-Anführungszeichen werden akzeptiert. Statusmeldungen sind ganze Zeilen wie `id5 20`, `2 20`, `1 70Pakete` oder `1 done`. Beliebiger Text zwischen ID und Menge (`1abcdefg20`) wird nicht als Versandmeldung interpretiert.
+
+## Speicherung ab Version 2
+
+Bestehende Daten werden mit Schema-Version 2 validiert. Maps bleiben als Arrays gespeichert. Unabhängige Änderungen verschiedener Tabs werden in eindeutigen Journal-Einträgen erhalten; gleichzeitige Änderungen desselben Felds folgen einer festen Reihenfolge. Bestätigte Sendungen werden als idempotente, additive Vorgänge gebucht.
+
+Der Grunddatensatz bleibt unter `standdeff-organizer`. Änderungen liegen unter `standdeff-organizer:change:…`, offene Vorgänge unter `standdeff-organizer:pending:…`. Eine sichere Zusammenfassung des Journals erfolgt ab 100 Änderungen über Web Locks; ohne diese Browserfunktion bleiben die Einträge erhalten. Beschädigte JSON-Wurzeln werden vor einer Wiederherstellung gesichert. Versand-IDs werden anhand der Dorfzuordnung migriert; nicht eindeutig zuordenbare Einträge erhalten einen sichtbaren Prüfhinweis.
+
+Nicht parallel eine ältere Skriptversion betreiben: Sie kennt das Änderungsjournal nicht. Für das nächste Update stehen [Plan](docs/next-major-update-plan.md), [Umsetzung und verbleibende Abnahme](docs/implementation-log.md) sowie [Release-Notizen](docs/release-notes-2.0.md) bereit.

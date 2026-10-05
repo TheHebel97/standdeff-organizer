@@ -1,3 +1,5 @@
+import {ensureOrganizerStyles, escapeHtml} from "./components/organizer-style";
+import {buildBunkerPreset, describeBunkerPreset} from "../helpers/bunker-import-settings";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
 import {PageContext} from "../helpers/script-context";
@@ -12,8 +14,23 @@ const PANEL_ID = "sd-bunker-import-panel";
 const PANEL_HANDLE_CLASS = "sd-bunker-import-panel-handle";
 const BUTTON_ID = "sd-import-bunker-requests";
 const DRAG_NAMESPACE = ".bunkerImportPanelDrag";
+const PREVIEW_ROW_SELECTOR = "[data-bunker-import-preview-row]";
 
 const log = Log.scope("away-detail");
+const importSelectionByCoords: Record<string, boolean> = {};
+
+type bunkerImportCalculation = {
+    splitPower: number;
+    importedRequests: sdInquiry[];
+}
+
+function isImportRequestSelected(coords: string): boolean {
+    return importSelectionByCoords[coords] ?? true;
+}
+
+function setImportRequestSelection(coords: string, isSelected: boolean) {
+    importSelectionByCoords[coords] = isSelected;
+}
 
 function clampPanelPosition($panel: JQuery<HTMLElement>, position: forumQuickSettingsPosition): forumQuickSettingsPosition {
     const panelWidth = $panel.outerWidth() ?? 0;
@@ -116,7 +133,7 @@ function getAvailableUnits(): Unit[] {
 function buildUnitSettingsRows(units: Unit[], splitConfig: unitNumberMap, unitPowers: unitNumberMap): string {
     return units.map((unit) => `
       <tr>
-        <td style="padding: 4px 6px; font-weight: bold;">${unit}</td>
+        <td style="padding: 4px 6px; font-weight: bold;"><img src="/graphic/unit/unit_${unit}.png" alt="${unit}" title="${unit}"></td>
         <td style="padding: 4px 6px;">
           <input type="number" min="0" step="1" data-unit="${unit}" data-config="split" value="${splitConfig[unit] ?? 0}"
                  style="width: 90px; background-color: #e6dcc1; border: 1px solid #7d510f; box-sizing: border-box;">
@@ -132,7 +149,7 @@ function buildUnitSettingsRows(units: Unit[], splitConfig: unitNumberMap, unitPo
 function buildThreadOptionsHtml(threads: Threads): string {
     let html = '<option value="">Bitte waehlen</option>';
     Object.entries(threads).forEach(([threadId, threadData]) => {
-        html += `<option value="${threadId}">${threadData.forumName} - ${threadData.threadName}</option>`;
+        html += `<option value="${escapeHtml(threadId)}">${escapeHtml(threadData.forumName)} - ${escapeHtml(threadData.threadName)}</option>`;
     });
     return html;
 }
@@ -151,7 +168,24 @@ function resolveSelectedThreadId(localStorageService: LocalStorageHelper, thread
     return threadIds[0];
 }
 
+function buildImportPreviewSectionHtml(): string {
+    return `
+    <div style="margin-top: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px;">
+        <div style="font-weight: bold;">Import-Vorschau</div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+          <input class="btn" type="button" value="Alle" data-bunker-import-select="all">
+          <input class="btn" type="button" value="Keine" data-bunker-import-select="none">
+          <input class="btn" type="button" value="Unter 5 entfernen" title="Entfernt auch vorhandene Anfrage-Entwürfe derselben Koordinaten im gewählten Ziel-Thread" data-bunker-import-select="below-five">
+        </div>
+      </div>
+      <div id="sd-bunker-import-preview-summary" style="font-size: 12px; color: #4d2f00; margin-bottom: 6px;"></div>
+      <div id="sd-bunker-import-preview" style="max-height: 220px; overflow-y: auto; border: 1px solid #c4a36b; background-color: #f8edd0; padding: 6px;"></div>
+    </div>`;
+}
+
 function ensurePanel(localStorageService: LocalStorageHelper, threads: Threads) {
+    ensureOrganizerStyles();
     let $panel = $(`#${PANEL_ID}`);
     if ($panel.length > 0) {
         return $panel;
@@ -162,11 +196,16 @@ function ensurePanel(localStorageService: LocalStorageHelper, threads: Threads) 
     const unitPowers = localStorageService.getBunkerUnitPowers;
     const selectedThreadId = resolveSelectedThreadId(localStorageService, threads);
 
-    const panelHtml = `<div id="${PANEL_ID}" style="position: fixed; top: 140px; right: 20px; width: 360px; z-index: 9999; background: #f4e4bc; border: 2px solid #7d510f; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); border-radius: 6px;">
-  <div class="${PANEL_HANDLE_CLASS}" style="cursor: move; user-select: none; padding: 8px 10px; background: linear-gradient(180deg, #124d8c 0%, #09335d 100%); color: #ffffff; font-weight: bold; border-top-left-radius: 4px; border-top-right-radius: 4px;">
-    SD Bunker Import
+    const panelHtml = `<div id="${PANEL_ID}" class="sd-organizer" style="position: fixed; top: 140px; right: 20px; width: 360px; z-index: 9999; background: #f4e4bc; border: 2px solid #7d510f; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); border-radius: 6px;">
+  <div class="${PANEL_HANDLE_CLASS} sd-organizer-handle" style="cursor: move; user-select: none; padding: 8px 10px;  font-weight: bold; border-top-left-radius: 4px; border-top-right-radius: 4px;">
+    SD Organizer
   </div>
   <div style="padding: 10px;">
+    <div style="font-weight:bold">Paketgröße für den Bunkerimport</div>
+    <div class="sd-preset-buttons">${[100,200].map(amount => `<input class="btn" type="button" data-preset="dual" data-amount="${amount}" value="${amount} Dual">`).join('')}
+    ${game_data.units.includes('archer') ? [100,200].map(amount => `<input class="btn" type="button" data-preset="trial" data-amount="${amount}" value="${amount} Trial">`).join('') : ''}</div>
+    <div id="sd-bunker-active-preset"></div>
+    <p>Berechnet die aktuell sichtbaren Truppen dieser Seite. Filter und weitere Seiten werden nicht automatisch eingelesen.</p>
     <div style="margin-bottom: 10px;">
       <div style="font-weight: bold; margin-bottom: 4px;">Ziel-Thread</div>
       <select id="sd-bunker-import-thread-id" style="width:100%; background-color: #e6dcc1; border: 1px solid #7d510f; padding: 5px 8px; box-sizing: border-box;">
@@ -174,22 +213,14 @@ function ensurePanel(localStorageService: LocalStorageHelper, threads: Threads) 
       </select>
       <div id="sd-bunker-import-thread-hint" style="font-size: 12px; color: #4d2f00; margin-top: 5px;"></div>
     </div>
-    <div style="margin-bottom: 10px;">
-      <div style="font-weight: bold; margin-bottom: 6px;">Berechnung pro Split</div>
-      <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-          <tr>
-            <th style="text-align: left; padding: 4px 6px;">Einheit</th>
-            <th style="text-align: left; padding: 4px 6px;">Split</th>
-            <th style="text-align: left; padding: 4px 6px;">Power</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${buildUnitSettingsRows(availableUnits, splitConfig, unitPowers)}
-        </tbody>
-      </table>
-    </div>
+    <details><summary>Eigene Paketgröße</summary>
+      <table style="width:100%"><tbody>${buildUnitSettingsRows(availableUnits, splitConfig, unitPowers).replace(/<td style="padding: 4px 6px;">\s*<input type="number" min="0" step="0.01"[\s\S]*?<\/td>/g, '')}</tbody></table>
+    </details>
+    <details><summary>Erweiterte Berechnung: Power</summary>
+      <table style="width:100%"><tbody>${buildUnitSettingsRows(availableUnits, splitConfig, unitPowers).replace(/<td style="padding: 4px 6px;">\s*<input type="number" min="0" step="1"[\s\S]*?<\/td>/g, '')}</tbody></table>
+    </details>
     <div id="sd-bunker-import-split-power" style="font-size: 12px; color: #4d2f00; font-weight: bold;"></div>
+    ${buildImportPreviewSectionHtml()}
   </div>
 </div>`;
 
@@ -216,6 +247,11 @@ function syncSplitPower($panel: JQuery<HTMLElement>, localStorageService: LocalS
         localStorageService.getBunkerUnitPowers,
         getAvailableUnits()
     );
+    const active = describeBunkerPreset(localStorageService.getBunkerSplitConfig, game_data.units.includes('archer'));
+    $panel.find('#sd-bunker-active-preset').text(`Aktuell: ${active}`);
+    $panel.find('[data-preset]').each(function () {
+        $(this).attr('aria-pressed', String(`${$(this).data('amount')} ${String($(this).data('preset')).replace(/^./, c => c.toUpperCase())}` === active));
+    });
     $panel.find("#sd-bunker-import-split-power").text(`Power pro Split: ${splitPower.toFixed(2)}`);
 }
 
@@ -228,32 +264,199 @@ function syncThreadHint($panel: JQuery<HTMLElement>, threads: Threads) {
     }
 
     const targetThread = threads[selectedThreadId];
-    $hint.text(`Importiert direkt in: ${targetThread.threadName}`);
+    $hint.text(`Speichert einen Anfrage-Entwurf für: ${targetThread.threadName}`);
+}
+
+function calculateImportedRequests(localStorageService: LocalStorageHelper): bunkerImportCalculation {
+    const unitPowers = localStorageService.getBunkerUnitPowers;
+    const splitConfig = localStorageService.getBunkerSplitConfig;
+    const splitPower = calculateBunkerSplitPower(splitConfig, unitPowers, getAvailableUnits());
+    if (splitPower <= 0) {
+        return {
+            splitPower,
+            importedRequests: []
+        };
+    }
+
+    const villagePowerMap = getVillagePowerMap(unitPowers);
+    return {
+        splitPower,
+        importedRequests: buildImportedRequests(villagePowerMap, splitPower)
+    };
+}
+
+function buildImportPreviewRows(importedRequests: sdInquiry[], existingRequests: sdInquiry[]): string {
+    const existingRequestsByCoords = new Map(existingRequests.map((request) => [request.coords, request]));
+    return importedRequests.map((request) => {
+        const existingRequest = existingRequestsByCoords.get(request.coords);
+        const isSelected = isImportRequestSelected(request.coords);
+        const statusText = existingRequest
+            ? `Ersetzt ${existingRequest.amount} -> ${request.amount}`
+            : `Neu ${request.amount}`;
+
+        return `
+        <tr data-bunker-import-preview-row data-coords="${request.coords}" data-amount="${request.amount}" data-is-replacement="${existingRequest ? "1" : "0"}">
+          <td style="padding: 4px 6px; vertical-align: top;">
+            <input type="checkbox" class="sd-bunker-import-preview-checkbox" data-coords="${request.coords}" ${isSelected ? "checked" : ""}>
+          </td>
+          <td style="padding: 4px 6px; vertical-align: top;">
+            <div style="font-weight: bold;">${request.coords}</div>
+            <div style="font-size: 11px; color: #4d2f00;">${statusText}</div>
+          </td>
+        </tr>`;
+    }).join("");
+}
+
+function syncImportPreviewSummary($panel: JQuery<HTMLElement>) {
+    const $rows = $panel.find(PREVIEW_ROW_SELECTOR);
+    const totalCount = $rows.length;
+    let selectedCount = 0;
+    let selectedNewCount = 0;
+    let selectedReplacementCount = 0;
+
+    $rows.each(function () {
+        const $row = $(this);
+        const isSelected = $row.find(".sd-bunker-import-preview-checkbox").is(":checked");
+        if (!isSelected) {
+            return;
+        }
+
+        selectedCount += 1;
+        if (String($row.data("isReplacement")) === "1") {
+            selectedReplacementCount += 1;
+            return;
+        }
+
+        selectedNewCount += 1;
+    });
+
+    $panel.find("#sd-bunker-import-preview-summary").text(
+        `${totalCount} Anfragen gefunden, ${selectedCount} markiert. Markiert: ${selectedNewCount} neu, ${selectedReplacementCount} ersetzen.`
+    );
+}
+
+function renderImportPreview($panel: JQuery<HTMLElement>, localStorageService: LocalStorageHelper, threads: Threads) {
+    const calculation = calculateImportedRequests(localStorageService);
+    const selectedThreadId = String($panel.find("#sd-bunker-import-thread-id").val() ?? localStorageService.getBunkerImportTargetThreadId);
+    const hasKnownThread = selectedThreadId !== "" && threads[selectedThreadId] !== undefined;
+    const $preview = $panel.find("#sd-bunker-import-preview");
+    const $summary = $panel.find("#sd-bunker-import-preview-summary");
+
+    if (calculation.splitPower <= 0) {
+        $summary.text("Die Split-Berechnung ergibt 0. Bitte Split oder Power anpassen.");
+        $preview.html("");
+        return;
+    }
+
+    if (calculation.importedRequests.length === 0) {
+        $summary.text("Keine gueltigen Bunkeranfragen auf der Seite gefunden.");
+        $preview.html("");
+        return;
+    }
+
+    if (!hasKnownThread) {
+        $summary.text(`${calculation.importedRequests.length} Anfragen gefunden. Bitte zuerst einen bekannten SD-Thread waehlen.`);
+        $preview.html(`
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <tbody>
+            ${buildImportPreviewRows(calculation.importedRequests, [])}
+          </tbody>
+        </table>`);
+        return;
+    }
+
+    const existingRequests = localStorageService.getSdInquiry(selectedThreadId);
+    $preview.html(`
+    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+      <tbody>
+        ${buildImportPreviewRows(calculation.importedRequests, existingRequests)}
+      </tbody>
+    </table>`);
+    syncImportPreviewSummary($panel);
 }
 
 function syncImportButtonState(localStorageService: LocalStorageHelper, threads: Threads) {
-    const selectedThreadId = String($(`#${PANEL_ID}`).find("#sd-bunker-import-thread-id").val() ?? localStorageService.getBunkerImportTargetThreadId);
+    const $panel = $(`#${PANEL_ID}`);
+    const selectedThreadId = String($panel.find("#sd-bunker-import-thread-id").val() ?? localStorageService.getBunkerImportTargetThreadId);
     const hasKnownThread = selectedThreadId !== "" && threads[selectedThreadId] !== undefined;
-    $(`#${BUTTON_ID}`).prop("disabled", !hasKnownThread);
+    const selectedCount = $panel.find(".sd-bunker-import-preview-checkbox:checked").length;
+    const hasPreviewRows = $panel.find(PREVIEW_ROW_SELECTOR).length > 0;
+
+    $(`#${BUTTON_ID}`)
+        .prop("disabled", !(hasKnownThread && hasPreviewRows && selectedCount > 0))
+        .val(selectedCount > 0 ? `Markierte Bunker uebernehmen (${selectedCount})` : "Markierte Bunker uebernehmen");
+}
+
+function removePreviewRowsBelowAmount($panel: JQuery<HTMLElement>, minimumAmount: number): string[] {
+    const removedCoords: string[] = [];
+
+    $panel.find(PREVIEW_ROW_SELECTOR).each(function () {
+        const $row = $(this);
+        const amount = Number($row.data("amount") ?? 0);
+        if (!isFinite(amount) || amount >= minimumAmount) {
+            return;
+        }
+
+        const coords = String($row.data("coords") ?? "");
+        setImportRequestSelection(coords, false);
+        $row.remove();
+        removedCoords.push(coords);
+    });
+
+    syncImportPreviewSummary($panel);
+    return removedCoords;
+}
+
+function removeStoredRequestsByCoords(
+    localStorageService: LocalStorageHelper,
+    targetThreadId: string,
+    coordsToRemove: string[]
+): number {
+    if (targetThreadId === "" || coordsToRemove.length === 0) {
+        return 0;
+    }
+
+    const coordsToRemoveSet = new Set(coordsToRemove);
+    const existingRequests = localStorageService.getSdInquiry(targetThreadId);
+    const filteredRequests = existingRequests.filter((request) => !coordsToRemoveSet.has(request.coords));
+    const removedCount = existingRequests.length - filteredRequests.length;
+
+    if (removedCount > 0) {
+        localStorageService.setSdInquiry(targetThreadId, filteredRequests);
+    }
+
+    return removedCount;
 }
 
 function bindPanelEvents($panel: JQuery<HTMLElement>, localStorageService: LocalStorageHelper, threads: Threads) {
     $panel.off(".bunkerImportSettings");
+    $panel.on('click.bunkerImportSettings', '[data-preset]', function () {
+        const config = buildBunkerPreset(Number($(this).data('amount')), String($(this).data('preset')) === 'trial');
+        localStorageService.setBunkerSplitConfig = config;
+        $panel.find('input[data-config=split]').each(function () { $(this).val(config[String($(this).data('unit')) as Unit]); });
+        syncSplitPower($panel, localStorageService);
+        renderImportPreview($panel, localStorageService, threads);
+        syncImportButtonState(localStorageService, threads);
+    });
 
     $panel.on("change.bunkerImportSettings", "#sd-bunker-import-thread-id", function () {
         const selectedThreadId = String($(this).val() ?? "");
         localStorageService.setBunkerImportTargetThreadId = selectedThreadId;
         syncThreadHint($panel, threads);
+        renderImportPreview($panel, localStorageService, threads);
         syncImportButtonState(localStorageService, threads);
     });
 
     $panel.on("change.bunkerImportSettings", "input[data-config='split']", function () {
         const unit = String($(this).data("unit")) as Unit;
         const nextConfig = {...localStorageService.getBunkerSplitConfig};
-        nextConfig[unit] = parseNumericInput(String($(this).val() ?? ""), nextConfig[unit] ?? 0);
+        const amount = parseNumericInput(String($(this).val() ?? ""), nextConfig[unit] ?? 0);
+        nextConfig[unit] = Number.isSafeInteger(amount) ? amount : (nextConfig[unit] ?? 0);
         $(this).val(String(nextConfig[unit]));
         localStorageService.setBunkerSplitConfig = nextConfig;
         syncSplitPower($panel, localStorageService);
+        renderImportPreview($panel, localStorageService, threads);
+        syncImportButtonState(localStorageService, threads);
     });
 
     $panel.on("change.bunkerImportSettings", "input[data-config='power']", function () {
@@ -263,10 +466,50 @@ function bindPanelEvents($panel: JQuery<HTMLElement>, localStorageService: Local
         $(this).val(String(nextConfig[unit]));
         localStorageService.setBunkerUnitPowers = nextConfig;
         syncSplitPower($panel, localStorageService);
+        renderImportPreview($panel, localStorageService, threads);
+        syncImportButtonState(localStorageService, threads);
+    });
+
+    $panel.on("change.bunkerImportSettings", ".sd-bunker-import-preview-checkbox", function () {
+        const coords = String($(this).data("coords") ?? "");
+        setImportRequestSelection(coords, $(this).is(":checked"));
+        syncImportPreviewSummary($panel);
+        syncImportButtonState(localStorageService, threads);
+    });
+
+    $panel.on("click.bunkerImportSettings", "[data-bunker-import-select]", function () {
+        const action = String($(this).data("bunkerImportSelect") ?? "");
+        if (action === "below-five") {
+            const targetThreadId = String($panel.find("#sd-bunker-import-thread-id").val() ?? localStorageService.getBunkerImportTargetThreadId);
+            const removedCoords = removePreviewRowsBelowAmount($panel, 5);
+            const removedCount = removedCoords.length;
+            const removedStoredCount = removeStoredRequestsByCoords(localStorageService, targetThreadId, removedCoords);
+            syncImportButtonState(localStorageService, threads);
+            if (removedCount > 0) {
+                UI.SuccessMessage(
+                    `${removedCount} Bunkeranfragen unter 5 entfernt, ${removedStoredCount} im Ziel-Thread aktualisiert.`,
+                    3000
+                );
+                return;
+            }
+
+            UI.SuccessMessage("Keine Bunkeranfragen unter 5 gefunden.", 3000);
+            return;
+        }
+
+        const nextSelectionState = action === "all";
+        $panel.find(".sd-bunker-import-preview-checkbox").each(function () {
+            const coords = String($(this).data("coords") ?? "");
+            $(this).prop("checked", nextSelectionState);
+            setImportRequestSelection(coords, nextSelectionState);
+        });
+        syncImportPreviewSummary($panel);
+        syncImportButtonState(localStorageService, threads);
     });
 
     syncThreadHint($panel, threads);
     syncSplitPower($panel, localStorageService);
+    renderImportPreview($panel, localStorageService, threads);
     syncImportButtonState(localStorageService, threads);
 }
 
@@ -361,31 +604,37 @@ function bindImportButton(localStorageService: LocalStorageHelper, threads: Thre
             return;
         }
 
-        const unitPowers = localStorageService.getBunkerUnitPowers;
-        const splitConfig = localStorageService.getBunkerSplitConfig;
-        const splitPower = calculateBunkerSplitPower(splitConfig, unitPowers, getAvailableUnits());
-        if (splitPower <= 0) {
+        const calculation = calculateImportedRequests(localStorageService);
+        if (calculation.splitPower <= 0) {
             UI.ErrorMessage("Die Split-Berechnung ergibt 0. Bitte Split oder Power anpassen.", 5000);
             return;
         }
 
-        const villagePowerMap = getVillagePowerMap(unitPowers);
-        const importedRequests = buildImportedRequests(villagePowerMap, splitPower);
-        if (importedRequests.length === 0) {
+        if (calculation.importedRequests.length === 0) {
             UI.ErrorMessage("Keine gueltigen Bunkeranfragen auf der Seite gefunden.", 4000);
             return;
         }
 
+        const selectedImportedRequests = calculation.importedRequests.filter((request) => isImportRequestSelected(request.coords));
+        if (selectedImportedRequests.length === 0) {
+            UI.ErrorMessage("Bitte mindestens eine Bunkeranfrage markieren.", 4000);
+            return;
+        }
+
         const existingRequests = localStorageService.getSdInquiry(targetThreadId);
-        const mergedRequests = mergeImportedRequests(existingRequests, importedRequests);
+        const mergedRequests = mergeImportedRequests(existingRequests, selectedImportedRequests);
         localStorageService.setSdInquiry(targetThreadId, mergedRequests);
+        const $panel = $(`#${PANEL_ID}`);
+        renderImportPreview($panel, localStorageService, threads);
+        syncImportButtonState(localStorageService, threads);
         UI.SuccessMessage(
-            `${importedRequests.length} Bunkeranfragen fuer "${threads[targetThreadId].threadName}" uebernommen.`,
+            `${selectedImportedRequests.length} markierte Bunkeranfragen fuer "${threads[targetThreadId].threadName}" uebernommen.`,
             4000
         );
         log.info("Imported bunker requests from away-detail page", {
             targetThreadId,
-            importedCount: importedRequests.length,
+            importedCount: calculation.importedRequests.length,
+            selectedImportedCount: selectedImportedRequests.length,
             totalStoredCount: mergedRequests.length
         });
     });
@@ -400,12 +649,14 @@ export function displayAwayDetail(pageContext: PageContext) {
         knownThreadCount: Object.keys(threads).length
     });
 
-    const buttonHtml = `<input class="btn" type="button" value="SD Bunker auslesen" id="${BUTTON_ID}" style="margin-bottom: 10px;">`;
+    const buttonHtml = `<input class="btn" type="button" value="Markierte Bunker uebernehmen" id="${BUTTON_ID}" style="margin-bottom: 10px;">`;
     if ($(`#${BUTTON_ID}`).length === 0) {
-        $("#units_table").before(buttonHtml);
+        // The primary action belongs to the organizer panel.
+
     }
 
     const $panel = ensurePanel(localStorageService, threads);
+    if (!$panel.find(`#${BUTTON_ID}`).length) $panel.children().last().append(buttonHtml);
     bindPanelEvents($panel, localStorageService, threads);
     bindImportButton(localStorageService, threads);
     syncImportButtonState(localStorageService, threads);

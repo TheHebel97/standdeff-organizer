@@ -78,3 +78,24 @@ export function calculateBunkerSplitPower(
         return sum + (splitAmount * unitPower);
     }, 0);
 }
+
+export function buildBunkerPreset(amount: number, trial: boolean): unitNumberMap {
+    const config = {} as unitNumberMap;
+    BUNKER_IMPORT_UNIT_ORDER.forEach(unit => config[unit] = 0);
+    config.spear = amount;
+    config.sword = amount;
+    config.archer = trial ? amount : 0;
+    return config;
+}
+
+export function describeBunkerPreset(config: unitNumberMap, hasArchers: boolean): string {
+    for (const amount of [100, 200]) {
+        for (const trial of hasArchers ? [false, true] : [false]) {
+            const preset = buildBunkerPreset(amount, trial);
+            if (BUNKER_IMPORT_UNIT_ORDER.every(unit => (!hasArchers && unit === 'archer') || config[unit] === preset[unit])) {
+                return `${amount} ${trial ? 'Trial' : 'Dual'}`;
+            }
+        }
+    }
+    return 'Eigene Paketgröße';
+}

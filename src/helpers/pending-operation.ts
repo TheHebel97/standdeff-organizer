@@ -1,4 +1,7 @@
 import {sdInquiry} from '../types/types';
+import {normalizeDateEpoch} from './date-helper';
+
+const inquiryFingerprint = (row:sdInquiry) => JSON.stringify([row.coords,row.amount,row.playerName ?? '',row.comment ?? '',normalizeDateEpoch(row.dateFrom),normalizeDateEpoch(row.dateUntil)]);
 
 export type PendingOperation = {
     id:string; threadId:string; created:number; kind:'send'|'forum';
@@ -49,8 +52,8 @@ export function applyConfirmedOperation(data:any, operation:PendingOperation) {
                 if (remaining > 0) packages.set(id,String(remaining));
             }
         });
-        const sentDrafts = new Set((operation.inquiries ?? []).map(row => JSON.stringify(row)));
-        thread.bunkerInquiryCache = (thread.bunkerInquiryCache ?? []).filter((row:sdInquiry) => !sentDrafts.has(JSON.stringify(row)));
+        const sentDrafts = new Set((operation.inquiries ?? []).map(inquiryFingerprint));
+        thread.bunkerInquiryCache = (thread.bunkerInquiryCache ?? []).filter((row:sdInquiry) => !sentDrafts.has(inquiryFingerprint(row)));
     }
     thread.packagesSent = Array.from(packages);
 }

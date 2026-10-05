@@ -33,9 +33,9 @@ test('no archer input on worlds without archers; rejects invalid amounts and key
     $('.inputSpear').val('-1');
     $('#setupTable').trigger('click');
     expect($('#message').val()).toBe('');
-    const event = $.Event('submit');
-    $('form').triggerHandler(event);
-    expect(event.isDefaultPrevented()).toBe(true);
+    const event = new Event('submit',{bubbles:true,cancelable:true});
+    $('form')[0].dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
 });
 
 test.each([100,200])('Dual/Trial %i presets replace every unit contribution', amount => {

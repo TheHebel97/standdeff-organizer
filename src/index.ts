@@ -1,19 +1,6 @@
 import {showPendingOperations, confirmVisibleForumPosts} from "./ui/components/pending-operations";
 import {initializeOnboarding} from './ui/components/onboarding';
-// ==UserScript==
-// @name         Development Script
-// @version      0.1
-// @description  try to take over the world!
-// @author       You, Fine, Regenmantel
-// @match        https://*/game.php?village=*&screen=place&*mode=call*
-// @match        https://*/game.php?*screen=overview_villages&mode=units&type=away_detail&*
-// @match        https://*/game.php?*village=*&screen=forum*
-// @match        https://*/game.php?*village=*&screen=settings*
-// @grant        GM_getValue
-// @grant        GM_setValue
-// @grant        GM_deleteValue
-// @grant        none
-// ==/UserScript==
+
 
 import {displayMassUt} from "./ui/mass-ut";
 import {viewThread} from "./ui/view-thread";
@@ -35,6 +22,10 @@ const contextHandlers: Partial<Record<ScriptContext, { name: string, run: (pageC
 
 (function () {
     $(function () {
+        document.addEventListener('sd-storage-error',()=>{
+            $('#sd-storage-error').remove();
+            $('<p id="sd-storage-error" role="alert" style="padding:8px;border:1px solid #8d0100">').text('SD Organizer: Speichern fehlgeschlagen. Bitte freien Browserspeicher prüfen und die Änderung erneut ausführen.').prependTo('#content_value');
+        });
         const contextResolution = resolveScriptContext();
         log.groupCollapsed("Boot sequence");
         log.state("Resolved script context", contextResolution);
@@ -60,12 +51,17 @@ const contextHandlers: Partial<Record<ScriptContext, { name: string, run: (pageC
             handler.run(contextResolution);
             showPendingOperations();
             initializeOnboarding(contextResolution);
+            if (sessionStorage.getItem('sd-storage-recovered')) {
+                $('<p role="alert" style="padding:8px;border:1px solid #8d0100">').text('SD Organizer: beschädigte Speicherdaten wurden vor der Wiederherstellung unter standdeff-organizer:backup gesichert. Bitte die Thread-Zuordnungen und Einstellungen prüfen.').prependTo('#content_value');
+                sessionStorage.removeItem('sd-storage-recovered');
+            }
             log.info("Controller finished boot phase", {
                 context: contextResolution.context,
                 handler: handler.name
             });
         } catch (error) {
             log.error("Unhandled error during controller boot", error);
+            $('<p role="alert" style="padding:8px;border:1px solid #8d0100">').text(`SD Organizer konnte nicht gestartet werden: ${error instanceof Error ? error.message : 'unbekannter Fehler'}`).prependTo('#content_value');
             throw error;
         } finally {
             log.groupEnd();

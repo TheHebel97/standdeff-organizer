@@ -128,6 +128,7 @@ export class LocalStorageHelper {
             this.repository.save(data);
         } catch (error) {
             this.log.error("Error storing data in LocalStorage", error);
+            document.dispatchEvent(new CustomEvent('sd-storage-error'));
             this.updateFromLocalStorage("failed-write:rollback");
             throw error;
         }
@@ -156,7 +157,8 @@ export class LocalStorageHelper {
     }
 
     public confirmOperation(operation:PendingOperation) {
-        this.repository.confirmOperation(operation);
+        try { this.repository.confirmOperation(operation); }
+        catch (error) { document.dispatchEvent(new CustomEvent('sd-storage-error')); throw error; }
         discardPendingOperation(operation.id);
         this.updateFromLocalStorage('confirmed-operation');
     }

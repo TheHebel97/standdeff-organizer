@@ -3,7 +3,7 @@ import {applyConfirmedOperation, PendingOperation} from './pending-operation';
 
 const STORAGE_KEY = 'standdeff-organizer';
 const CHANGE_PREFIX = `${STORAGE_KEY}:change:`;
-type Patch = {path: string[]; value?: unknown; remove?: boolean};
+type Patch = {path: string[]; value?: unknown; remove?: boolean; inquiryCoords?:string; inquiryField?:string};
 type Change = {revision: number; patches: Patch[]; operation?:PendingOperation};
 const clone = (value: any) => JSON.parse(JSON.stringify(value));
 const object = (value: unknown): value is Record<string, any> => !!value && typeof value === 'object' && !Array.isArray(value);
@@ -59,10 +59,21 @@ export class StandDeffStorageRepository {
                 confirmed.add(change.operation.id);
             }
             for (const patch of change.patches) {
-                if (!Array.isArray(patch.path) || !patch.path.length || patch.path.some(key => ['__proto__','constructor','prototype'].includes(key))) continue;
+                if (!patch || !Array.isArray(patch.path) || !patch.path.length || patch.path.some(key => typeof key !== 'string' || ['__proto__','constructor','prototype'].includes(key))) continue;
+                if (!patch.remove && !Object.prototype.hasOwnProperty.call(patch,'value')) continue;
                 let target = data;
                 patch.path.slice(0,-1).forEach(key => { if (!object(target[key])) target[key] = {}; target = target[key]; });
                 const key = patch.path[patch.path.length - 1];
+                if (key === 'bunkerInquiryCache' && patch.inquiryCoords) {
+                    const rows=Array.isArray(target[key]) ? target[key] : [];
+                    const index=rows.findIndex((row:any)=>row.coords === patch.inquiryCoords);
+                    if (patch.inquiryField) {
+                        if (index >= 0 && !['__proto__','constructor','prototype'].includes(patch.inquiryField)) rows[index][patch.inquiryField]=clone(patch.value);
+                    } else if (patch.remove) { if (index >= 0) rows.splice(index,1); }
+                    else if (index >= 0) rows[index]=clone(patch.value); else rows.push(clone(patch.value));
+                    target[key]=rows;
+                    continue;
+                }
                 if (key === 'stateOfSdTable' && Array.isArray(patch.value)) {
                     const oldRows=new Map<number,any>(Array.isArray(target.stateOfSdTable) ? target.stateOfSdTable : []);
                     const nextRows=new Map<number,any>(patch.value as any);
@@ -90,6 +101,20 @@ export class StandDeffStorageRepository {
             const patches: Patch[] = [];
             const diff = (old: any, next: any, path: string[]) => {
                 if (JSON.stringify(old) === JSON.stringify(next)) return;
+                if (path[path.length-1] === 'bunkerInquiryCache' && Array.isArray(old) && Array.isArray(next)) {
+                    const before=new Map<string,any>(old.map(row=>[row.coords,row]));
+                    const after=new Map<string,any>(next.map(row=>[row.coords,row]));
+                    new Set([...before.keys(),...after.keys()]).forEach(coords=>{
+                        const first=before.get(coords), second=after.get(coords);
+                        if (JSON.stringify(first) === JSON.stringify(second)) return;
+                        if (first && second) {
+                            new Set([...Object.keys(first),...Object.keys(second)]).forEach(field=>{
+                                if (JSON.stringify(first[field]) !== JSON.stringify(second[field])) patches.push({path,inquiryCoords:coords,inquiryField:field,value:second[field] ?? null});
+                            });
+                        } else patches.push(second === undefined ? {path,inquiryCoords:coords,remove:true} : {path,inquiryCoords:coords,value:second});
+                    });
+                    return;
+                }
                 if (object(old) && object(next)) {
                     new Set([...Object.keys(old), ...Object.keys(next)]).forEach(key => diff(old[key], next[key], [...path,key]));
                 } else patches.push(next === undefined ? {path,remove:true} : {path,value:next});

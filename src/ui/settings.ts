@@ -7,7 +7,7 @@ import {ADD_THREAD_ICON_DATA_URI} from "./ui-assets";
 import {buildForumThreadUrl} from "../helpers/game-url-helper";
 import {initializeSdSettingsControls} from "./components/sd-settings-controls";
 
-const localStorageService = LocalStorageHelper.getInstance();
+let localStorageService: LocalStorageHelper;
 const log = Log.scope("settings");
 
 function buildThreadRow(threadId: string, threadData: ThreadData): string {
@@ -52,6 +52,7 @@ function renderThreadRows(threads: Threads) {
 
 
 export function displaySettings(pageContext: PageContext) {
+    localStorageService = LocalStorageHelper.getInstance();
     ensureOrganizerStyles();
     log.info("Initializing settings controller", {href: pageContext.href});
 

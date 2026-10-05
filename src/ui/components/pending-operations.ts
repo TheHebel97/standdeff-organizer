@@ -17,7 +17,18 @@ export function showPendingOperations() {
         if (operation.kind === 'forum' && operation.message) {
             $('<input type="button" class="btn" value="Beitrag wieder einfüllen">').on('click', () => $('#message').val(operation.message!)).appendTo($row);
         }
-        $('<input type="button" class="btn" value="Erfolgreich bestätigen">').on('click', () => { LocalStorageHelper.getInstance().confirmOperation(operation); showPendingOperations(); }).appendTo($row);
+        const $amount=$('<input type="number" min="1" step="1" aria-label="Tatsächlich verschickte Pakete" style="width:65px">').val(operation.amount ?? 0).attr('max',operation.amount ?? 0);
+        if (operation.kind === 'send') $row.append($('<label>').text('Tatsächlich verschickte Pakete: ').append($amount));
+        $('<input type="button" class="btn" value="Erfolgreich bestätigen">').on('click', () => {
+            const amount=Number($amount.val());
+            if (operation.kind === 'send' && (!Number.isSafeInteger(amount) || amount <= 0 || amount > (operation.amount ?? 0))) {
+                UI.ErrorMessage('Bitte die tatsächlich verschickte Paketmenge prüfen.',4000); return;
+            }
+            try {
+                LocalStorageHelper.getInstance().confirmOperation(operation.kind === 'send' ? {...operation,amount} : operation);
+                showPendingOperations();
+            } catch { UI.ErrorMessage('Bestätigung konnte nicht gespeichert werden. Der Vorgang bleibt erhalten.',5000); }
+        }).appendTo($row);
         $('<input type="button" class="btn" value="Versuch verwerfen">').on('click', () => { discardPendingOperation(operation.id); showPendingOperations(); }).appendTo($row);
         $box.append($row);
     });

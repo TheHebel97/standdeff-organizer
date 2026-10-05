@@ -80,6 +80,28 @@ test('table migration replays against concurrent send status instead of an old p
     expect(storage.getPackagesSent('9').get('7')).toBe('10');
 });
 
+test('confirmation clears imported drafts with omitted optional fields after normalization',()=>{
+    const storage=new LocalStorageHelper();storage.addThread('9',thread());
+    storage.setSdInquiry('9',[{coords:'123|123',amount:10,playerName:undefined,comment:undefined,dateFrom:undefined,dateUntil:undefined}]);
+    const operation=createPendingOperation({kind:'forum',threadId:'9',inquiries:storage.getSdInquiry('9')});
+    storage.confirmOperation(operation);
+    expect(storage.getSdInquiry('9')).toEqual([]);
+});
+
+test('parallel edits to separate inquiry fields and villages survive',()=>{
+    const storage=new LocalStorageHelper();storage.addThread('9',thread());
+    storage.setSdInquiry('9',[{coords:'123|123',amount:10,playerName:'',comment:'',dateFrom:0,dateUntil:0}]);
+    const first=new StandDeffStorageRepository(),second=new StandDeffStorageRepository();
+    const a=JSON.parse(first.load()!),b=JSON.parse(second.load()!);
+    a.threads['9'].bunkerInquiryCache[0].amount=20;
+    b.threads['9'].bunkerInquiryCache[0].comment='Hinweis';
+    b.threads['9'].bunkerInquiryCache.push({coords:'124|124',amount:5});
+    first.save(a);second.save(b);
+    expect(storage.getSdInquiry('9')).toEqual(expect.arrayContaining([
+        expect.objectContaining({coords:'123|123',amount:20,comment:'Hinweis'}),expect.objectContaining({coords:'124|124',amount:5})
+    ]));
+});
+
 test('pending send for a removed request is never booked against a new request at the same village',()=>{
     const storage=new LocalStorageHelper();storage.addThread('9',thread());
     const operation=createPendingOperation({kind:'send',threadId:'9',villageId:12,requestId:'1',amount:10,leftAmount:200});

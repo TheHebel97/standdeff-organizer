@@ -13,7 +13,10 @@ export function createNewTable(pageContext: PageContext) {
     sessionStorage.removeItem("sd-created-title");
     addForumQuickSettings();
 
-    if (!isUserForumMod()) return;
+    if (!isUserForumMod()) {
+        $('#sd-forum-quick-settings .sd-organizer-body').empty().append($('<p>').text('SD-Tabellen können Forenmoderatoren hier erstellen.'));
+        return;
+    }
     const $panel = $("#sd-forum-quick-settings");
     $panel.css("width", "330px").find(".sd-organizer-body").empty().append(`
       <div style="font-weight:bold">Neue SD-Tabelle</div>
@@ -43,13 +46,26 @@ export function createNewTable(pageContext: PageContext) {
           $row.find('.inputSpy').val(Math.round(amount * 0.05));
       }).on('click.sdGenerator', '#setupTable', newThread);
     const $form = $('#message').closest('form');
-    $form.off('submit.sdGenerator').on('submit.sdGenerator', function (event) {
+    $form[0]?.addEventListener('submit', function (event) {
         if (String($form.find('input[name=subject]').val() ?? '').trim().length < 3) {
             event.preventDefault();
+            event.stopImmediatePropagation();
             $('#sd-generator-error').text('Bitte einen Titel mit mindestens 3 Zeichen eingeben.');
             $form.find('input[name=subject]').trigger('focus');
+            return;
         }
-    });
+        if ($form.data('sd-generated') && String($('#message').val()).startsWith('[b]SD Tabelle Paketsystem[/b]')) {
+            try {
+                localStorageService.setNewThread = true;
+                sessionStorage.setItem('sd-created-title', String($form.find('input[name=subject]').val() ?? '').trim());
+                const knownIds=$('a[href*="thread_id="]').map((_,a)=>new URL(a.getAttribute('href')!,location.href).searchParams.get('thread_id')).get();
+                sessionStorage.setItem('sd-created-existing',JSON.stringify(knownIds));
+            } catch {
+                event.preventDefault(); event.stopImmediatePropagation();
+                $('#sd-generator-error').text('Die neue SD-Tabelle konnte nicht vorgemerkt werden. Bitte Browserspeicher prüfen.');
+            }
+        }
+    }, true);
 }
 
 
@@ -115,14 +131,7 @@ function newThread() {
         usedDefaultValues: allInputsEmpty,
         includesArchers: game_data.units.includes("archer")
     });
-    $("#message").closest("form").off("submit.sdCreated").on("submit.sdCreated", function () {
-        localStorageService.setNewThread = true;
-        sessionStorage.setItem('sd-created-title', String($('input[name=subject]').val() ?? '').trim());
-        const knownIds=$('a[href*="thread_id="]').map((_,a)=>new URL(a.getAttribute('href')!,location.href).searchParams.get('thread_id')).get();
-        sessionStorage.setItem('sd-created-existing',JSON.stringify(knownIds));
-        log.info("Marked next forum view as freshly created SD thread");
-
-    });
+    $("#message").closest("form").data("sd-generated",true);
     let text = `[b]SD Tabelle Paketsystem[/b]
 
 [table]

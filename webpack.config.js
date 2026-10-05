@@ -1,7 +1,8 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'development',  // Set mode to 'development' for easier debugging
+  mode: 'development',
+  devtool: false,
   entry: './src/index.ts',  // Entry point for the application (your main TypeScript file)
   module: {
     rules: [
@@ -32,6 +33,9 @@ module.exports = {
       "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
     },
 
+    hot: false,
+    liveReload: false,
+    client: false,
     compress: true,
     webSocketServer: false,
     port: 9000,

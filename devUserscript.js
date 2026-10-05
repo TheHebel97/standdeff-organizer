@@ -1,36 +1,16 @@
 // ==UserScript==
-// @name         Development Script
-// @version      0.1
-// @description  try to take over the world!
-// @author       You
-// @match        https://*.die-staemme.de/game.php?village=*&screen=place&*mode=call*
-// @match        https://*.die-staemme.de/game.php?*village=*&screen=forum*
-// @match        https://*.die-staemme.de/game.php?*village=*&screen=settings*
-// @match        https://*.die-staemme.de/game.php?screen=place&mode=call&target=*&village=*
-// @match        https://*.die-staemme.de/game.php?*screen=overview_villages&mode=units&type=away_detail&*
-// @match        https://*.die-staemme.de/game.php?village=*&screen=overview_villages&type=away_detail&filter_villages=*&mode=units&group=*
-// @grant        GM_getValue
-// @grant        GM_setValue
-// @grant        GM_deleteValue
+// @name         SD Organizer (Development)
+// @namespace    standdeff-organizer
+// @version      2.0.0-rc.1
+// @description  SD-Tabellen, Bunkeranfragen und Massen-Unterstützung organisieren
+// @author       You, Fine, Regenmantel
+// @match        https://*.die-staemme.de/game.php*
+// @match        https://*.tribalwars.net/game.php*
 // @grant        none
+// @run-at       document-end
 // ==/UserScript==
 
-
-
-function log(...args) {
-  console.log("%cUserscript:", "color: purple; font-weight: bold", ...args);
-}
-
-log("Dev mode started");
-function main() {
-  fetch("http://localhost:9000/bundle.js").then(resp => {
-    resp.text().then(script => {
-      log("Got Dev script");
-      eval(script);
-      log("Dev script evaled");
-    });
-  });
-}
-
-// Make sure we run once at the start
-main.bind({})();
+fetch('http://localhost:9000/bundle.js')
+  .then(response => { if (!response.ok) throw new Error('HTTP ' + response.status); return response.text(); })
+  .then(script => { (0, eval)(script); })
+  .catch(error => console.error('[SD Organizer] Entwicklungsserver nicht erreichbar:', error));

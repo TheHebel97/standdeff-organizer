@@ -1,10 +1,11 @@
+import {escapeHtml} from "./organizer-style";
 import {groupData, templateData} from "../../types/types";
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 import {Log} from "../../helpers/logging-helper";
 
-const ACTIVE_BG = "#0e7a0e";
-const INACTIVE_BG = "#8d0100";
-const DEFAULT_SELECT_STYLE = "width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);";
+const ACTIVE_BG = "#fff8e8";
+const INACTIVE_BG = "#fff8e8";
+const DEFAULT_SELECT_STYLE = "width:150px; background-color: #fff8e8; color: #3b2713; border: 1px solid #b59766; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);";
 
 type SettingsControlsLogger = Pick<ReturnType<typeof Log.scope>, "info">;
 
@@ -23,6 +24,7 @@ function buildSortOptionsHtml(): string {
 
 function setControlColor($control: JQuery<HTMLElement>, isActive: boolean) {
     $control.css("background", isActive ? ACTIVE_BG : INACTIVE_BG);
+    if ($control.is("input[type=button]")) $control.attr("aria-pressed", String(isActive));
 }
 
 function isDuplicateSendingEnabled(localStorageService: LocalStorageHelper): boolean {
@@ -38,7 +40,7 @@ function buildGroupSelectHtml(groups: groupData[], style: string): string {
     let dropdown = `<select id="sd-group-id" style="${style}">`;
     dropdown += '<option value="0">nicht gesetzt</option>';
     groups.forEach((group) => {
-        dropdown += `<option value="${group.id}">${group.name}</option>`;
+        dropdown += `<option value="${escapeHtml(group.id)}">${escapeHtml(group.name)}</option>`;
     });
     dropdown += "</select>";
     return dropdown;
@@ -48,7 +50,7 @@ function buildTemplateSelectHtml(templates: templateData[], style: string): stri
     let dropdown = `<select id="sd-template-id" style="${style}">`;
     dropdown += '<option value="0">nicht gesetzt</option>';
     templates.forEach((template) => {
-        dropdown += `<option value="${template.id}">${template.name}</option>`;
+        dropdown += `<option value="${escapeHtml(template.id)}">${escapeHtml(template.name)}</option>`;
     });
     dropdown += "</select>";
     return dropdown;

@@ -12,64 +12,53 @@ export function createNewTable(pageContext: PageContext) {
     localStorageService.setNewThread = false;
     addForumQuickSettings();
 
-    $(".clearfix > form > input[value=Senden]").on("mouseenter", function () {
-        // @ts-ignore
-        if ($("input[name=subject]").val().length < 3) {
-            $(".clearfix > form > input[value=Senden]").attr("disabled", "true")
+    if (!isUserForumMod()) return;
+    const $panel = $("#sd-forum-quick-settings");
+    $panel.css("width", "330px").find(".sd-organizer-body").empty().append(`
+      <div style="font-weight:bold">Neue SD-Tabelle</div>
+      <p>Infanterie eingeben: Speer, Schwert und gegebenenfalls Bogen werden gleich skaliert. Späher: 5 %.</p>
+      <div class="inputCollection"></div>
+      <input type="button" class="btn" id="newPaketLine" value="Weiteres Paket" style="margin:10px 0">
+      <input type="button" class="btn" id="setupTable" value="SD Tabelle generieren">
+      <p id="sd-generator-error" class="sd-organizer-error" role="alert"></p>`);
+    const addRow = () => {
+        const units = [{unit:'spear', name:'Speer', field:'inputSpear'}, {unit:'sword', name:'Schwert', field:'inputSword'},
+            ...(game_data.units.includes('archer') ? [{unit:'archer', name:'Bogen', field:'inputBow'}] : []),
+            {unit:'spy', name:'Späher', field:'inputSpy'}];
+        const $row = $('<div class="sd-package-row">');
+        units.forEach(({unit,name,field}) => $row.append(`<label><img src="/graphic/unit/unit_${unit}@2x.png" alt="${name}" title="${name}"><input type="number" min="0" step="1" class="${field}" aria-label="${name}"></label>`));
+        $panel.find('.inputCollection').append($row);
+    };
+    addRow();
+    $panel.off('.sdGenerator').on('click.sdGenerator', '#newPaketLine', addRow)
+      .on('click.sdGenerator', '.sd-package-row input', function () { if ($(this).val() !== '') $(this).val(''); })
+      .on('input.sdGenerator', '.inputSpear,.inputSword,.inputBow', function () {
+          if ($(this).val() === '') return;
+          const amount = Number($(this).val());
+          if (!Number.isSafeInteger(amount) || amount < 0) return;
+          const $row = $(this).closest('.sd-package-row');
+          $row.find('.inputSpear,.inputSword,.inputBow').val(amount);
+          $row.find('.inputSpy').val(Math.round(amount * 0.05));
+      }).on('click.sdGenerator', '#setupTable', newThread);
+    const $form = $('#message').closest('form');
+    $form.off('submit.sdGenerator').on('submit.sdGenerator', function (event) {
+        if (String($form.find('input[name=subject]').val() ?? '').trim().length < 3) {
+            event.preventDefault();
+            $('#sd-generator-error').text('Bitte einen Titel mit mindestens 3 Zeichen eingeben.');
+            $form.find('input[name=subject]').trigger('focus');
         }
     });
-    $(".clearfix > form > input[value=Senden]").on("mouseleave", function () {
-        $(".clearfix > form > input[value=Senden]").removeAttr("disabled");
-    });
-
-
-    //debugger;
-    if (isUserForumMod()) {
-        log.info("User is forum mod; injecting SD thread generator UI");
-        //html elements
-        const settingsBtn = `<input type="button" style="background-image: url(/graphic/buildings/smith.png);
-            background-repeat: no-repeat; width:20px;height:20px; border: none; cursor: pointer; background-color: transparent; margin-left:7px;" class="configbtn">`;
-        let tbBows = game_data.units.includes("archer") ? `<img src="/graphic/unit/unit_archer@2x.png" title="Bogenschütze" alt="" class="" style="width: 15px; height: 15px">
-      <input type="text" class="inputBow" style="width:70px;background-color:#EAD5AA">` : "";
-        let newPaketLineButton = `<input type="button" class="btn" id="newPaketLine" style="background-image: url('https://media.innogamescdn.com/TribalWars/emoji/274e.png'); background-size: cover; width: 15px; height: 15px; border: none; cursor: pointer; transform: rotate(45deg);">`;
-
-        let configContent = `<br><img src="/graphic/unit/unit_spear@2x.png" title="Speerträger" alt="" class="" style="width: 15px; height: 15px">
-<input type="text" class="inputSpear" style="width:70px;background-color:#EAD5AA;margin-right: 10px">
-<img src="/graphic/unit/unit_sword@2x.png" title="Schwertkämpfer" alt="" class="" style="width: 15px; height: 15px">
-<input type="text" class="inputSword" style="width:70px;background-color:#EAD5AA;margin-right: 10px">` + tbBows + `
-<img src="/graphic/unit/unit_spy@2x.png" title="Späher" alt="" class="" style="width: 15px; height: 15px">
-<input type="text" class="inputSpy" style="width:70px;background-color:#EAD5AA;margin-right: 10px">` ;
-
-        let config = `<br><div class="configs" style="display: none; width: 95%;margin-left: auto;margin-bottom: 20px;
-  margin-right: auto;margin-top:15px;"><div class="inputCollection">` + configContent + newPaketLineButton + `</div>
-  <br>
-  <br>
-  <input type="button" class="btn" id="setupTable" value="SD Tabelle generieren">
-</div>`;
-
-
-        //append html elements
-        $(".clearfix > h2").append(settingsBtn)
-        $(".clearfix > h2").append(config)
-        $(".configbtn").on("click", swapConfgDisplay)
-        $("#setupTable").on("click", newThread)
-        $("#newPaketLine").on("click", function () {
-            $(".inputCollection").append(configContent);
-            log.info("Added another package configuration row", {
-                currentRowCount: $(".inputCollection").children("input, img").length
-            });
-
-        });
-
-    } else {
-        log.info("User is not forum mod; SD thread generator UI will not be injected");
-    }
-
 }
 
 
 function newThread() {
     const localStorageService = LocalStorageHelper.getInstance();
+    const $inputs = $('#sd-forum-quick-settings .sd-package-row input');
+    if ($inputs.toArray().some(input => { const raw = String($(input).val() ?? ''); return raw !== '' && (!Number.isSafeInteger(Number(raw)) || Number(raw) < 0); })) {
+        $('#sd-generator-error').text('Truppenzahlen müssen ganze, nicht negative Zahlen sein.');
+        return;
+    }
+    $('#sd-generator-error').empty();
     let troopArray = [];
 
 // Collect values from input elements with the class 'inputSpear'
@@ -124,8 +113,9 @@ function newThread() {
         usedDefaultValues: allInputsEmpty,
         includesArchers: game_data.units.includes("archer")
     });
-    $(".clearfix > form > input[value=Senden]").on("click", function () {
+    $("#message").closest("form").off("submit.sdCreated").on("submit.sdCreated", function () {
         localStorageService.setNewThread = true;
+        sessionStorage.setItem('sd-created-title', String($('input[name=subject]').val() ?? '').trim());
         log.info("Marked next forum view as freshly created SD thread");
 
     });
@@ -172,7 +162,6 @@ Anfordern:[/b]
  [code] id5 20
   2 20
   1 70Pakete
-  1abcdefg20
   1 done
   [/code]
 
@@ -213,15 +202,3 @@ const createPaketHtml = (troopArray: any[]) => {
     });
     return text;
 }
-
-function swapConfgDisplay() {
-    let element = $(".configs");
-    if (element.css("display") === "none") {
-        element.css("display", "block")
-        log.info("Opened SD thread generator config");
-    } else {
-        element.css("display", "none")
-        log.info("Closed SD thread generator config");
-    }
-}
-

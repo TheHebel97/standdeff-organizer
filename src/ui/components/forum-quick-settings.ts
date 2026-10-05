@@ -1,3 +1,4 @@
+import {ensureOrganizerStyles} from "./organizer-style";
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 import {Log} from "../../helpers/logging-helper";
 import {applySettingsToMassUtLink, updateSentPackagesInSdTable} from "../../helpers/table-helper";
@@ -37,14 +38,15 @@ function applyStoredPanelPosition($panel: JQuery<HTMLElement>, localStorageServi
 }
 
 export function addForumQuickSettings(currentThreadId?: string) {
+    ensureOrganizerStyles();
     const localStorageService = LocalStorageHelper.getInstance();
     let $panel = $(`#${PANEL_ID}`);
     if ($panel.length === 0) {
-        const panelHtml = `<div id="${PANEL_ID}" style="position: fixed; top: 140px; right: 20px; width: 245px; z-index: 9999; background: #f4e4bc; border: 2px solid #7d510f; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); border-radius: 6px;">
-  <div class="sd-forum-quick-settings-handle" style="cursor: move; user-select: none; padding: 8px 10px; background: linear-gradient(180deg, #8d0100 0%, #660000 100%); color: #ffffff; font-weight: bold; border-top-left-radius: 4px; border-top-right-radius: 4px;">
-    SD Quick Settings
+        const panelHtml = `<div id="${PANEL_ID}" class="sd-organizer" style="position: fixed; top: 140px; right: 20px; width: 245px; z-index: 9999; background: #f4e4bc; border: 2px solid #7d510f; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); border-radius: 6px;">
+  <div class="sd-forum-quick-settings-handle sd-organizer-handle" style="cursor: move; user-select: none; padding: 8px 10px;  font-weight: bold; border-top-left-radius: 4px; border-top-right-radius: 4px;">
+    SD Organizer
   </div>
-  <div style="padding: 10px;">
+  <div class="sd-organizer-body" style="padding: 10px;">
     <div style="margin-bottom: 10px;">
       <div style="font-weight: bold; margin-bottom: 4px;">Massen-UT</div>
       <input class="btn btn-confirm-no" type="button" value="Aus" id="automate-massen-ut" style="width:100%; background-color: #8d0100; color: #ffffff">
@@ -55,15 +57,15 @@ export function addForumQuickSettings(currentThreadId?: string) {
     </div>
     <div style="margin-bottom: 10px;">
       <div style="font-weight: bold; margin-bottom: 4px;">sortieren nach</div>
-      <select id="sd-sort-by" style="width:100%; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"></select>
+      <select id="sd-sort-by" style="width:100%; background-color: #fff8e8; color: #3b2713; border: 1px solid #b59766; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"></select>
     </div>
     <div style="margin-bottom: 10px;">
       <div style="font-weight: bold; margin-bottom: 4px;">SD Gruppe</div>
-      <input type="number" value="0" id="sd-group-id" style="width:100%; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-sizing: border-box;">
+      <input type="number" value="0" id="sd-group-id" style="width:100%; background-color: #fff8e8; color: #3b2713; border: 1px solid #b59766; padding: 5px 10px; border-radius: 4px; box-sizing: border-box;">
     </div>
     <div>
       <div style="font-weight: bold; margin-bottom: 4px;">SD Vorlage</div>
-      <input type="number" value="0" id="sd-template-id" style="width:100%; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-sizing: border-box;">
+      <input type="number" value="0" id="sd-template-id" style="width:100%; background-color: #fff8e8; color: #3b2713; border: 1px solid #b59766; padding: 5px 10px; border-radius: 4px; box-sizing: border-box;">
     </div>
     <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(125, 81, 15, 0.35);">
       <div class="sd-forum-quick-settings-reset-status" style="font-size: 12px; margin-bottom: 6px; color: #4d2f00; font-weight: bold;"></div>
@@ -128,7 +130,7 @@ function initializeForumQuickSettingsControls(
     currentThreadId?: string,
 ) {
     initializeSdSettingsControls($panel, localStorageService, log, {
-        selectStyle: "width:100%; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); box-sizing: border-box;",
+        selectStyle: "width:100%; background-color: #fff8e8; color: #3b2713; border: 1px solid #b59766; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); box-sizing: border-box;",
         onSettingsChange: currentThreadId ? () => applySettingsToMassUtLink(currentThreadId) : undefined
     });
 }

@@ -1,3 +1,5 @@
+import {createPendingOperation} from "../../helpers/pending-operation";
+import {convertRequestArrayToMessageString} from "../../helpers/table-domain";
 import {isUserForumMod} from "../../helpers/tw-helper";
 import {showRequestPopup} from "./request-popup";
 import {syncRequestBunkerBadge} from "./request-button-badge";
@@ -74,9 +76,7 @@ export function postLayout(currentThreadId: string, isAnswerMode: boolean, updat
     });
 
     $("#addBearbeitung").on("click", function () {
-        $("input[name=send]").on("click", function () {
-            localStorageService.setPackagesSent(currentThreadId, new Map());
-        });
+
         $("#notificationBadge").remove();
 
         const packagesSent = localStorageService.getPackagesSent(currentThreadId);
@@ -91,9 +91,21 @@ export function postLayout(currentThreadId: string, isAnswerMode: boolean, updat
         });
     });
 
-    $("input[name=send]").on("click", function () {
-        let emptyRequestData: sdInquiry[] = [] as sdInquiry[];
-        localStorageService.setSdInquiry(currentThreadId, emptyRequestData);
-        syncRequestBunkerBadge(currentThreadId);
+    $('#message').closest('form').off('submit.sdDraft').on('submit.sdDraft', function(event) {
+        const message = String($('#message').val() ?? '').trim();
+        const inquiries = localStorageService.getSdInquiry(currentThreadId);
+        const packages = Array.from(localStorageService.getPackagesSent(currentThreadId));
+        const packageText = packages.map(([id,amount]) => `${id} ${amount}`).join('\n');
+        const requestText = convertRequestArrayToMessageString(inquiries).trim();
+        if (message !== packageText.trim() && message !== requestText) return;
+        if (!message) return;
+        try {
+            createPendingOperation({kind:'forum', threadId:currentThreadId, message,
+                knownPostIds:$('.post > a[name]').map((_,a)=>String(a.getAttribute('name'))).get(),
+                inquiries:message === requestText ? inquiries : [], packages:message === packageText.trim() ? packages : []});
+        } catch {
+            event.preventDefault();
+            UI.ErrorMessage('Beitragsentwurf konnte nicht gespeichert werden. Bitte Browserspeicher prüfen.',5000);
+        }
     });
 }

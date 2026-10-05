@@ -34,9 +34,12 @@ export function viewThread(pageContext: PageContext) {
     let pageState = readPageState(pageContext, localStorageService);
     let derivedState = deriveState(pageContext, pageState, localStorageService);
 
-    if (derivedState.hasPendingNewThreadMarker && readSdPostId()) {
+    const createdTitle = sessionStorage.getItem('sd-created-title');
+    const currentTitle = $('.clearfix > table').first().find('h2').text().trim();
+    if (derivedState.hasPendingNewThreadMarker && readSdPostId() && createdTitle && createdTitle === currentTitle) {
         if (registerSdThread(currentThreadId, pageContext.forumId)) {
             localStorageService.setNewThread = false;
+            sessionStorage.removeItem('sd-created-title');
             pageState = readPageState(pageContext, localStorageService);
             derivedState = deriveState(pageContext, pageState, localStorageService);
         }

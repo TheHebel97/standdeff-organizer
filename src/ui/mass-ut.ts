@@ -1,3 +1,5 @@
+import {createPendingOperation, readPendingOperations} from "../helpers/pending-operation";
+import {showPendingOperations} from "./components/pending-operations";
 import {groupData, rowSdTable, templateData, ThreadData} from "../types/types";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
@@ -722,7 +724,7 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
                 travelTimeHours: Number((travelTimeResolution.travelTimeMs / 3600000).toFixed(3)),
                 travelTimeSource: travelTimeResolution.source,
                 slowestTemplateUnit: travelTimeResolution.unit,
-                arrivalIso: new Date(arrival).toISOString(),
+                arrivalIso: Number.isFinite(arrival) ? new Date(arrival).toISOString() : "ungültig",
                 fromIso: fromIsSet ? new Date(epochDateFrom).toISOString() : null,
                 untilIso: untilIsSet ? new Date(epochDateUntil).toISOString() : null,
                 withinFrom,
@@ -745,7 +747,7 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
                 travelTimeHours: Number((travelTimeResolution.travelTimeMs / 3600000).toFixed(3)),
                 travelTimeSource: travelTimeResolution.source,
                 slowestTemplateUnit: travelTimeResolution.unit,
-                arrivalIso: new Date(arrival).toISOString(),
+                arrivalIso: Number.isFinite(arrival) ? new Date(arrival).toISOString() : "ungültig",
                 fromIso: selectionStartIso,
                 untilIso: selectionEndIso,
                 withinFrom,
@@ -807,24 +809,25 @@ function bindEvents(pageState: MassUtPageState, derivedState: MassUtDerivedState
         });
     });
 
-    $("#place_call_form_submit").on("click", function () {
-        const checkedBoxes = $(".troop-request-selector:checked").length;
-        const currentStored = threadData.packagesSent.get(sendingObj.sdId);
-        if (String(currentStored ?? "").toLowerCase() !== "done") {
-            const previous = parseInt(String(currentStored), 10) || 0;
-            const newTotal = previous + checkedBoxes;
-            const leftAmount = sendingObj.leftAmount ?? 0;
-            threadData.packagesSent.set(sendingObj.sdId, newTotal >= leftAmount ? "done" : String(newTotal));
+    let pendingId = '';
+    $('#place_call_form_submit').off('click.sdTrack').on('click.sdTrack', function (event) {
+        const checkedBoxes = $('.troop-request-selector:checked:not(:disabled)').length;
+        if (!checkedBoxes) return;
+        if (pendingId && readPendingOperations().some(op => op.id === pendingId)) {
+            event.preventDefault();
+            UI.ErrorMessage('Bitte den offenen Versand bestätigen oder verwerfen, bevor erneut gesendet wird.', 5000);
+            return false;
         }
-
-        localStorageService.setThreadData(refererThreadId, threadData);
-        log.info("Persisted sent package delta", {
-            refererThreadId,
-            sdId: sendingObj.sdId,
-            checkedBoxes,
-            previousStoredValue: currentStored ?? null,
-            newStoredValue: threadData.packagesSent.get(sendingObj.sdId) ?? null
-        });
+        try {
+            const operation = createPendingOperation({kind:'send',threadId:refererThreadId,
+                villageId:Number(pageState.destinationVillageId),amount:checkedBoxes,leftAmount:sendingObj.leftAmount});
+            pendingId = operation.id;
+            showPendingOperations();
+        } catch (error) {
+            event.preventDefault();
+            UI.ErrorMessage('Versandstatus konnte nicht gespeichert werden. Bitte Browserspeicher prüfen.', 5000);
+            return false;
+        }
     });
 }
 

@@ -46,6 +46,7 @@ test('popup saves the numeric SD post and closes on success', () => {
 test('new SD thread renders with the newly registered state immediately', () => {
     fixture();
     LocalStorageHelper.getInstance().setNewThread = true;
+    sessionStorage.setItem("sd-created-title", "sdsd");
     viewThread(resolveScriptContext());
     expect(sdTable).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({'7396': expect.objectContaining({sdPostId: '50624'})}));
     expect($('#dbInfo_popup_box').length).toBe(0);

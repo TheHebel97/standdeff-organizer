@@ -126,7 +126,7 @@ function deriveState(pageContext: PageContext, pageState: SdTablePageState, thre
 }
 
 function renderChrome(pageState: SdTablePageState) {
-    const sdTableTitle = `<span style="color: #002bff; font-size: x-small"> (SD Tabelle)</span>`;
+    const sdTableTitle = `<span style="color: #72501e; font-size: x-small"> (SD Tabelle)</span>`;
     $(".clearfix > table").first().find("h2").append(sdTableTitle);
     $(".text").css("max-width", "100%");
     if (pageState.hasReplyTextarea) {
@@ -166,7 +166,7 @@ function readSdTableDom(sdPostId: string) {
     const sdTablePost = $("a[name='" + sdPostId + "']").parent();
     return {
         sdTablePost,
-        sdTableBody: $(sdTablePost).find("table").find("tbody"),
+        sdTableBody: $(sdTablePost).find(".text .bbcodetable").first().children("tbody"),
         postCacheText: $(sdTablePost).find("input[value=postCache]").siblings().find("span").text()
     };
 }
@@ -199,7 +199,7 @@ function renderRoleSpecificView(pageState: SdTablePageState, postCacheText: stri
                 $(`input[value=${postId}]`)
                     .prop("checked", true)
                     .parent().parent()
-                    .css("background", "rgba(174,6,6,0.73)");
+                    .css("background", "#e8d5ac");
             });
         }
     } else {
@@ -211,6 +211,10 @@ function renderRoleSpecificView(pageState: SdTablePageState, postCacheText: stri
 
 function bindEvents(pageState: SdTablePageState, sdTableState: ReturnType<typeof parseTableHtmlElemToSdState>) {
     const localStorageService = LocalStorageHelper.getInstance();
+    const unresolved=localStorageService.getThreadData(pageState.currentThreadId)?.unresolvedPackages ?? [];
+    if (unresolved.length && !$('#sd-unresolved-packages').length) {
+        $('<div id="sd-unresolved-packages" role="alert" style="padding:8px;border:1px solid #8d0100">').text(`${unresolved.length} alte Versandeinträge konnten keinem Dorf sicher zugeordnet werden. Bitte den tatsächlichen Versand prüfen; diese Einträge werden nicht automatisch auf neue Anfragen übertragen.`).prependTo('#content_value');
+    }
     const showHiddenPosts = '<button class="btn" id="showPostsButton">Zeige versteckte Posts</button>';
     $(".thread_button").last().parent().append(showHiddenPosts);
 
@@ -225,7 +229,7 @@ function bindEvents(pageState: SdTablePageState, sdTableState: ReturnType<typeof
         log.info("Received storage event", {
             key: event.key
         });
-        if (event.key === "standdeff-organizer") {
+        if (event.key === "standdeff-organizer" || event.key?.startsWith("standdeff-organizer:change:")) {
             log.info("Detected relevant localStorage change; syncing sent packages in SD table");
             updateSentPackagesInSdTable(pageState.currentThreadId);
         }

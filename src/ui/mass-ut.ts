@@ -1,3 +1,4 @@
+import {setCheckboxState, hasEnoughTemplateTroops} from "../helpers/mass-ut-selection";
 import {createPendingOperation, readPendingOperations} from "../helpers/pending-operation";
 import {showPendingOperations} from "./components/pending-operations";
 import {groupData, rowSdTable, templateData, ThreadData} from "../types/types";
@@ -682,20 +683,14 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
         boostPercent: Number(supportSpeedInsights.boostPercent.toFixed(2))
     });
 
-    $(".troop-request-selector:checked").each(function () { $(this).trigger("click"); });
+    $(".troop-request-selector:checked").each(function () { setCheckboxState($(this), false); });
     $(".unit_checkbox").each(function () {
         if (!$(this).is(":checked")) {
             $(this).trigger("click");
         }
     });
 
-    if ($(".troop-request-selector").length < packagesToSend && epochDateFrom === 0 && epochDateUntil === 0) {
-        log.info("Using select-all because available rows are fewer than requested packages", {
-            availableRows: $(".troop-request-selector").length,
-            packagesToSend
-        });
-        $("#place_call_select_all").trigger("click");
-    } else {
+    {
         const currentTime = Date.now();
         $(".call-village").each(function (index) {
             const $row = $(this);
@@ -709,7 +704,8 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
             const untilIsSet = epochDateUntil > 0;
             const withinFrom = fromIsSet ? arrival >= epochDateFrom : true;
             const withinUntil = untilIsSet ? arrival <= epochDateUntil : true;
-            const selected = packagesToSend > 0 && withinFrom && withinUntil && Number.isFinite(arrival) && !$row.find(".troop-request-selector").prop("disabled");
+            const selected = packagesToSend > 0 && withinFrom && withinUntil && Number.isFinite(arrival) && !$row.find(".troop-request-selector").prop("disabled")
+                && hasEnoughTemplateTroops($row, String($('select[name=template]').val() ?? ''));
             let skipReason: CandidateSelectionEvaluation["skipReason"] = null;
             if (!selected) {
                 skipReason = packagesToSend <= 0 ? "packages-exhausted" : "outside-window";
@@ -735,7 +731,7 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
             });
 
             if (selected) {
-                $row.find(".troop-request-selector").trigger("click");
+                setCheckboxState($row.find(".troop-request-selector"), true);
                 packagesToSend--;
             }
 
@@ -789,7 +785,7 @@ function renderAutoSelection(pageState: MassUtPageState, derivedState: MassUtDer
     });
 
     $("#place_call_form_submit").prop("disabled", true);
-    $(".evt-button-fill").css("background", "#0e7a0e");
+    $(".evt-button-fill").attr("title", "Auswahl prüfen und mit Übernehmen einfüllen");
 }
 
 function bindEvents(pageState: MassUtPageState, derivedState: MassUtDerivedState, localStorageService: LocalStorageHelper) {
@@ -797,38 +793,39 @@ function bindEvents(pageState: MassUtPageState, derivedState: MassUtDerivedState
         return;
     }
     const refererThreadId = pageState.refererThreadId;
-    const threadData = pageState.threadData;
     const sendingObj = derivedState.sendingObj;
 
     $(".evt-button-fill").on("click", function () {
         $(this).prop("disabled", true);
         $("#place_call_form_submit").prop("disabled", false);
-        $("#place_call_form_submit").css("background", "#0e7a0e");
+        $("#place_call_form_submit").attr("title", "Auswahl prüfen und mit Übernehmen einfüllen");
         log.info("User confirmed auto-filled selection", {
             checkedBoxes: $(".troop-request-selector:checked").length
         });
     });
 
     let pendingId = '';
-    $('#place_call_form_submit').off('click.sdTrack').on('click.sdTrack', function (event) {
+    document.querySelector('#place_call_form')?.addEventListener('submit', function (event) {
         const checkedBoxes = $('.troop-request-selector:checked:not(:disabled)').length;
         if (!checkedBoxes) return;
         if (pendingId && readPendingOperations().some(op => op.id === pendingId)) {
             event.preventDefault();
+            event.stopImmediatePropagation();
             UI.ErrorMessage('Bitte den offenen Versand bestätigen oder verwerfen, bevor erneut gesendet wird.', 5000);
             return false;
         }
         try {
             const operation = createPendingOperation({kind:'send',threadId:refererThreadId,
-                villageId:Number(pageState.destinationVillageId),amount:checkedBoxes,leftAmount:sendingObj.leftAmount});
+                villageId:Number(pageState.destinationVillageId),requestId:sendingObj.sdId,amount:checkedBoxes,leftAmount:sendingObj.leftAmount});
             pendingId = operation.id;
             showPendingOperations();
         } catch (error) {
             event.preventDefault();
+            event.stopImmediatePropagation();
             UI.ErrorMessage('Versandstatus konnte nicht gespeichert werden. Bitte Browserspeicher prüfen.', 5000);
             return false;
         }
-    });
+    }, true);
 }
 
 function storeGroupData() {

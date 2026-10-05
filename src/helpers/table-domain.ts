@@ -90,13 +90,14 @@ function parseNewInquiryLine(line: string): sdInquiry | null {
     };
 }
 
-export function parseForumPostUpdates(posts: forumPostSource[], coordVillageIdMap: Map<string, number>): updateData {
+export function parseForumPostUpdates(posts: forumPostSource[], coordVillageIdMap: Map<string, number>, onWarning?: (message:string) => void): updateData {
     const parsedUpdateData: updateData = new Map<string, { inquiries: newInquiry; packages: packages }>();
 
     posts.forEach((post) => {
         const packagesSent: packages = new Map<string, string>();
         const inquiries: newInquiry = new Map<number, sdInquiry>();
         let finished = false;
+        let rejected = false;
 
         post.lines.forEach((line) => {
             if (finished || line === "______________________________") {
@@ -108,6 +109,8 @@ export function parseForumPostUpdates(posts: forumPostSource[], coordVillageIdMa
             const packagesMatch = line.match(PACKAGES_SENT_REGEX);
             if (parsedInquiry) {
                 if (!coordVillageIdMap.has(parsedInquiry.coords)) {
+                    rejected = true;
+                    onWarning?.(`Beitrag ${post.postId}: Dorf ${parsedInquiry.coords} konnte nicht aufgelöst werden. Bitte Dorf-BBCode verwenden; der Beitrag bleibt für das nächste Update offen.`);
                     log.error("coords not found in village map; inquiry not applied", {coords: parsedInquiry.coords});
                     return;
                 }
@@ -122,6 +125,7 @@ export function parseForumPostUpdates(posts: forumPostSource[], coordVillageIdMa
 
             const sdId = packagesMatch[1];
             const packageValue = packagesMatch[2];
+            if (!isDoneValue(packageValue) && !Number.isSafeInteger(Number(packageValue))) return;
             if (packagesSent.has(sdId)) {
                 const previousValue = packagesSent.get(sdId);
                 if (isDoneValue(previousValue)) {
@@ -138,7 +142,7 @@ export function parseForumPostUpdates(posts: forumPostSource[], coordVillageIdMa
             packagesSent.set(sdId, isDoneValue(packageValue) ? "done" : packageValue);
         });
 
-        parsedUpdateData.set(post.postId, {inquiries, packages: packagesSent});
+        if (!rejected) parsedUpdateData.set(post.postId, {inquiries, packages: packagesSent});
     });
 
     return parsedUpdateData;

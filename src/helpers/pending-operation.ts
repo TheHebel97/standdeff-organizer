@@ -3,6 +3,7 @@ import {sdInquiry} from '../types/types';
 export type PendingOperation = {
     id:string; threadId:string; created:number; kind:'send'|'forum';
     villageId?:number; amount?:number; leftAmount?:number;
+    requestId?:string;
     message?:string; knownPostIds?:string[]; inquiries?:sdInquiry[]; packages?:[string,string][];
 };
 const PREFIX = 'standdeff-organizer:pending:';
@@ -28,8 +29,11 @@ export function applyConfirmedOperation(data:any, operation:PendingOperation) {
     if (!thread) return;
     const packages = new Map<string,string>(thread.packagesSent ?? []);
     if (operation.kind === 'send') {
-        const row = (thread.stateOfSdTable ?? []).find(([id]:[number,unknown]) => id === operation.villageId)?.[1];
-        if (!row) { thread.unresolvedPackages = [...(thread.unresolvedPackages ?? []), [`Dorf ${operation.villageId}`,String(operation.amount)]]; return; }
+        const row = (Array.isArray(thread.stateOfSdTable) ? thread.stateOfSdTable : []).find(([id]:[number,unknown]) => id === operation.villageId)?.[1];
+        if (!row || (operation.requestId && String(row.sdId) !== operation.requestId)) {
+            thread.unresolvedPackages = [...(thread.unresolvedPackages ?? []), [`Dorf ${operation.villageId}, Anfrage ${operation.requestId ?? '?'}`,String(operation.amount)]];
+            return;
+        }
         const current = packages.get(String(row.sdId));
         if (current !== 'done') {
             const total = (Number(current) || 0) + (operation.amount ?? 0);

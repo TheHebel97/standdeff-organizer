@@ -91,7 +91,7 @@ export function postLayout(currentThreadId: string, isAnswerMode: boolean, updat
         });
     });
 
-    $('#message').closest('form').off('submit.sdDraft').on('submit.sdDraft', function(event) {
+    $('#message').closest('form')[0]?.addEventListener('submit', function(event) {
         const message = String($('#message').val() ?? '').trim();
         const inquiries = localStorageService.getSdInquiry(currentThreadId);
         const packages = Array.from(localStorageService.getPackagesSent(currentThreadId));
@@ -105,7 +105,8 @@ export function postLayout(currentThreadId: string, isAnswerMode: boolean, updat
                 inquiries:message === requestText ? inquiries : [], packages:message === packageText.trim() ? packages : []});
         } catch {
             event.preventDefault();
+            event.stopImmediatePropagation();
             UI.ErrorMessage('Beitragsentwurf konnte nicht gespeichert werden. Bitte Browserspeicher prüfen.',5000);
         }
-    });
+    }, true);
 }

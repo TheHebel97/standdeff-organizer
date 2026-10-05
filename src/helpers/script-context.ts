@@ -55,15 +55,16 @@ export function resolveScriptContext(): ScriptContextResolution {
             : "none";
 
     let context: ScriptContext = "unknown";
-    if (screen === "place") {
+    if (screen === "place" && mode === "call") {
         context = "place";
     } else if (screen === "overview_villages" && mode === "units" && type === "away_detail") {
         context = "overview-away_detail";
     } else if (screen === "forum") {
-        if (mode === "view_thread") {
-            context = "forum-view_thread";
-        } else if (mode === "new_thread") {
+        if (mode === "new_thread") {
             context = "forum-new_thread";
+        } else if (urlParams.get("screenmode") === "view_thread" || mode === "view_thread") {
+            context = "forum-view_thread";
+
         } else {
             context = "forum-unknown";
         }

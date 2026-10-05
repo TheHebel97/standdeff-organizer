@@ -59,7 +59,10 @@ export function parseSdPosts(currentThreadId: string): updateData {
         postCount: forumPosts.length
     });
 
-    const parsedUpdateData = parseForumPostUpdates(forumPosts, buildCoordVillageIdMap(villageAnchors));
+    $('#sd-parser-warnings').remove();
+    const warnings:string[]=[];
+    const parsedUpdateData = parseForumPostUpdates(forumPosts, buildCoordVillageIdMap(villageAnchors), message => warnings.push(message));
+    if (warnings.length) $('<div id="sd-parser-warnings" role="alert" style="padding:8px;border:1px solid #8d0100">').text(warnings.join(' ')).prependTo('#content_value');
     log.state("Finished parsing SD posts", {
         coordVillageMappingCount: villageAnchors.length,
         summary: summarizeUpdateDataMap(parsedUpdateData)

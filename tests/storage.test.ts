@@ -57,7 +57,7 @@ test('legacy table IDs migrate by village; orphaned values are quarantined', () 
 test('incomplete and corrupt storage survives migration with backup', () => {
     localStorage.setItem('standdeff-organizer',JSON.stringify({threads:{'9':{threadName:'SD'}}}));
     expect(new LocalStorageHelper().getThreadData('9')!.packagesSent.size).toBe(0);
-    localStorage.clear(); localStorage.setItem('standdeff-organizer','{bad');
+    localStorage.clear(); localStorage.setItem('standdeff-organizer-log-level','silent'); localStorage.setItem('standdeff-organizer','{bad');
     const storage=new LocalStorageHelper();
     expect(storage.getAllThreads).toEqual({});
     expect(Object.keys(localStorage).some(key=>key.includes(':backup:'))).toBe(true);
@@ -69,4 +69,44 @@ test('failed confirmation preserves pending operation and data', () => {
     const mock=jest.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('quota');});
     expect(()=>storage.confirmOperation(op)).toThrow(); mock.mockRestore();
     expect(readPendingOperations()).toHaveLength(1); expect(storage.getPackagesSent('9').size).toBe(0);
+});
+
+test('table migration replays against concurrent send status instead of an old package snapshot',()=>{
+    const storage=new LocalStorageHelper(); storage.addThread('9',thread());
+    const repository=new StandDeffStorageRepository(); const stale=JSON.parse(repository.load()!);
+    stale.threads['9'].stateOfSdTable[0][1].sdId='7';
+    storage.confirmOperation(createPendingOperation({kind:'send',threadId:'9',villageId:12,amount:10,leftAmount:200}));
+    repository.save(stale);
+    expect(storage.getPackagesSent('9').get('7')).toBe('10');
+});
+
+test('pending send for a removed request is never booked against a new request at the same village',()=>{
+    const storage=new LocalStorageHelper();storage.addThread('9',thread());
+    const operation=createPendingOperation({kind:'send',threadId:'9',villageId:12,requestId:'1',amount:10,leftAmount:200});
+    storage.setSdTableState('9',new Map());
+    const replacement=thread().stateOfSdTable;replacement.get(12)!.sdId='2';storage.setSdTableState('9',replacement);
+    storage.confirmOperation(operation);
+    expect(storage.getPackagesSent('9').size).toBe(0);
+    expect(storage.getThreadData('9')!.unresolvedPackages).toHaveLength(1);
+});
+
+test('journal compaction keeps exactly-once confirmation and writes added during compaction',async()=>{
+    const storage=new LocalStorageHelper(); storage.addThread('9',thread());
+    const operation=createPendingOperation({kind:'send',threadId:'9',villageId:12,amount:10,leftAmount:200});
+    storage.confirmOperation(operation);
+    Object.defineProperty(navigator,'locks',{configurable:true,value:{request:async (_name:string,callback:()=>boolean)=>callback()}});
+    try {
+        const repository=new StandDeffStorageRepository();
+        const setItem=Storage.prototype.setItem;
+        const write=jest.spyOn(Storage.prototype,'setItem').mockImplementation(function(key,value) {
+            if (key === 'standdeff-organizer') {
+                setItem.call(this,'standdeff-organizer:change:concurrent',JSON.stringify({revision:100,patches:[{path:['generalSettings','sortBy'],value:'sword'}]}));
+            }
+            setItem.call(this,key,value);
+        });
+        await repository.compact(); write.mockRestore();
+        storage.confirmOperation(operation);
+        expect(storage.getPackagesSent('9').get('1')).toBe('10');
+        expect(storage.getSortBy).toBe('sword');
+    } finally {Object.defineProperty(navigator,'locks',{configurable:true,value:undefined});}
 });

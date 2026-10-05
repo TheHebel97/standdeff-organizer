@@ -47,7 +47,8 @@ export class LocalStorageHelper {
             bunkerUnitPowers:normalizeUnitNumberMap(settings.bunkerUnitPowers, DEFAULT_BUNKER_UNIT_POWERS),
             bunkerSplitConfig:normalizeUnitNumberMap(settings.bunkerSplitConfig, DEFAULT_BUNKER_SPLIT_CONFIG),
             templateData:list(settings.templateData), groupData:list(settings.groupData),
-            onboarding:settings.onboarding && typeof settings.onboarding === 'object' ? settings.onboarding : {version:1,tours:{}}
+            onboarding:{version:Number.isSafeInteger(settings.onboarding?.version) ? settings.onboarding!.version : 1,
+                tours:Object.fromEntries(Object.entries(settings.onboarding?.tours && typeof settings.onboarding.tours === 'object' ? settings.onboarding.tours : {}).filter(([,entry])=>entry && Number.isSafeInteger(entry.step) && entry.step >= 0).map(([key,entry])=>[key,{step:entry.step,paused:entry.paused === true,complete:entry.complete === true}]))}
         };
     }
 

@@ -10,7 +10,7 @@ const log = Log.scope("new-thread");
 export function createNewTable(pageContext: PageContext) {
     const localStorageService = LocalStorageHelper.getInstance();
     log.info("Initializing new-thread controller", {href: pageContext.href});
-    localStorageService.setNewThread = false;
+    sessionStorage.removeItem("sd-created-title");
     addForumQuickSettings();
 
     if (!isUserForumMod()) return;
@@ -118,6 +118,8 @@ function newThread() {
     $("#message").closest("form").off("submit.sdCreated").on("submit.sdCreated", function () {
         localStorageService.setNewThread = true;
         sessionStorage.setItem('sd-created-title', String($('input[name=subject]').val() ?? '').trim());
+        const knownIds=$('a[href*="thread_id="]').map((_,a)=>new URL(a.getAttribute('href')!,location.href).searchParams.get('thread_id')).get();
+        sessionStorage.setItem('sd-created-existing',JSON.stringify(knownIds));
         log.info("Marked next forum view as freshly created SD thread");
 
     });

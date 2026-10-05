@@ -44,8 +44,7 @@ test('Apple mixed opening/closing quotes preserve optional fields', () => {
 
 test('ordinary numeric prose and unknown villages do not become updates', () => {
     const parsed = parseForumPostUpdates([{postId:'100',lines:['Bitte morgen 10 20 Pakete bereitstellen','305|531 10','306|532 20']}],new Map()).get('100');
-    expect(parsed?.packages.size).toBe(0);
-    expect(parsed?.inquiries.size).toBe(0);
+    expect(parsed).toBeUndefined(); // Unresolved inquiries remain outside the post cache.
 });
 
 test.each(['2026-07-05T12:00','2026-12-05T12:00'])('local datetime round-trip preserves %s', input => {

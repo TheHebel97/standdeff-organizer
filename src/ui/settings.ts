@@ -1,3 +1,4 @@
+import {ensureOrganizerStyles, escapeHtml} from "./components/organizer-style";
 import {ThreadData, Threads} from "../types/types";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
@@ -15,9 +16,9 @@ function buildThreadRow(threadId: string, threadData: ThreadData): string {
 
     return `<tr>
              <td>
-                 <span style="font-size: larger; font-weight: bold">${threadData.forumName}</span> -
+                 <span style="font-size: larger; font-weight: bold">${escapeHtml(threadData.forumName)}</span> -
                  <a href="${threadLink}">
-                     ${threadData.threadName}
+                     ${escapeHtml(threadData.threadName)}
                  </a>
                  <div style="font-size: x-small; margin-top: 4px;">Gespeicherte Versand-Eintraege: ${sentPackageCount}</div>
              </td>
@@ -51,15 +52,16 @@ function renderThreadRows(threads: Threads) {
 
 
 export function displaySettings(pageContext: PageContext) {
+    ensureOrganizerStyles();
     log.info("Initializing settings controller", {href: pageContext.href});
 
-    const settingsHtml = `<table class="vis settings" id="sd-settings-root" width="100%" style="margin-top: 15px">
+    const settingsHtml = `<table class="vis settings sd-organizer" id="sd-settings-root" width="100%" style="margin-top: 15px">
   <tbody>
   <tr>
     <th colspan="4" style="text-align: center">
       <img class="addThread" style="cursor: pointer"
            src="${ADD_THREAD_ICON_DATA_URI}"/>
-      SD-Tabellen-Skript-Einstellungen
+      SD Organizer – Einstellungen
       <img class="addThread" style="cursor: pointer"
            src="${ADD_THREAD_ICON_DATA_URI}"/>
     </th>
@@ -73,7 +75,7 @@ export function displaySettings(pageContext: PageContext) {
             Popup beim ersten Start:
           </td>
           <td>
-            <input class="btn btn-confirm-no" type="button" value="An" id="first-start-popup" style="width:75px; background-color: #8d0100; color: #ffffff !important;"/>
+            <input class="btn btn-confirm-no" type="button" value="An" id="first-start-popup" style="width:75px; background-color: transparent; color: #ffffff !important;"/>
           </td>
         </tr>
         <tr>
@@ -81,7 +83,7 @@ export function displaySettings(pageContext: PageContext) {
             Massen-UT vereinfachen:
           </td>
           <td>
-            <input class="btn btn-confirm-no"  type="button" value="Aus" id="automate-massen-ut" style="width:75px;  background-color: #8d0100;color: #ffffff "/>
+            <input class="btn btn-confirm-no"  type="button" value="Aus" id="automate-massen-ut" style="width:75px;  background-color: transparent;color: #ffffff "/>
           </td>
 
         </tr>
@@ -90,7 +92,7 @@ export function displaySettings(pageContext: PageContext) {
             Doppeltes Schicken:
           </td>
           <td>
-            <input class="btn btn-confirm-no"  type="button" value="Aus" id="prevent-duplicate-destination" style="width:75px;  background-color: #8d0100;color: #ffffff "/>
+            <input class="btn btn-confirm-no"  type="button" value="Aus" id="prevent-duplicate-destination" style="width:75px;  background-color: transparent;color: #ffffff "/>
           </td>
 
         </tr>
@@ -99,7 +101,7 @@ export function displaySettings(pageContext: PageContext) {
                 sortieren nach:
             </td>
             <td>
-                <select id="sd-sort-by" style="width:150px; background-color: #8d0100; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"></select>
+                <select id="sd-sort-by" style="width:150px; background-color: transparent; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"></select>
             </td>
       </tr>
         <tr>
@@ -107,7 +109,7 @@ export function displaySettings(pageContext: PageContext) {
             SD verschicken Gruppen ID:
           </td>
           <td>
-            <input type="number" value="0" id="sd-group-id" style="width:68px;  background-color: #8d0100; color: #ffffff"/>
+            <input type="number" value="0" id="sd-group-id" style="width:68px;  background-color: transparent; color: #ffffff"/>
           </td>
 
         </tr>
@@ -116,7 +118,7 @@ export function displaySettings(pageContext: PageContext) {
             SD Vorlagen ID:
           </td>
           <td>
-            <input type="number" value="0" id="sd-template-id" style="width:68px;  background-color: #8d0100; color: #ffffff"/>
+            <input type="number" value="0" id="sd-template-id" style="width:68px;  background-color: transparent; color: #ffffff"/>
           </td>
 
         </tr>
@@ -125,7 +127,7 @@ export function displaySettings(pageContext: PageContext) {
             Schwert Laufzeit:
           </td>
           <td>
-            <input type="number" value="0" id="sd-schwertLfz" style="width:68px;  background-color: #8d0100; color: #ffffff"/>
+            <input type="number" value="0" id="sd-schwertLfz" style="width:68px;  background-color: transparent; color: #ffffff"/>
           </td>
 
         </tr>
@@ -155,15 +157,15 @@ export function displaySettings(pageContext: PageContext) {
     const $settingsRoot = $("#sd-settings-root");
     //colorize the buttons depending on the value of the setting
     if (localStorageService.getFirstStartPopup) {
-        $("#first-start-popup").val("An").css("background", "#0e7a0e");
+        $("#first-start-popup").val("An").css("background", "transparent");
     } else {
-        $("#first-start-popup").val("Aus").css("background", "#8d0100");
+        $("#first-start-popup").val("Aus").css("background", "transparent");
     }
 
     if (localStorageService.getSwordLfz !== 0) {
-        $("#sd-schwertLfz").val(localStorageService.getSwordLfz).css("background", "#0e7a0e");
+        $("#sd-schwertLfz").val(localStorageService.getSwordLfz).css("background", "transparent");
     } else {
-        $("#sd-schwertLfz").val("0").css("background", "#8d0100");
+        $("#sd-schwertLfz").val("0").css("background", "transparent");
     }
 
     log.state("Loaded settings data sources", {
@@ -198,12 +200,12 @@ export function displaySettings(pageContext: PageContext) {
 
         if (value === "An") {
             $(this).val("Aus");
-            $("#first-start-popup").css("background", "#8d0100");
+            $("#first-start-popup").css("background", "transparent");
             localStorageService.setFirstStartPopup = false;
             log.info("Updated setting", {setting: "firstStartPopup", value: false});
         } else {
             $(this).val("An");
-            $("#first-start-popup").css("background", "#0e7a0e");
+            $("#first-start-popup").css("background", "transparent");
             localStorageService.setFirstStartPopup = true;
             log.info("Updated setting", {setting: "firstStartPopup", value: true});
         }

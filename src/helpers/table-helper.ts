@@ -111,7 +111,7 @@ export function applySettingsToMassUtLink(currentThreadId: string) {
     const sdGroupId = localStorageService.getSdGroupId;
     const orderBy = localStorageService.getSortBy;
     const additionalLinkText = buildMassUtQuerySuffix(currentThreadId, automate, sdGroupId, orderBy);
-    const updatedLinkCount = appendQueryToMassUtLinks(additionalLinkText);
+    const updatedLinkCount = appendQueryToMassUtLinks(additionalLinkText, localStorageService.getSdPostId(currentThreadId));
 
     log.info("Mass-ut links updated", {
         currentThreadId,
@@ -122,9 +122,9 @@ export function applySettingsToMassUtLink(currentThreadId: string) {
     });
 }
 
-export function trimVillageNameText() {
+export function trimVillageNameText(sdPostId: string) {
     log.info("Trimming village names in SD table");
-    $(".village_anchor>a").each((index, element) => {
+    $("a[name=" + sdPostId + "]").parent().find(".text .bbcodetable").first().find(".village_anchor>a").each((index, element) => {
         const coordsPattern = /(\d{3}\|\d{3})/;
         const match = $(element).text().match(coordsPattern);
         if (match) {

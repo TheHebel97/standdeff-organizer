@@ -99,8 +99,8 @@ export function sdTable(pageContext: PageContext, threads: Threads) {
 
     updateSentPackagesInSdTable(pageState.currentThreadId);
     applySettingsToMassUtLink(pageState.currentThreadId);
-    trimVillageNameText();
-    trimYearFromDateStrings();
+    trimVillageNameText(pageState.sdPostId);
+    // Keep complete dates readable by subsequent parsing and editing.
 
     renderRoleSpecificView(pageState, sdTableDom.postCacheText);
     bindEvents(pageState, sdTableState);

@@ -12,7 +12,7 @@ function getSdTablePost(sdPostId: string) {
 }
 
 function getSdTableBody(sdPostId: string) {
-    return getSdTablePost(sdPostId).find("table").find("tbody");
+    return getSdTablePost(sdPostId).find(".text .bbcodetable").first().children("tbody");
 }
 
 export function readVillageAnchorSources(): villageAnchorSource[] {
@@ -112,16 +112,17 @@ export function applySentPackageMarkers(sdPostId: string, markers: Map<string, s
             markerElement.text(markerText);
             return;
         }
-        amountCell.append(` <span class="sent-info" style="color:#FF0000;">${markerText}</span>`);
+        amountCell.append(' ').append($('<span class="sent-info" style="color:#72501e;font-weight:bold">').text(markerText));
     });
 }
 
-export function appendQueryToMassUtLinks(additionalQuery: string): number {
+export function appendQueryToMassUtLinks(additionalQuery: string, sdPostId?: string): number {
     const normalizedQuery = additionalQuery.startsWith("&") ? additionalQuery.slice(1) : additionalQuery;
     const additionalParams = new URLSearchParams(normalizedQuery);
     const managedKeys = ["dir", "sdTableId", "group", "order"];
     let updatedLinkCount = 0;
-    $(".bbcodetable").find("a[referrerpolicy^='no-ref']").each(function () {
+    const $table = sdPostId ? getSdTablePost(sdPostId).find('.text .bbcodetable').first() : $();
+    $table.find('a[href*="screen=place"]').each(function () {
         const oldHref = $(this).attr("href");
         if (!oldHref) {
             return;

@@ -1,3 +1,4 @@
+import {escapeHtml} from "./organizer-style";
 import {
     convertDateToEpoch,
     convertEpochToDate
@@ -48,7 +49,7 @@ export function showRequestPopup(currentThreadId: string) {
     $(".addBunkerAnfrage").on("click", function () {
         let isEmpty = false;
         $(".amountInput").each(function () {
-            if ($(this).val() === "") {
+            if (!Number.isSafeInteger(Number($(this).val())) || Number($(this).val()) <= 0 || $(this).attr("aria-invalid") === "true") {
                 $(this).css("background-color", "red");
                 isEmpty = true;
                 return false; // break the loop
@@ -75,7 +76,7 @@ function renderTableRows(currentThreadId: string): void {
                                     <th style="padding-left: 10px; padding-right: 10px">Anmerkung <span style="font-size: 0.8em;">(optional)</span></th>
                                     <th style="padding-left: 10px; padding-right: 10px">ab <span style="font-size: 0.8em;">(optional)</span></th>
                                     <th style="padding-left: 10px; padding-right: 10px">bis <span style="font-size: 0.8em;">(optional)</span></th>
-                                    <th style="padding-left: 10px; padding-right: 10px">Löschen <button style="cursor:pointer; background: url(/graphic/delete.png); width: 20px; height: 20px;  border: none" class="deleteRequest" id="deleteAll"></button></th></tr>`;
+                                    <th style="padding-left: 10px; padding-right: 10px">Löschen <button style="cursor:pointer; background: url(/graphic/delete.png); width: 20px; height: 20px;  border: none" type="button" aria-label="Anfrage löschen" class="deleteRequest" id="deleteAll"></button></th></tr>`;
     if (requestDataArray.length === 0) {
         $(".addBunkerAnfrage").prop("disabled", true);
     } else {
@@ -90,23 +91,23 @@ function renderTableRows(currentThreadId: string): void {
         });
         returnHtml += `<tr style='margin=2px;'><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.coords) {
-            returnHtml += `<span style="font-size: 1.2em; font-weight: bold;">${requestRow.coords}</span>`;
+            returnHtml += `<span style="font-size: 1.2em; font-weight: bold;">${escapeHtml(requestRow.coords)}</span>`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.amount) {
-            returnHtml += `<input type="number" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" class="amountInput" value="${requestRow.amount}">`;
+            returnHtml += `<input type="number" min="1" step="1" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" class="amountInput" value="${requestRow.amount}">`;
         } else {
-            returnHtml += `<input type="number" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" class="amountInput" value="">`;
+            returnHtml += `<input type="number" min="1" step="1" style="background-color:#EAD5AA; border: none;" id="amountInput${index}" class="amountInput" value="">`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.playerName) {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="${requestRow.playerName}">`;
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="${escapeHtml(requestRow.playerName)}">`;
         } else {
             returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="playerNameInput${index}" class="playerNameInput" value="">`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
         if (requestRow.comment) {
-            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="${requestRow.comment}">`;
+            returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="${escapeHtml(requestRow.comment)}">`;
         } else {
             returnHtml += `<input type="text" style="background-color:#EAD5AA; border: none;" id="commentInput${index}" class="commentInput" value="">`;
         }
@@ -126,7 +127,7 @@ function renderTableRows(currentThreadId: string): void {
             returnHtml += `<input type="datetime-local" style="background-color:#EAD5AA; border: none;" id="dateUntilInput${index}" class="dateUntilInput" value="">`;
         }
         returnHtml += `</td><td style="padding-left: 10px; padding-right: 10px">`
-        returnHtml += `<button style="cursor:pointer; background: url(/graphic/delete.png); width: 20px; height: 20px;  border: none" class="deleteRequest" id="deleteRequest${index}"></button>`;
+        returnHtml += `<button style="cursor:pointer; background: url(/graphic/delete.png); width: 20px; height: 20px;  border: none" type="button" aria-label="Anfrage löschen" class="deleteRequest" id="deleteRequest${index}"></button>`;
         returnHtml += "</td></tr>";
     })
     $(".requestContent").append(returnHtml);
@@ -148,15 +149,14 @@ function renderTableRows(currentThreadId: string): void {
         $(this).css("background-color", "#EAD5AA");
     });
 
-    $(".playerNameInput").on("click", function () {
-        $(this).val("");
-    });
 
-    $(".commentInput").on("click", function () {
-        $(this).val("");
-    });
+
+
 
     $(".amountInput").on("focusout", function () {
+        const amount = Number($(this).val());
+        if (!Number.isSafeInteger(amount) || amount <= 0) { $(this).attr('aria-invalid','true'); return; }
+        $(this).attr('aria-invalid','false');
         let sdInquiryCollection: sdInquiry[] = localStorageService.getSdInquiry(currentThreadId);
         let coords = $(this).closest('tr').children('td:first').text();
         let index = sdInquiryCollection.findIndex(request => request.coords === coords);
@@ -250,7 +250,7 @@ function renderTableRows(currentThreadId: string): void {
         if (index !== -1) {
             let dateUntil = convertDateToEpoch(String($(this).val()));
             let dateFrom = sdInquiryCollection[index].dateFrom;
-            if (dateFrom && dateFrom >= dateUntil) {
+            if (dateFrom && dateUntil && dateFrom >= dateUntil) {
                 $(this).css("background-color", "red");
                 $(this).val("");
                 return;

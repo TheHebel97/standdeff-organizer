@@ -37,11 +37,12 @@ export function readVillageAnchorSources(): villageAnchorSource[] {
 export function readForumPostSources(sdPostId: string): forumPostSource[] {
     const sources: forumPostSource[] = [];
     $(".post").each((index, element) => {
-        if ($(element).find("a").first().attr("name") === sdPostId) {
+        const postId=$(element).children('a[name]').map((_,a)=>String(a.getAttribute('name'))).get().find(id=>/^\d+$/.test(id));
+        if (!postId || postId === sdPostId) {
             return;
         }
         sources.push({
-            postId: $(element).find("a").first().attr("name") || "",
+            postId,
             lines: $(element).find(".text").text().split("\n")
         });
     });

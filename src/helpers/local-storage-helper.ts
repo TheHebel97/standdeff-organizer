@@ -387,7 +387,8 @@ export class LocalStorageHelper {
 
     public addThread(id: string, value: ThreadData) {
         this.updateFromLocalStorage("before-thread-write");
-        this._localStorageData.threads[id] = serializeThreadData(value);
+        const existing=this._localStorageData.threads[id];
+        this._localStorageData.threads[id] = existing ? {...existing,threadName:value.threadName,forumName:value.forumName,forumId:value.forumId,sdPostId:value.sdPostId} : serializeThreadData(value);
         this.log.info("Adding thread to localStorage", this.summarizeThreadData(id, value));
         this.storeDataInLocalStorage(this._localStorageData, `addThread:${id}`);
     }

@@ -52,3 +52,14 @@ test('new SD thread renders with the newly registered state immediately', () => 
     expect($('#dbInfo_popup_box').length).toBe(0);
     expect(LocalStorageHelper.getInstance().getNewThread).toBe(false);
 });
+
+test('invalid legacy post anchor is repairable without losing request drafts',()=>{
+    fixture();
+    const storage=LocalStorageHelper.getInstance();
+    storage.addThread('7396',{threadName:'sdsd',forumName:'Allgemein',forumId:'2532',sdPostId:'last',bunkerInquiryCache:[],packagesSent:new Map(),stateOfSdTable:new Map(),updatedPostIds:[]});
+    storage.setSdInquiry('7396',[{coords:'123|123',amount:10,playerName:undefined,comment:undefined,dateFrom:undefined,dateUntil:undefined}]);
+    viewThread(resolveScriptContext());
+    $('#safeThreadAsSd').trigger('click');
+    expect(storage.getSdPostId('7396')).toBe('50624');
+    expect(storage.getSdInquiry('7396')[0].amount).toBe(10);
+});

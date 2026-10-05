@@ -11,11 +11,15 @@ export function getForumIdFromContext(pageContext: PageContext): string | null {
 
 export function isKnownSdThread(threads: Threads, pageContext: PageContext): boolean {
     const threadId = getThreadIdFromContext(pageContext);
-    return threadId !== "" && threads[threadId] !== undefined;
+    return threadId !== "" && hasValidThreadMetadata(threads[threadId]);
+}
+
+export function hasValidThreadMetadata(thread:Threads[string] | undefined):boolean {
+    return !!thread && /^[1-9]\d*$/.test(thread.sdPostId) && /^[1-9]\d*$/.test(thread.forumId);
 }
 
 export function shouldShowFirstStartPopup(threads: Threads): boolean {
-    return Object.keys(threads).length === 0;
+    return !Object.values(threads).some(hasValidThreadMetadata);
 }
 
 export function isEditingSdPost(pageContext: PageContext, threads: Threads): boolean {

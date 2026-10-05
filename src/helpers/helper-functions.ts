@@ -2,6 +2,7 @@ import {normalizeDateEpoch} from "./date-helper";
 import {rowSdTable, ThreadData, Threads} from "../types/types";
 import {LocalStorageHelper} from "./local-storage-helper";
 import {Log} from "./logging-helper";
+import {hasValidThreadMetadata} from './thread-guards';
 
 const log = Log.scope("helper-functions");
 
@@ -11,7 +12,7 @@ export function addThreadIdToLocalStorage(currentThreadId: string | null, postId
     let threads: Threads = localStorageService.getAllThreads;
 
     if (currentThreadId !== null && postId !== null && threadName !== null && forumName !== null && forumId !== null) {
-        const existingThread = threads[currentThreadId] !== undefined;
+        const existingThread = hasValidThreadMetadata(threads[currentThreadId]);
         if (!existingThread) {
             let threadData: ThreadData = {
                 threadName: threadName,

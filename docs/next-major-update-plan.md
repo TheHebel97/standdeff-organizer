@@ -2,6 +2,8 @@
 
 Stand: 2026-10-06. Grundlage: Repo-Sichtung und abgeschlossene UI-Feedbackrunde.
 
+Nachträgliche UX-Entscheidung (2026-10-06): Das separate Registrierungs-Popup entfällt. Stattdessen erklärt die Einführung den Button „Als SD-Tabelle festlegen“ im Organizer; die folgenden Popup-Punkte beschreiben den ursprünglichen Plan.
+
 Ziel: Ein einheitlicher SD Organizer mit einfacherer Paketkonfiguration, verlaesslicher Thread-Registrierung, korrektem Pakettracking und einer kurzen Einfuehrung in die wichtigsten Ablaeufe.
 
 Dies ist der ursprüngliche Umsetzungsplan. Die Codeänderungen sind inzwischen implementiert; aktueller Prüfstand und verbleibende Browser-Abnahme stehen in [implementation-log.md](implementation-log.md). Befunde und Reproduktionsbeispiele stehen in [review-2026-10-05.md](review-2026-10-05.md).

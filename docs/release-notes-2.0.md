@@ -8,6 +8,7 @@ Testkandidat vom 2026-10-06. Keine Veröffentlichung oder Übertragung an einen 
 - Automatische Infanterie-Skalierung mit 5 % Spähern, unabhängige Paketzeilen und Leeren per Klick.
 - 100/200 Dual und Trial beim Bunkerimport, eigene Paketgrößen, getrennte Power-Einstellungen und aktive Auswahl.
 - Kurze Einführungen für Erstellung, Import, Anfragen, Massen-UT und Tabellenpflege.
+- Zuordnung über „Als SD-Tabelle festlegen“ im Organizer, als erster Einführungsschritt erklärt. Das separate Registrierungs-Popup und seine Einstellung entfallen; bekannte Threads zeigen ihren Zuordnungsstatus.
 - SD-Registrierung ohne `forum_id` in Redirect-URLs, numerischer SD-Post-Anker, sofortige Initialisierung und sichtbare Speicherfehler.
 - Korrektes `done`, stabile Anfrage-IDs und erhaltener Post-Cache über mehrere Seiten.
 - Lokale Datumswerte bleiben unverändert; Handy-Anführungszeichen werden als manuelle Feldtrenner akzeptiert.

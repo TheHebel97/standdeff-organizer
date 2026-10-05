@@ -18,10 +18,6 @@ export function hasValidThreadMetadata(thread:Threads[string] | undefined):boole
     return !!thread && /^[1-9]\d*$/.test(thread.sdPostId) && /^[1-9]\d*$/.test(thread.forumId);
 }
 
-export function shouldShowFirstStartPopup(threads: Threads): boolean {
-    return !Object.values(threads).some(hasValidThreadMetadata);
-}
-
 export function isEditingSdPost(pageContext: PageContext, threads: Threads): boolean {
     const threadId = getThreadIdFromContext(pageContext);
     const editPostId = pageContext.query.edit_post_id ?? "";

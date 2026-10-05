@@ -24,8 +24,8 @@ export function registerSdThread(threadId: string | null, forumId: string | null
         const message = !postId ? "Keine SD-Tabelle auf dieser Seite gefunden. Bitte den Beitrag mit der SD-Tabelle öffnen."
             : !forumId ? "Das zugehörige Forum wurde nicht erkannt. Bitte den Thread über das Forum öffnen."
             : "Die SD-Tabelle konnte nicht gespeichert werden. Bitte den Browser-Speicher prüfen und erneut versuchen.";
-        const $target = $("#dbInfo_popup_box .popup_box_content").length
-            ? $("#dbInfo_popup_box .popup_box_content") : $("#content_value").length ? $("#content_value") : $("body");
+        const $target = $("#sd-thread-registration").length
+            ? $("#sd-thread-registration") : $("#content_value").length ? $("#content_value") : $("body");
         $("<p class='sd-registration-error' role='alert'></p>").text(message).appendTo($target);
     }
     return !!success;

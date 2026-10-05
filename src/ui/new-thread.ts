@@ -154,7 +154,7 @@ Dadruch entstehen im Stamm einheitliche Bunker und keine komischen Ausrutscher. 
 Das SD Skript besteht seit dem Update aus mehreren Bereichen:
 - Spieloptionen ganz unten -> Settings: Hier können die Einstellungen für das Skript vorgenommen werden
 - Massenunterstützung: Hierüber wird die Deff verschickt und das Skript (wenn eingeschaltet) trackt wieviele Einheiten benötigt werden und im Anschluss geschickt wurde.
-- SD Tabelle: Die Sd Tabelle ist die Übersicht, welche Auskunft über die Deffanfragen gibt. Es ist bei jedem Nutzer einzustellen in welchem Forum sich die SD Tabelle befindet. Dies kann über einen Button oder über ein Popup vermerkt werden.
+- SD Tabelle: Die Sd Tabelle ist die Übersicht, welche Auskunft über die Deffanfragen gibt. Es ist bei jedem Nutzer einzustellen in welchem Forum sich die SD Tabelle befindet. Öffne den Beitrag mit der SD-Tabelle und klicke im SD Organizer auf „Als SD-Tabelle festlegen“. Die Einführung im Organizer erklärt die wichtigsten Abläufe.
 - Bearbeiten und Erstellen von Posts:
   ->über den Button "Bunker Anfragen" wird eine neue Anfrage erstellt. Diese wird innerhalb einem UI bearbeitet.
   ->über den Button "Bearbeitung eintragen" werden die bisher bearbeiteten Anfragen in das Nachrichtenfenster eingetragen.

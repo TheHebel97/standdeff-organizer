@@ -1,7 +1,6 @@
 import {resolveScriptContext} from '../src/helpers/script-context';
 import {LocalStorageHelper} from '../src/helpers/local-storage-helper';
 import {addThreadIdToLocalStorage} from '../src/helpers/helper-functions';
-import {addSdPopup} from '../src/ui/components/first-start-thread-popup';
 import {viewThread} from '../src/ui/view-thread';
 import {sdTable} from '../src/ui/components/sd-table';
 
@@ -10,13 +9,14 @@ jest.mock('../src/ui/components/forum-quick-settings', () => ({addForumQuickSett
 
 function fixture() {
     window.history.replaceState({}, '', '/game.php?screen=forum&screenmode=view_thread&thread_id=7396');
-    document.body.innerHTML = `<div id="ds_body"><div class="forum-container"><div class="selected"><a href="/game.php?screen=forum&forum_id=2532">Allgemein</a></div></div>
+    document.body.innerHTML = `<div id="ds_body"><div id="sd-forum-quick-settings"><div class="sd-organizer-body"></div></div><div class="forum-container"><div class="selected"><a href="/game.php?screen=forum&forum_id=2532">Allgemein</a></div></div>
       <div class="clearfix"><table><tr><td><h2>sdsd</h2></td></tr></table></div>
       <div class="post"><a name="last"></a><a name="50624"></a><div class="text"><b>SD Tabelle Paketsystem</b><table class="bbcodetable"><tr><th>ID</th></tr></table></div></div></div>`;
 }
 
 beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
     (LocalStorageHelper as any).instance = undefined;
 });
 
@@ -35,10 +35,14 @@ test('registration reports a failed write instead of pretending success', () => 
     expect(LocalStorageHelper.getInstance().getAllThreads['7396']).toBeUndefined();
 });
 
-test('popup saves the numeric SD post and closes on success', () => {
+test('organizer button saves the numeric SD post and renders immediately without a popup', () => {
     fixture();
-    addSdPopup('7396', resolveScriptContext().forumId);
-    $('#safeThreadAsSd').trigger('click');
+    viewThread(resolveScriptContext());
+    expect($('#sd-register-thread').prop('disabled')).toBe(false);
+    $('#sd-register-thread').trigger('click');
+    expect($('#sd-register-thread').prop('disabled')).toBe(true);
+    expect($('#sd-register-thread').val()).toBe('SD-Tabelle festgelegt');
+    expect(sdTable).toHaveBeenCalledTimes(1);
     expect(LocalStorageHelper.getInstance().getAllThreads['7396']?.sdPostId).toBe('50624');
     expect($('#dbInfo_popup_box').length).toBe(0);
 });
@@ -59,7 +63,28 @@ test('invalid legacy post anchor is repairable without losing request drafts',()
     storage.addThread('7396',{threadName:'sdsd',forumName:'Allgemein',forumId:'2532',sdPostId:'last',bunkerInquiryCache:[],packagesSent:new Map(),stateOfSdTable:new Map(),updatedPostIds:[]});
     storage.setSdInquiry('7396',[{coords:'123|123',amount:10,playerName:undefined,comment:undefined,dateFrom:undefined,dateUntil:undefined}]);
     viewThread(resolveScriptContext());
-    $('#safeThreadAsSd').trigger('click');
+    $('#sd-register-thread').trigger('click');
     expect(storage.getSdPostId('7396')).toBe('50624');
     expect(storage.getSdInquiry('7396')[0].amount).toBe(10);
+});
+
+test('failed registration stays actionable and shows the error next to the button', () => {
+    fixture();
+    viewThread(resolveScriptContext());
+    const write = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {throw new Error('quota');});
+    try { $('#sd-register-thread').trigger('click'); } finally { write.mockRestore(); }
+    expect($('#sd-register-thread').prop('disabled')).toBe(false);
+    expect($('#sd-thread-registration .sd-registration-error').text()).toContain('konnte nicht gespeichert werden');
+    expect(sdTable).not.toHaveBeenCalled();
+    expect($('#dbInfo_popup_box').length).toBe(0);
+});
+
+test('missing SD post never registers an ordinary thread and repeated rendering keeps one button', () => {
+    fixture(); $('.post').remove();
+    viewThread(resolveScriptContext()); viewThread(resolveScriptContext());
+    expect($('#sd-register-thread').length).toBe(1);
+    $('#sd-register-thread').trigger('click');
+    expect($('#sd-thread-registration .sd-registration-error').text()).toContain('Keine SD-Tabelle');
+    expect(LocalStorageHelper.getInstance().getAllThreads['7396']).toBeUndefined();
+    expect($('#dbInfo_popup_box').length).toBe(0);
 });

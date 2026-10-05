@@ -177,9 +177,10 @@ Bereits implementierte Settings:
 - ✅ **SD-Threads verwalten**
   - Liste der hinzugefügten SD-Threads
   - Threads können wieder aus der Liste entfernt werden
-- ✅ **Popup beim Start**
-  - Default: `true`
-  - Steuert, ob beim Laden ein Info-/Hilfepopup angezeigt wird
+- ✅ **SD-Tabelle festlegen und Einführung**
+  - Im SD Organizer des Threads über „Als SD-Tabelle festlegen“ zuordnen
+  - Die Einführung erklärt den Button; bereits zugeordnete Threads zeigen ihren Status
+  - Das separate Registrierungs-Popup und dessen Einstellung entfallen
 - ✅ **Massen UT vereinfachen**
   - Default: `false`
   - Steuert, ob Komfortfunktionen bei Massen-UT aktiviert werden

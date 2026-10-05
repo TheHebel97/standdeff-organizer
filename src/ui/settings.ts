@@ -73,14 +73,6 @@ export function displaySettings(pageContext: PageContext) {
         <tbody>
         <tr>
           <td>
-            Popup beim ersten Start:
-          </td>
-          <td>
-            <input class="btn btn-confirm-no" type="button" value="An" id="first-start-popup" style="width:75px; background-color: transparent; color: #ffffff !important;"/>
-          </td>
-        </tr>
-        <tr>
-          <td>
             Massen-UT vereinfachen:
           </td>
           <td>
@@ -156,13 +148,6 @@ export function displaySettings(pageContext: PageContext) {
 
     $("#content_value > table > tbody > tr > td:nth-child(2)").append(settingsHtml);
     const $settingsRoot = $("#sd-settings-root");
-    //colorize the buttons depending on the value of the setting
-    if (localStorageService.getFirstStartPopup) {
-        $("#first-start-popup").val("An").css("background", "transparent");
-    } else {
-        $("#first-start-popup").val("Aus").css("background", "transparent");
-    }
-
     if (localStorageService.getSwordLfz !== 0) {
         $("#sd-schwertLfz").val(localStorageService.getSwordLfz).css("background", "transparent");
     } else {
@@ -196,21 +181,6 @@ export function displaySettings(pageContext: PageContext) {
     });
 
 
-    $("#first-start-popup").on("click", function () {
-        const value = $(this).val();
-
-        if (value === "An") {
-            $(this).val("Aus");
-            $("#first-start-popup").css("background", "transparent");
-            localStorageService.setFirstStartPopup = false;
-            log.info("Updated setting", {setting: "firstStartPopup", value: false});
-        } else {
-            $(this).val("An");
-            $("#first-start-popup").css("background", "transparent");
-            localStorageService.setFirstStartPopup = true;
-            log.info("Updated setting", {setting: "firstStartPopup", value: true});
-        }
-    });
     $("#sd-schwertLfz").on("change", function () {
         const value = Number($(this).val());
         if (!isNaN(value) && value >= 0) {

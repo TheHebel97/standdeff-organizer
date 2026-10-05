@@ -9,7 +9,7 @@ export function getOnboardingSteps(context:PageContext, mod:boolean):Step[] {
     if (context.context === 'forum-new_thread' && mod) return [
         {target:'.sd-package-row',title:'Pakete definieren',text:'Eine Menge in Speer, Schwert oder Bogen skaliert diese Paketzeile. Späher sind 5 %. Ein Klick leert ein befülltes Feld. Weitere Pakete sind unabhängig.'},
         {target:'#setupTable',title:'SD-Tabelle vorbereiten',text:'„SD Tabelle generieren“ füllt den Forenbeitrag aus. Prüfe den Text, gib einen Titel ein und sende den Thread im Spiel ab.'},
-        {target:'input[name=subject]',title:'Thread erstellen und zuordnen',text:'Nach erfolgreichem Erstellen erkennt der Organizer deinen SD-Thread und speichert die Zuordnung. Bestehende Tabellen lassen sich auch über das SD-Symbol oder das Registrierungs-Popup zuordnen.'}
+        {target:'input[name=subject]',title:'Thread erstellen und zuordnen',text:'Nach erfolgreichem Erstellen erkennt der Organizer deinen SD-Thread und speichert die Zuordnung. Bestehende Tabellen ordnest du im jeweiligen Thread über „Als SD-Tabelle festlegen“ im SD Organizer zu.'}
     ];
     if (context.context === 'overview-away_detail') return [
         {target:'.sd-preset-buttons',title:'Paketgröße wählen',text:'100 oder 200 Dual enthält Speer und Schwert. Auf Bogenwelten enthält Trial zusätzlich Bogen. Eigene Paketgrößen und Power sind separat einklappbar.'},
@@ -24,7 +24,7 @@ export function getOnboardingSteps(context:PageContext, mod:boolean):Step[] {
         {target:'#sd-repeat-send-button',title:'Bearbeitung melden',text:'Nach erfolgreichem Versand zurück zur SD-Tabelle: „Antworten“ → „Bearbeitung eintragen“ → Beitrag prüfen → Senden. Die Meldung aktualisiert den Bedarf für alle Nutzer.'}
     ];
     if (context.context === 'forum-view_thread') return [
-        {target:'#sd-forum-quick-settings',title:'SD-Thread zuordnen',text:'Speichere die passende SD-Tabelle über das SD-Symbol oder das Popup. Nur zugeordnete Threads erhalten die Tabellen- und Versandfunktionen.'},
+        {target:'#sd-register-thread',title:'SD-Tabelle festlegen',text:'Öffne den Beitrag mit der SD-Tabelle und klicke im SD Organizer auf „Als SD-Tabelle festlegen“. Danach sind die Tabellen- und Versandfunktionen für diesen Thread verfügbar. „SD-Tabelle festgelegt“ zeigt eine bereits gespeicherte Zuordnung. Neu erstellte SD-Threads werden automatisch zugeordnet.'},
         {target:'#requestBunker',title:'Bunker anfragen',text:'Öffne „Antworten“, dann „Bunker anfragen“. Füge Koordinaten und Paketmengen ein. Spieler, Bemerkung und Zeitfenster sind optional. „Bunker anfragen“ füllt den Beitrag; erst Senden veröffentlicht ihn.'},
         {target:'#sd-forum-quick-settings',title:'Massen-UT vorbereiten',text:'Öffne einmal Massen-UT, damit Gruppen und Vorlagen eingelesen werden. Wähle sie hier aus und aktiviere die Hilfe. Folge dann dem Link der gewünschten Anfrage in der Tabelle.'},
         {target:'#addBearbeitung',title:'Versand eintragen',text:'„Bearbeitung eintragen“ füllt deine gespeicherten Versandmeldungen ein. Prüfe und sende den Beitrag. Entwürfe werden erst bei bestätigtem Erfolg entfernt.'},

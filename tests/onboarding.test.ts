@@ -27,3 +27,15 @@ test('normal users never see mod-only table editing step',()=>{
     expect(getOnboardingSteps(context,false).some(step=>step.title === 'SD-Tabelle pflegen')).toBe(false);
     expect(getOnboardingSteps(context,true).some(step=>step.title === 'SD-Tabelle pflegen')).toBe(true);
 });
+
+test('thread introduction explains the explicit registration button instead of a separate popup',()=>{
+    const context=resolveScriptContext();
+    const first=getOnboardingSteps(context,false)[0];
+    expect(first.target).toBe('#sd-register-thread');
+    expect(first.text).toContain('Als SD-Tabelle festlegen');
+    expect(first.text).not.toContain('Popup');
+    initializeOnboarding(context);
+    $('input[value="Einführung starten"]').trigger('click');
+    expect($('#sd-onboarding-card').text()).toContain('SD-Tabelle festlegen');
+    expect($('#dbInfo_popup_box').length).toBe(0);
+});

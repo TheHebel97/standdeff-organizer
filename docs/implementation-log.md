@@ -11,14 +11,15 @@ Alle sieben Arbeitspakete des [Plans](next-major-update-plan.md) sind im Code um
 3. Zentrale lokale Datumswerte, Handy-Feldtrenner, sichere Mengen, Escaping und Beschränkung auf den SD-Post. Nicht aufgelöste Dorf-Anfragen erzeugen einen Hinweis und bleiben für ein weiteres Update offen.
 4. Gemeinsame beige/braune Oberfläche; Generator im Organizer, Infanterie-Skalierung, Leeren per Klick und Titelprüfung auch bei Tastatur-Submit.
 5. Dual-/Trial-Presets, einklappbare eigene Mengen, separate Power und sofortige Vorschau. Vorhandene Auswahl-/Unter-5-Änderungen integriert.
-6. Kontext-/rollenspezifische Einführung mit gespeichertem Fortschritt, Pause, Fortsetzen, Überspringen und Neustart.
+6. Kontext-/rollenspezifische Einführung mit gespeichertem Fortschritt, Pause, Fortsetzen, Überspringen und Neustart. Die Thread-Einführung erklärt den Zuordnungsbutton im Organizer; das separate Registrierungs-Popup und dessen Einstellung entfallen.
 7. Port- und Metadatenabgleich, Production-Export ohne Development-eval, portable Befehle, aktuelle Doku und Release-Notizen.
 
 ## Prüfung
 
-- Jest/jsdom: 45 Regressionstests bestehen (Registrierung, Parser/Datum, stabile IDs, Zwei-Tab-Änderungen, Sendungen, Komprimierung, Kontext/Checkboxen, Generator, Import und Einführung).
+- Jest/jsdom: 48 Regressionstests bestehen (Registrierung, Parser/Datum, stabile IDs, Zwei-Tab-Änderungen, Sendungen, Komprimierung, Kontext/Checkboxen, Generator, Import und Einführung).
 - TypeScript-/webpack-Build und Production-Export bestehen; JavaScript-Syntax und fehlendes Development-eval werden geprüft.
 - Live auf Welt 259: Organizer-Umbenennung/-Design, Dual setzt Bogen und andere Anteile auf 0, 200er-Generator ergibt 200/200/200/10, Vorlage wird eingefüllt, Einführung erscheint, tatsächlicher Forenadmin-Link und Massen-UT-Formular geprüft.
+- Live-Nachprüfung: Im SD-Thread zeigt der Organizer „SD-Tabelle festgelegt“; der erste Einführungsschritt hebt diesen Button hervor. Das separate Registrierungs-Popup erscheint nicht.
 - Im geöffneten Account sind keine Massen-UT-Quelldörfer auswählbar und keine abgestellten Truppen sichtbar. Die Rechnung/Vorschau wurde zusätzlich mit DOM-Fixtures geprüft.
 
 ## Vor endgültigem Release offen
@@ -29,4 +30,4 @@ Alle sieben Arbeitspakete des [Plans](next-major-update-plan.md) sind im Code um
 
 Diese offenen Punkte sind Abnahme, keine bereits erfolgreich getesteten Live-Abläufe. Der aktuelle Commit-Stand und Export bleiben bis dahin ein Testkandidat. Es wurden keine Forenbeiträge oder Truppen durch den Agenten versendet.
 
-UI-Vorschau: [Generator und Einführung](screenshots/organizer-2.0-preview.jpg).
+UI-Vorschauen: [Generator und Einführung](screenshots/organizer-2.0-preview.jpg), [Zuordnungsbutton in der Einführung](screenshots/onboarding-registration-preview.jpg).

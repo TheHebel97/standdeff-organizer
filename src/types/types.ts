@@ -3,23 +3,7 @@ import {Unit} from "./tw-types";
 
 
 
-export type generalSettings = {
-    newThread: boolean,
-    firstStartPopup: boolean,
-    automateMassenUt: boolean,
-    sdGroupId: string,
-    sortBy: string,
-    selectedTemplate: string,
-    preventDuplicateDestination: boolean,
-    swordLfz: number,
-    forumQuickSettingsPosition: forumQuickSettingsPosition | null,
-    bunkerImportPanelPosition: forumQuickSettingsPosition | null,
-    bunkerImportTargetThreadId: string,
-    bunkerUnitPowers: unitNumberMap,
-    bunkerSplitConfig: unitNumberMap,
-    templateData: templateData[],
-    groupData: groupData[]
-}
+export type {generalSettings} from "./localStorageTypes";
 
 export type forumQuickSettingsPosition = {
     left: number;
@@ -49,6 +33,7 @@ export type ThreadData = {
     stateOfSdTable: sdTableState;
     packagesSent: packages;
     updatedPostIds: string[];
+    unresolvedPackages?: [string,string][];
 
 }
 

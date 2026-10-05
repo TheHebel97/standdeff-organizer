@@ -1,11 +1,13 @@
 import {forumQuickSettingsPosition, sdInquiry, unitNumberMap} from "./types";
 
 export type LocalStorageData = {
+    schemaVersion?: number,
     generalSettings: generalSettings,
     threads: lsThreads
 }
 
 export type generalSettings = {
+    onboarding?: {version:number; tours:Record<string,{step:number; paused:boolean; complete:boolean}>},
     newThread: boolean,
     firstStartPopup: boolean,
     automateMassenUt: boolean,
@@ -43,6 +45,7 @@ export type lsThreadData = {
     stateOfSdTable: lsSdTableState;
     packagesSent: lsPackages;
     updatedPostIds: string[];
+    unresolvedPackages?: [string,string][];
 
 }
 

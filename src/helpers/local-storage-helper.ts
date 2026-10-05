@@ -2,7 +2,8 @@ import {forumQuickSettingsPosition, groupData, rowSdTable, sdInquiry, ThreadData
 import {generalSettings, LocalStorageData, lsThreadData} from "../types/localStorageTypes";
 import {Log} from "./logging-helper";
 import {StandDeffStorageRepository} from "./local-storage-repository";
-import {deserializeThreadData, serializeThreadData} from "./local-storage-serializer";
+import {deserializeThreadData, serializeThreadData, normalizeStoredThread} from "./local-storage-serializer";
+import {PendingOperation, discardPendingOperation} from './pending-operation';
 import {
     DEFAULT_BUNKER_SPLIT_CONFIG,
     DEFAULT_BUNKER_UNIT_POWERS,
@@ -30,30 +31,33 @@ export class LocalStorageHelper {
         this.storeDataInLocalStorage(this._localStorageData, "constructor:init-default");
     }
 
-    private normalizeGeneralSettings(settings?: Partial<generalSettings>): generalSettings {
+    private normalizeGeneralSettings(raw?: Partial<generalSettings>): generalSettings {
+        const settings = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+        const bool = (value:unknown, fallback:boolean) => typeof value === 'boolean' ? value : fallback;
+        const text = (value:unknown, fallback='') => typeof value === 'string' ? value : fallback;
+        const list = (value:any) => Array.isArray(value) ? value.filter(row => row && typeof row.id === 'string' && typeof row.name === 'string') : [];
+        const position = (value:any) => value && Number.isFinite(value.left) && Number.isFinite(value.top) ? {left:value.left,top:value.top} : null;
         return {
-            newThread: settings?.newThread ?? false,
-            firstStartPopup: settings?.firstStartPopup ?? true,
-            automateMassenUt: settings?.automateMassenUt ?? false,
-            sdGroupId: settings?.sdGroupId ?? "0",
-            sortBy: settings?.sortBy ?? "",
-            selectedTemplate: settings?.selectedTemplate ?? "",
-            preventDuplicateDestination: settings?.preventDuplicateDestination ?? true,
-            swordLfz: settings?.swordLfz ?? 22,
-            forumQuickSettingsPosition: settings?.forumQuickSettingsPosition ?? null,
-            bunkerImportPanelPosition: settings?.bunkerImportPanelPosition ?? null,
-            bunkerImportTargetThreadId: settings?.bunkerImportTargetThreadId ?? "",
-            bunkerUnitPowers: normalizeUnitNumberMap(settings?.bunkerUnitPowers, DEFAULT_BUNKER_UNIT_POWERS),
-            bunkerSplitConfig: normalizeUnitNumberMap(settings?.bunkerSplitConfig, DEFAULT_BUNKER_SPLIT_CONFIG),
-            templateData: settings?.templateData ?? [],
-            groupData: settings?.groupData ?? []
+            newThread:bool(settings.newThread,false), firstStartPopup:bool(settings.firstStartPopup,true),
+            automateMassenUt:bool(settings.automateMassenUt,false), preventDuplicateDestination:bool(settings.preventDuplicateDestination,true),
+            sdGroupId:text(settings.sdGroupId,'0'), sortBy:text(settings.sortBy), selectedTemplate:text(settings.selectedTemplate),
+            swordLfz:Number.isFinite(settings.swordLfz) && settings.swordLfz! > 0 ? settings.swordLfz! : 22,
+            forumQuickSettingsPosition:position(settings.forumQuickSettingsPosition), bunkerImportPanelPosition:position(settings.bunkerImportPanelPosition),
+            bunkerImportTargetThreadId:text(settings.bunkerImportTargetThreadId),
+            bunkerUnitPowers:normalizeUnitNumberMap(settings.bunkerUnitPowers, DEFAULT_BUNKER_UNIT_POWERS),
+            bunkerSplitConfig:normalizeUnitNumberMap(settings.bunkerSplitConfig, DEFAULT_BUNKER_SPLIT_CONFIG),
+            templateData:list(settings.templateData), groupData:list(settings.groupData),
+            onboarding:settings.onboarding && typeof settings.onboarding === 'object' ? settings.onboarding : {version:1,tours:{}}
         };
     }
 
     private normalizeLocalStorageData(data: Partial<LocalStorageData>): LocalStorageData {
         return {
             generalSettings: this.normalizeGeneralSettings(data.generalSettings),
-            threads: data.threads ?? {}
+            schemaVersion: 2,
+            threads: Object.fromEntries(Object.entries(data.threads && typeof data.threads === 'object' && !Array.isArray(data.threads) ? data.threads : {})
+                .filter(([id]) => /^\d+$/.test(id))
+                .map(([id, thread]) => [id, normalizeStoredThread(thread)]))
         };
     }
 
@@ -150,12 +154,29 @@ export class LocalStorageHelper {
         return LocalStorageHelper.instance;
     }
 
+    public confirmOperation(operation:PendingOperation) {
+        this.repository.confirmOperation(operation);
+        discardPendingOperation(operation.id);
+        this.updateFromLocalStorage('confirmed-operation');
+    }
+
+    public get getOnboarding(): generalSettings['onboarding'] {
+        this.updateFromLocalStorage('getOnboarding');
+        return this._localStorageData.generalSettings.onboarding;
+    }
+    public set setOnboarding(value:generalSettings['onboarding']) {
+        this.updateFromLocalStorage('before-onboarding-write');
+        this._localStorageData.generalSettings.onboarding = value;
+        this.storeDataInLocalStorage(this._localStorageData,'onboarding');
+    }
+
     public get getNewThread(): boolean {
         this.updateFromLocalStorage("getNewThread");
         return this._localStorageData.generalSettings.newThread;
     }
 
     public set setNewThread(value: boolean) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.newThread = value;
         this.storeDataInLocalStorage(this._localStorageData, "setNewThread");
     }
@@ -166,6 +187,7 @@ export class LocalStorageHelper {
     }
 
     public set setFirstStartPopup(value: boolean) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.firstStartPopup = value;
         this.storeDataInLocalStorage(this._localStorageData, "setFirstStartPopup");
     }
@@ -176,6 +198,7 @@ export class LocalStorageHelper {
     }
 
     public set setSortBy(value: string) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.sortBy = value;
         this.storeDataInLocalStorage(this._localStorageData, "setSortBy");
     }
@@ -186,6 +209,7 @@ export class LocalStorageHelper {
     }
 
     public set setAutomateMassenUt(value: boolean) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.automateMassenUt = value;
         this.storeDataInLocalStorage(this._localStorageData, "setAutomateMassenUt");
     }
@@ -196,6 +220,7 @@ export class LocalStorageHelper {
     }
 
     public set setPreventDuplicateDestination(value: boolean) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.preventDuplicateDestination = value;
         this.storeDataInLocalStorage(this._localStorageData, "setPreventDuplicateDestination");
     }
@@ -206,6 +231,7 @@ export class LocalStorageHelper {
     }
 
     public set setSdGroupId(value: string) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.sdGroupId = value;
         this.storeDataInLocalStorage(this._localStorageData, "setSdGroupId");
     }
@@ -216,6 +242,7 @@ export class LocalStorageHelper {
     }
 
     public set setGroupData(value: groupData[]) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.groupData = value;
         this.storeDataInLocalStorage(this._localStorageData, "setGroupData");
     }
@@ -226,6 +253,7 @@ export class LocalStorageHelper {
     }
 
     public set setSwordLfz(value: number) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.swordLfz = value;
         this.storeDataInLocalStorage(this._localStorageData, "setSwordLfz");
     }
@@ -236,6 +264,7 @@ export class LocalStorageHelper {
     }
 
     public set setTemplateData(value: templateData[]) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.templateData = value;
         this.storeDataInLocalStorage(this._localStorageData, "setTemplateData");
     }
@@ -246,6 +275,7 @@ export class LocalStorageHelper {
     }
 
     public set setForumQuickSettingsPosition(value: forumQuickSettingsPosition | null) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.forumQuickSettingsPosition = value;
         this.storeDataInLocalStorage(this._localStorageData, "setForumQuickSettingsPosition");
     }
@@ -256,6 +286,7 @@ export class LocalStorageHelper {
     }
 
     public set setSelectedTemplate(value: string) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.selectedTemplate = value;
         this.storeDataInLocalStorage(this._localStorageData, "setSelectedTemplate");
     }
@@ -266,6 +297,7 @@ export class LocalStorageHelper {
     }
 
     public set setBunkerImportPanelPosition(value: forumQuickSettingsPosition | null) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.bunkerImportPanelPosition = value;
         this.storeDataInLocalStorage(this._localStorageData, "setBunkerImportPanelPosition");
     }
@@ -276,6 +308,7 @@ export class LocalStorageHelper {
     }
 
     public set setBunkerImportTargetThreadId(value: string) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.bunkerImportTargetThreadId = value;
         this.storeDataInLocalStorage(this._localStorageData, "setBunkerImportTargetThreadId");
     }
@@ -289,6 +322,7 @@ export class LocalStorageHelper {
     }
 
     public set setBunkerUnitPowers(value: unitNumberMap) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.bunkerUnitPowers = normalizeUnitNumberMap(
             value,
             DEFAULT_BUNKER_UNIT_POWERS
@@ -305,6 +339,7 @@ export class LocalStorageHelper {
     }
 
     public set setBunkerSplitConfig(value: unitNumberMap) {
+        this.updateFromLocalStorage("before-setting-write");
         this._localStorageData.generalSettings.bunkerSplitConfig = normalizeUnitNumberMap(
             value,
             DEFAULT_BUNKER_SPLIT_CONFIG
@@ -325,6 +360,7 @@ export class LocalStorageHelper {
     }
 
     public setThreadData(id: string, value: ThreadData) {
+        this.updateFromLocalStorage("before-thread-write");
         this._localStorageData.threads[id] = serializeThreadData(value);
         this.log.info("Updating thread data", this.summarizeThreadData(id, value));
         this.storeDataInLocalStorage(this._localStorageData, `setThreadData:${id}`);
@@ -347,12 +383,14 @@ export class LocalStorageHelper {
     }
 
     public addThread(id: string, value: ThreadData) {
+        this.updateFromLocalStorage("before-thread-write");
         this._localStorageData.threads[id] = serializeThreadData(value);
         this.log.info("Adding thread to localStorage", this.summarizeThreadData(id, value));
         this.storeDataInLocalStorage(this._localStorageData, `addThread:${id}`);
     }
 
     public deleteThread(id: string) {
+        this.updateFromLocalStorage("before-thread-write");
         if (!this._localStorageData.threads[id]) {
             this.log.warn("Tried to delete unknown thread", {threadId: id});
             return;
@@ -376,6 +414,7 @@ export class LocalStorageHelper {
     }
 
     public setSdInquiry(id: string, value: sdInquiry[]) {
+        this.updateFromLocalStorage("before-thread-write");
         const threadData = this.getStoredThread(id);
         if (!threadData) {
             this.log.warn("Tried to update bunker inquiries for unknown thread", {threadId: id});
@@ -400,11 +439,25 @@ export class LocalStorageHelper {
     }
 
     public setSdTableState(id: string, value: Map<number, rowSdTable>) {
+        this.updateFromLocalStorage("before-thread-write");
         const threadData = this.getStoredThread(id);
         if (!threadData) {
             this.log.warn("Tried to update SD table state for unknown thread", {threadId: id});
             return;
         }
+        const previous = new Map(threadData.stateOfSdTable);
+        const packages = new Map(threadData.packagesSent);
+        const remapped = new Map<string,string>();
+        for (const [village, oldRow] of previous) {
+            const sent = packages.get(oldRow.sdId);
+            const newRow = value.get(village);
+            if (sent !== undefined && newRow) remapped.set(newRow.sdId, sent);
+        }
+        // Orphaned/ambiguous legacy IDs are quarantined instead of assigned to another village.
+        const knownIds = new Set(Array.from(previous.values(), row => row.sdId));
+        const unresolved = threadData.packagesSent.filter(([id]) => !knownIds.has(id));
+        if (unresolved.length) threadData.unresolvedPackages = [...(threadData.unresolvedPackages ?? []), ...unresolved];
+        threadData.packagesSent = Array.from(remapped);
         threadData.stateOfSdTable = Array.from(value.entries());
         this.log.info("Updated SD table state", {
             threadId: id,
@@ -424,6 +477,7 @@ export class LocalStorageHelper {
     }
 
     public setPackagesSent(id: string, value: Map<string, string>) {
+        this.updateFromLocalStorage("before-thread-write");
         const threadData = this.getStoredThread(id);
         if (!threadData) {
             this.log.warn("Tried to update sent packages for unknown thread", {threadId: id});
@@ -438,6 +492,7 @@ export class LocalStorageHelper {
     }
 
     public resetPackagesSent(id: string) {
+        this.updateFromLocalStorage("before-thread-write");
         const threadData = this.getStoredThread(id);
         if (!threadData) {
             this.log.warn("Tried to reset sent packages for unknown thread", {threadId: id});

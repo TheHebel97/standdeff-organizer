@@ -1,3 +1,5 @@
+import {showPendingOperations, confirmVisibleForumPosts} from "./ui/components/pending-operations";
+import {initializeOnboarding} from './ui/components/onboarding';
 // ==UserScript==
 // @name         Development Script
 // @version      0.1
@@ -54,7 +56,10 @@ const contextHandlers: Partial<Record<ScriptContext, { name: string, run: (pageC
         });
 
         try {
+            if (contextResolution.context === 'forum-view_thread') confirmVisibleForumPosts(contextResolution.query.thread_id ?? '');
             handler.run(contextResolution);
+            showPendingOperations();
+            initializeOnboarding(contextResolution);
             log.info("Controller finished boot phase", {
                 context: contextResolution.context,
                 handler: handler.name

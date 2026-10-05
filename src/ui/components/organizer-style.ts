@@ -18,9 +18,22 @@ export function ensureOrganizerStyles() {
       .sd-package-row label { display:flex; align-items:center; gap:5px; }
       .sd-package-row img { width:18px; height:18px; } .sd-package-row input { width:100%; min-width:0; }
       .sd-field-error { border:1px solid #8d0100 !important; } .sd-organizer-error { color:#8d0100; }
+      .sd-tour-target { outline:3px solid #72501e; outline-offset:3px; }
     `).appendTo('head');
 }
 
 export function escapeHtml(value: unknown): string {
     return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[char]!));
+}
+
+export function keepOrganizerInViewport($panel:JQuery<HTMLElement>) {
+    const clamp = () => {
+        const rect=$panel[0]?.getBoundingClientRect();
+        if (!rect) return;
+        const left=Math.max(12,Math.min(rect.left,window.innerWidth-rect.width-12));
+        const top=Math.max(12,Math.min(rect.top,window.innerHeight-rect.height-12));
+        $panel.css({left:`${left}px`,top:`${top}px`,right:'auto'});
+    };
+    clamp();
+    $(window).off('resize.sdOrganizerViewport').on('resize.sdOrganizerViewport',clamp);
 }

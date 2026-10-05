@@ -1,3 +1,4 @@
+import {keepOrganizerInViewport} from "./components/organizer-style";
 import {isUserForumMod} from "../helpers/tw-helper";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
@@ -30,6 +31,7 @@ export function createNewTable(pageContext: PageContext) {
         $panel.find('.inputCollection').append($row);
     };
     addRow();
+    keepOrganizerInViewport($panel);
     $panel.off('.sdGenerator').on('click.sdGenerator', '#newPaketLine', addRow)
       .on('click.sdGenerator', '.sd-package-row input', function () { if ($(this).val() !== '') $(this).val(''); })
       .on('input.sdGenerator', '.inputSpear,.inputSword,.inputBow', function () {

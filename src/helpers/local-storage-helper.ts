@@ -38,6 +38,7 @@ export class LocalStorageHelper {
         const list = (value:any) => Array.isArray(value) ? value.filter(row => row && typeof row.id === 'string' && typeof row.name === 'string') : [];
         const position = (value:any) => value && Number.isFinite(value.left) && Number.isFinite(value.top) ? {left:value.left,top:value.top} : null;
         return {
+            organizerDockPositions:Object.fromEntries(Object.entries(settings.organizerDockPositions ?? {}).filter(([,value])=>value && (value.side === 'left' || value.side === 'right') && Number.isFinite(value.top)).map(([id,value])=>[id,{side:value.side,top:Math.max(48,value.top)}])),
             newThread:bool(settings.newThread,false), firstStartPopup:bool(settings.firstStartPopup,true),
             automateMassenUt:bool(settings.automateMassenUt,false), preventDuplicateDestination:bool(settings.preventDuplicateDestination,true),
             sdGroupId:text(settings.sdGroupId,'0'), sortBy:text(settings.sortBy), selectedTemplate:text(settings.selectedTemplate),
@@ -166,6 +167,15 @@ export class LocalStorageHelper {
     public get getOnboarding(): generalSettings['onboarding'] {
         this.updateFromLocalStorage('getOnboarding');
         return this._localStorageData.generalSettings.onboarding;
+    }
+    public get getOrganizerDockPositions(): NonNullable<generalSettings['organizerDockPositions']> {
+        this.updateFromLocalStorage('getOrganizerDockPositions');
+        return this._localStorageData.generalSettings.organizerDockPositions ?? {};
+    }
+    public setOrganizerDockPosition(id:string, value:NonNullable<generalSettings['organizerDockPositions']>[string]) {
+        this.updateFromLocalStorage('before-dock-write');
+        this._localStorageData.generalSettings.organizerDockPositions = {...this._localStorageData.generalSettings.organizerDockPositions,[id]:value};
+        this.storeDataInLocalStorage(this._localStorageData,'organizerDockPositions');
     }
     public set setOnboarding(value:generalSettings['onboarding']) {
         this.updateFromLocalStorage('before-onboarding-write');

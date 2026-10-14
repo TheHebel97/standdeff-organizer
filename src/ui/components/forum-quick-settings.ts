@@ -2,53 +2,27 @@ import {ensureOrganizerStyles} from "./organizer-style";
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 import {Log} from "../../helpers/logging-helper";
 import {applySettingsToMassUtLink, updateSentPackagesInSdTable} from "../../helpers/table-helper";
-import {forumQuickSettingsPosition} from "../../types/types";
+import {dockOrganizerPanel} from "./organizer-dock";
 import {initializeSdSettingsControls} from "./sd-settings-controls";
+import {refreshGameCatalogs} from '../../helpers/game-catalog';
 
 const PANEL_ID = "sd-forum-quick-settings";
-const DRAG_NAMESPACE = ".forumQuickSettingsDrag";
 const RESET_NAMESPACE = ".forumQuickReset";
 
 const log = Log.scope("forum-quick-settings");
-
-function clampPanelPosition($panel: JQuery<HTMLElement>, position: forumQuickSettingsPosition): forumQuickSettingsPosition {
-    const panelWidth = $panel.outerWidth() ?? 0;
-    const panelHeight = $panel.outerHeight() ?? 0;
-    const maxLeft = Math.max(0, window.innerWidth - panelWidth);
-    const maxTop = Math.max(0, window.innerHeight - panelHeight);
-
-    return {
-        left: Math.min(Math.max(0, position.left), maxLeft),
-        top: Math.min(Math.max(0, position.top), maxTop)
-    };
-}
-
-function applyStoredPanelPosition($panel: JQuery<HTMLElement>, localStorageService: LocalStorageHelper) {
-    const storedPosition = localStorageService.getForumQuickSettingsPosition;
-    if (!storedPosition) {
-        return;
-    }
-
-    const clampedPosition = clampPanelPosition($panel, storedPosition);
-    $panel.css({
-        left: `${clampedPosition.left}px`,
-        top: `${clampedPosition.top}px`,
-        right: "auto"
-    });
-}
 
 export function addForumQuickSettings(currentThreadId?: string) {
     ensureOrganizerStyles();
     const localStorageService = LocalStorageHelper.getInstance();
     let $panel = $(`#${PANEL_ID}`);
     if ($panel.length === 0) {
-        const panelHtml = `<div id="${PANEL_ID}" class="sd-organizer" style="position: fixed; top: 140px; right: 20px; width: 245px; z-index: 9999; background: #f4e4bc; border: 2px solid #7d510f; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); border-radius: 6px;">
+        const panelHtml = `<div id="${PANEL_ID}" class="sd-organizer" style="position: fixed; top: 140px; right: 12px; width: 245px; z-index: 9999;">
   <div class="sd-forum-quick-settings-handle sd-organizer-handle" style="cursor: move; user-select: none; padding: 8px 10px;  font-weight: bold; border-top-left-radius: 4px; border-top-right-radius: 4px;">
     SD Organizer
   </div>
   <div class="sd-organizer-body" style="padding: 10px;">
     <div style="margin-bottom: 10px;">
-      <div style="font-weight: bold; margin-bottom: 4px;">Massen-UT</div>
+      <div style="font-weight: bold; margin-bottom: 4px;">Massen-UT automatisch vorbereiten</div>
       <input class="btn btn-confirm-no" type="button" value="Aus" id="automate-massen-ut" style="width:100%; background-color: #8d0100; color: #ffffff">
     </div>
     <div style="margin-bottom: 10px;">
@@ -77,15 +51,21 @@ export function addForumQuickSettings(currentThreadId?: string) {
         $("body").append(panelHtml);
         $panel = $(`#${PANEL_ID}`);
 
-        applyStoredPanelPosition($panel, localStorageService);
         initializeForumQuickSettingsControls($panel, localStorageService, currentThreadId);
-        enableDragging($panel, localStorageService);
+        dockOrganizerPanel($panel[0], {legacyPosition:localStorageService.getForumQuickSettingsPosition});
 
         log.info("Injected forum quick settings panel");
     }
 
     syncResetButtonState($panel, localStorageService, currentThreadId);
     bindResetButton($panel, localStorageService, currentThreadId);
+    if (currentThreadId) {
+        $(document).off('sd-catalog-updated.sdForumSettings').on('sd-catalog-updated.sdForumSettings',()=>{
+            initializeForumQuickSettingsControls($panel,localStorageService,currentThreadId);
+            applySettingsToMassUtLink(currentThreadId);
+        });
+        void refreshGameCatalogs();
+    }
 }
 
 function syncResetButtonState(
@@ -95,7 +75,9 @@ function syncResetButtonState(
 ) {
     const $resetButton = $panel.find("#reset-thread-packages");
     const $statusText = $panel.find(".sd-forum-quick-settings-reset-status");
-    $statusText.text("Geschickte Pakete");
+    let $caption=$statusText.find('.sd-reset-caption');
+    if (!$caption.length) $caption=$('<span class="sd-reset-caption">').prependTo($statusText);
+    $caption.text("Geschickte Pakete");
 
     if (!currentThreadId) {
         $resetButton.prop("disabled", true).css("opacity", "0.5").data("thread-id", "");
@@ -132,73 +114,5 @@ function initializeForumQuickSettingsControls(
     initializeSdSettingsControls($panel, localStorageService, log, {
         selectStyle: "width:100%; background-color: #fff8e8; color: #3b2713; border: 1px solid #b59766; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); box-sizing: border-box;",
         onSettingsChange: currentThreadId ? () => applySettingsToMassUtLink(currentThreadId) : undefined
-    });
-}
-
-function enableDragging($panel: JQuery<HTMLElement>, localStorageService: LocalStorageHelper) {
-    const $document = $(document);
-    let isDragging = false;
-    let panelLeft = 0;
-    let panelTop = 0;
-    let pointerOffsetX = 0;
-    let pointerOffsetY = 0;
-
-    $document.off(DRAG_NAMESPACE);
-
-    $panel.find(".sd-forum-quick-settings-handle").on("mousedown", function (event) {
-        if (event.which !== 1) {
-            return;
-        }
-
-        const panelRect = $panel[0].getBoundingClientRect();
-        const clientX = event.clientX ?? 0;
-        const clientY = event.clientY ?? 0;
-        panelLeft = panelRect.left;
-        panelTop = panelRect.top;
-        pointerOffsetX = clientX - panelRect.left;
-        pointerOffsetY = clientY - panelRect.top;
-        isDragging = true;
-
-        $panel.css({
-            left: `${panelLeft}px`,
-            top: `${panelTop}px`,
-            right: "auto"
-        });
-
-        event.preventDefault();
-    });
-
-    $document.on(`mousemove${DRAG_NAMESPACE}`, function (event) {
-        if (!isDragging) {
-            return;
-        }
-
-        const clientX = event.clientX ?? 0;
-        const clientY = event.clientY ?? 0;
-        const clampedPosition = clampPanelPosition($panel, {
-            left: clientX - pointerOffsetX,
-            top: clientY - pointerOffsetY
-        });
-        panelLeft = clampedPosition.left;
-        panelTop = clampedPosition.top;
-
-        $panel.css({
-            left: `${panelLeft}px`,
-            top: `${panelTop}px`
-        });
-    });
-
-    $document.on(`mouseup${DRAG_NAMESPACE}`, function () {
-        if (isDragging) {
-            localStorageService.setForumQuickSettingsPosition = {
-                left: panelLeft,
-                top: panelTop
-            };
-            log.info("Stored forum quick settings panel position", {
-                left: panelLeft,
-                top: panelTop
-            });
-        }
-        isDragging = false;
     });
 }

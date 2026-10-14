@@ -191,7 +191,7 @@ Moin SFs:
 - postCache Spoiler ignorieren und nicht bearbeiten
 - nun muss jeder im Stamm das entsprechende Skript installieren um von den Neuerungen zu profitieren (gl beim einrichten xD)
 - um Filter und ähnliches in Massen Ut auszuführen, muss das Setting in den Spieleinstellungen aktiviert werden
-- Gruppen werden beim erstmaligen Öffnen von Massen UT eingelesen, im Anschluss daran kann in den Settings ausgewählt werden, was die SD Gruppe ist
+- Die Einrichtung startet im Forum neben „Neuer Thread“ und „Neue Umfrage“. Gruppen und Truppen-Vorlagen werden direkt auf ihren Spielseiten erkannt und in den Settings aktualisiert; ein zusätzlicher Besuch auf Massen UT zum Einlesen ist nicht nötig.
 - für die normalen Nutzer ist das Textfeld blockiert, dies kann durch einen Doppelklick entfernt werden. Das dient dazu, dass die Sd posts clean bleiben. Sozialer Overhead in der SD Tabelle ist nicht erwünscht.
 - normale Nutzer haben ebenfalls keine bearbeiten Funktionen im sd Thread, außerdem sehen diese keine posts
 

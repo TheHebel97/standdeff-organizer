@@ -87,7 +87,7 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
 ### Massen-UT Unterstützung
 
 - Gruppenwechsel im Massen-UT ist möglich.
-- **Setting: Massen UT vereinfachen**
+- **Setting: Massen-UT automatisch vorbereiten**
   - Aus: Vorlage wird nicht automatisch ausgewählt; Filter und Gruppen werden nicht angewendet.
   - An: Vorlage wird automatisch ausgewählt; Filter und Gruppen werden angewendet.
 - **Setting: Doppeltes Schicken**
@@ -182,7 +182,7 @@ Bereits implementierte Settings:
   - Im SD Organizer des Threads über „Als SD-Tabelle festlegen“ zuordnen
   - Die Einführung erklärt den Button; bereits zugeordnete Threads zeigen ihren Status
   - Das separate Registrierungs-Popup und dessen Einstellung entfallen
-- ✅ **Massen UT vereinfachen**
+- ✅ **Massen-UT automatisch vorbereiten**
   - Default: `false`
   - Steuert, ob Komfortfunktionen bei Massen-UT aktiviert werden
 - ✅ **Doppeltes Schicken**
@@ -249,7 +249,7 @@ Hinweis zu den Settings:
 
 Hinweis zum Forum:
 - Auf Thread-Seiten steht ein verschiebbares Quick-Settings-Panel fuer Massen-UT, doppeltes Schicken, Sortierung, SD Gruppe und SD Vorlage zur Verfuegung.
-- Die zuletzt verschobene Position dieses Panels wird gespeichert und beim naechsten Laden wiederhergestellt.
+- Das Panel rastet links oder rechts am Bildschirmrand ein. Seite und Höhe werden gespeichert; Verschieben ist per Ziehen oder Pfeiltasten an der Kopfzeile möglich.
 - In bestehenden Threads ist dort auch der Reset fuer bereits geschickte Pakete verfuegbar.
 - Auf der SD-Tabellenansicht werden Aenderungen daraus sofort auf die sichtbaren Massen-UT-Links angewendet.
 - Falls in einer Tabellenzeile `ab` oder `bis` gesetzt ist, nutzt deren Massen-UT-Link automatisch `order=distance` und `dir=1`, also eine aufsteigende Entfernungs-Sortierung statt der normalen Truppen-Sortierung.
@@ -264,7 +264,7 @@ Hinweis zum Bunker-Import:
 
 ## Einführung und manuelle Handy-Anfragen
 
-Im Organizer und auf Massen-UT findest du **Einführung starten**. Die Tour erklärt den aktuellen Ablauf, zeigt passende Bedienelemente und lässt sich überspringen, später fortsetzen oder neu starten. Fortschritt wird pro Kontext und Rolle gespeichert.
+Ein einziges **?** im Header zeigt beim Überfahren alle passenden Erklärungen zusammen in einer **Hover-Hilfe**. Beim Verlassen des Fragezeichens verschwindet sie sofort, auch nach einem Klick. Tastaturfokus zeigt die Hilfe ebenfalls; Blur oder Escape schließen sie. Die Hilfe hat keine Zurück-/Überspringen-/Fortsetzen-Schritte und verändert den Fortschritt der geführten Einrichtung nicht.
 
 Manuelle Anfragen verwenden vier Feldtrenner: `Koordinate Menge "Spieler"Bemerkung"ab"bis`. Leere optionale Felder sind erlaubt:
 
@@ -283,3 +283,17 @@ Bestehende Daten werden mit Schema-Version 2 validiert. Maps bleiben als Arrays 
 Der Grunddatensatz bleibt unter `standdeff-organizer`. Änderungen liegen unter `standdeff-organizer:change:…`, offene Vorgänge unter `standdeff-organizer:pending:…`. Eine sichere Zusammenfassung des Journals erfolgt ab 100 Änderungen über Web Locks; ohne diese Browserfunktion bleiben die Einträge erhalten. Beschädigte JSON-Wurzeln werden vor einer Wiederherstellung gesichert. Versand-IDs werden anhand der Dorfzuordnung migriert; nicht eindeutig zuordenbare Einträge erhalten einen sichtbaren Prüfhinweis.
 
 Nicht parallel eine ältere Skriptversion betreiben: Sie kennt das Änderungsjournal nicht. Für das nächste Update stehen [Plan](docs/next-major-update-plan.md), [Umsetzung und verbleibende Abnahme](docs/implementation-log.md) sowie [Release-Notizen](docs/release-notes-2.0.md) bereit.
+
+
+### Geführte Einrichtung
+
+Die Einrichtung startet ausschließlich über **Einrichtung starten** als dritte Schaltfläche neben **Neuer Thread** und **Neue Umfrage** im Stammesforum. Erst nach einem Klick öffnet sich das Onboarding-Fenster und begleitet dich über Seitenwechsel hinweg:
+SD-Dorfgruppe erstellen → passende Truppen-Vorlage anlegen → Gruppe, Vorlage, automatische Vorbereitung, Doppelversand, Sortierung und Schwert-Laufzeit in den Einstellungen prüfen → SD-Thread zuordnen. Der zusätzliche Besuch auf Massen-UT zum Einlesen entfällt.
+
+Der Fortschritt wird lokal gespeichert. „Später fortsetzen“, × oder Escape pausieren die Einrichtung; **Einrichtung fortsetzen** in derselben Forum-Aktionsleiste öffnet den gespeicherten Schritt. Nach Abschluss lässt sie sich erneut starten. Die Spielaktionen führst du selbst aus und bestätigst anschließend mit „Weiter“.
+
+Gruppen und Vorlagen werden direkt auf ihren Spielseiten erkannt. Die Einstellungen und Forum-Quick-Settings aktualisieren ihre Listen zusätzlich im Hintergrund über die Gruppenverwaltung und Truppen-Vorlagen. Eine eindeutig neu angelegte Gruppe bzw. Vorlage während des entsprechenden Onboarding-Schritts wird automatisch als SD-Auswahl übernommen. Außerhalb des Onboardings wird eine neue, eindeutig als SD/Standdeff benannte Auswahl nur übernommen, wenn noch keine SD-Auswahl gesetzt ist; andere Vorlagen ersetzen die bestehende Auswahl nicht. Bereits vorhandene Gruppen und Vorlagen können manuell gewählt werden.
+
+Das Onboarding zeigt für Gruppe und Vorlage getrennt „im Spiel gefunden“ und „als SD-Auswahl festgelegt“. Im Onboarding kannst du sie auswählen und direkt **Als SD-Gruppe festlegen** bzw. **Als SD-Vorlage festlegen**. Erst ein aktuell im Spiel bestätigter und zugeordneter Eintrag gibt den nächsten Schritt frei. Veraltete Cache-Einträge, eine fehlgeschlagene Prüfung und fehlende Vorlagen geben den Schritt nicht frei. **Erneut prüfen** lädt den aktuellen Bestand; die Schrittliste umgeht diese Prüfungen nicht. Eine ungültige Schwert-Laufzeit blockiert den Abschluss.
+
+Ein einziges Fragezeichen im Header zeigt während des Hoverns alle Erklärungen zu den jeweiligen Optionen gemeinsam. Die Randfenster verwenden die helle Beige-Optik und das Andocken des Reliquien-Scripts. Die Spieleinstellungen behalten die nativen Tabellen, Checkboxen und Felder. Dezente grüne Zeilen mit Häkchen zeigen gültige Einstellungen oder aktive Schutzfunktionen; Gruppe und Vorlage werden erst nach Bestätigung im Spiel grün. Die Existenzprüfung bestätigt keine passenden Truppenmengen und die positive Laufzeitprüfung keinen weltkorrekten Basiswert. Der Einrichtungsbutton in der Forumleiste trägt ein eigenes eingebettetes SVG-Symbol ohne externen Bildabruf.

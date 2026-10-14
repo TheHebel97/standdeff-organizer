@@ -5,6 +5,10 @@ import {Unit} from "./tw-types";
 
 export type {generalSettings} from "./localStorageTypes";
 
+export type OnboardingProgress = {step:number; paused:boolean; complete:boolean};
+export type OnboardingState = {version:number; tours:Record<string, OnboardingProgress>};
+export type OrganizerDockPosition = {side:'left'|'right'; top:number};
+
 export type forumQuickSettingsPosition = {
     left: number;
     top: number;

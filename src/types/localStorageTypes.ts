@@ -1,4 +1,4 @@
-import {forumQuickSettingsPosition, sdInquiry, unitNumberMap} from "./types";
+import {forumQuickSettingsPosition, sdInquiry, unitNumberMap, OnboardingState, OrganizerDockPosition} from "./types";
 
 export type LocalStorageData = {
     schemaVersion?: number,
@@ -7,7 +7,8 @@ export type LocalStorageData = {
 }
 
 export type generalSettings = {
-    onboarding?: {version:number; tours:Record<string,{step:number; paused:boolean; complete:boolean}>},
+    onboarding?: OnboardingState,
+    organizerDockPositions?: Record<string, OrganizerDockPosition>,
     newThread: boolean,
     firstStartPopup: boolean,
     automateMassenUt: boolean,

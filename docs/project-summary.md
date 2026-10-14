@@ -20,7 +20,7 @@ Das TypeScript-/jQuery-Userscript organisiert Standdeff auf Die Stämme und Trib
 - Erstellung: Paketzeilen, 1:1:1:0,05-Skalierung, Leeren eines befüllten Felds per Klick, Generator und Titelvalidierung.
 - Import: 100/200 Dual, auf Bogenwelten zusätzlich Trial, eigene Mengen und Power getrennt einklappbar, Vorschau und vorhandene Auswahlfunktionen.
 - Forum: zuverlässige Registrierung, Rollen getrennt, Anfrage- und Versandentwürfe bleiben bis zur Bestätigung erhalten.
-- Einführung: pro Kontext und Rolle, pausierbar, überspringbar und neu startbar.
+- Einrichtung: neun Schritte, ausdrücklich als dritte Aktion neben Neuer Thread/Neue Umfrage im Forum gestartet; Fenster nur bei aktiver Einrichtung. Gruppen und Vorlagen werden direkt erkannt und beim Einrichten eindeutig neue Einträge übernommen. Kein Massen-UT-Einleseschritt. Randfenster im Reliquien-Stil mit gespeichertem Andocken; Spieleinstellungen nutzen native Tabellen, Checkboxen und Felder ohne Fensterrahmen, samt Infos. Die Einrichtung prüft den aktuellen Spielbestand und die Zuordnung, Ein Fragezeichen im Header zeigt alle passenden Infos während des Hoverns; gültige Settings werden dezent grün markiert. Der Einrichtungsbutton besitzt ein eingebettetes SVG-Symbol.
 
 ## Validierung und Auslieferung
 

@@ -1,9 +1,9 @@
+import {refreshGameCatalogs} from "../helpers/game-catalog";
 import {ensureOrganizerStyles, escapeHtml} from "./components/organizer-style";
 import {ThreadData, Threads} from "../types/types";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
 import {Log} from "../helpers/logging-helper";
 import {PageContext} from "../helpers/script-context";
-import {ADD_THREAD_ICON_DATA_URI} from "./ui-assets";
 import {buildForumThreadUrl} from "../helpers/game-url-helper";
 import {initializeSdSettingsControls} from "./components/sd-settings-controls";
 
@@ -31,7 +31,7 @@ function buildThreadRow(threadId: string, threadData: ThreadData): string {
 }
 
 function renderThreadRows(threads: Threads) {
-    let rowsHtml = `<tr>
+    let rowsHtml = `<tr><th colspan="3">Gespeicherte SD-Threads</th></tr><tr>
           <th width="75%">
             Forenname
           </th>
@@ -56,102 +56,46 @@ export function displaySettings(pageContext: PageContext) {
     ensureOrganizerStyles();
     log.info("Initializing settings controller", {href: pageContext.href});
 
-    const settingsHtml = `<table class="vis settings sd-organizer" id="sd-settings-root" width="100%" style="margin-top: 15px">
-  <tbody>
-  <tr>
-    <th colspan="4" style="text-align: center">
-      <img class="addThread" style="cursor: pointer"
-           src="${ADD_THREAD_ICON_DATA_URI}"/>
-      SD Organizer – Einstellungen
-      <img class="addThread" style="cursor: pointer"
-           src="${ADD_THREAD_ICON_DATA_URI}"/>
-    </th>
-  </tr>
-  <tr>
-    <td width="40%">
-      <table class="vis settings">
-        <tbody>
+    const settingsHtml = `<table class="vis" id="sd-settings-root" data-sd-native-settings="true" width="100%">
+      <tbody>
+        <tr><th colspan="2">SD Organizer</th></tr>
         <tr>
-          <td>
-            Massen-UT vereinfachen:
-          </td>
-          <td>
-            <input class="btn btn-confirm-no"  type="button" value="Aus" id="automate-massen-ut" style="width:75px;  background-color: transparent;color: #ffffff "/>
-          </td>
-
+          <td>Massen-UT automatisch vorbereiten:</td>
+          <td><label><input type="checkbox" id="automate-massen-ut"> Gruppe, Vorlage und Filter für SD-Anfragen anwenden</label></td>
         </tr>
         <tr>
-          <td>
-            Doppeltes Schicken:
-          </td>
-          <td>
-            <input class="btn btn-confirm-no"  type="button" value="Aus" id="prevent-duplicate-destination" style="width:75px;  background-color: transparent;color: #ffffff "/>
-          </td>
-
+          <td>Doppeltes Schicken:</td>
+          <td><label><input type="checkbox" id="prevent-duplicate-destination"> Bereits bearbeitete SD-Anfragen erneut vorauswählen</label></td>
         </tr>
         <tr>
-            <td>
-                sortieren nach:
-            </td>
-            <td>
-                <select id="sd-sort-by" style="width:150px; background-color: transparent; color: #ffffff; border: none; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"></select>
-            </td>
-      </tr>
-        <tr>
-          <td>
-            SD verschicken Gruppen ID:
-          </td>
-          <td>
-            <input type="number" value="0" id="sd-group-id" style="width:68px;  background-color: transparent; color: #ffffff"/>
-          </td>
-
+          <td><label for="sd-sort-by">Sortieren nach:</label></td>
+          <td><select id="sd-sort-by"></select></td>
         </tr>
         <tr>
-          <td>
-            SD Vorlagen ID:
-          </td>
-          <td>
-            <input type="number" value="0" id="sd-template-id" style="width:68px;  background-color: transparent; color: #ffffff"/>
-          </td>
-
+          <td><label for="sd-group-id">SD-Gruppe:</label></td>
+          <td><input type="number" min="0" value="0" id="sd-group-id" size="6"></td>
         </tr>
         <tr>
-          <td>
-            Schwert Laufzeit:
-          </td>
-          <td>
-            <input type="number" value="0" id="sd-schwertLfz" style="width:68px;  background-color: transparent; color: #ffffff"/>
-          </td>
-
+          <td><label for="sd-template-id">SD-Vorlage:</label></td>
+          <td><input type="number" min="0" value="0" id="sd-template-id" size="6"></td>
         </tr>
-        
-        </tbody>
-      </table>
-
-    </td>
-    <td width="50%">
-      <table class="vis settings" width="100%">
-        <tbody id="activeSdThreads">
         <tr>
-          <th width="85%">
-            Forenname
-          </th>
-          <th> Löschen
-          </th>
+          <td><label for="sd-schwertLfz">Schwert-Laufzeit:</label></td>
+          <td><input type="number" min="0.01" step="any" value="0" id="sd-schwertLfz" size="6"> Minuten pro Feld</td>
         </tr>
-        </tbody>
-      </table>
-    </td>
-  </tr>
+        <tr><td colspan="2"><small>Änderungen werden sofort gespeichert. Grün / ✓: gültig oder aktiv.</small></td></tr>
+      </tbody>
+    </table>
+    <br>
+    <table class="vis" width="100%"><tbody id="activeSdThreads"></tbody></table>`;
 
-</table>`;
-
-    $("#content_value > table > tbody > tr > td:nth-child(2)").append(settingsHtml);
+    const $mount = $("#content_value > table > tbody > tr > td:nth-child(2)").first();
+    ($mount.length ? $mount : $("#content_value")).append(settingsHtml);
     const $settingsRoot = $("#sd-settings-root");
     if (localStorageService.getSwordLfz !== 0) {
-        $("#sd-schwertLfz").val(localStorageService.getSwordLfz).css("background", "transparent");
+        $("#sd-schwertLfz").val(localStorageService.getSwordLfz);
     } else {
-        $("#sd-schwertLfz").val("0").css("background", "transparent");
+        $("#sd-schwertLfz").val("0");
     }
 
     log.state("Loaded settings data sources", {
@@ -160,6 +104,9 @@ export function displaySettings(pageContext: PageContext) {
         threadCount: Object.keys(localStorageService.getAllThreads).length
     });
     initializeSdSettingsControls($settingsRoot, localStorageService, log);
+
+    $(document).off('sd-catalog-updated.sdSettings').on('sd-catalog-updated.sdSettings', () => initializeSdSettingsControls($settingsRoot, localStorageService, log));
+    void refreshGameCatalogs();
 
     let threads: Threads = localStorageService.getAllThreads;
     renderThreadRows(threads);
@@ -183,12 +130,15 @@ export function displaySettings(pageContext: PageContext) {
 
     $("#sd-schwertLfz").on("change", function () {
         const value = Number($(this).val());
-        if (!isNaN(value) && value >= 0) {
+        if (Number.isFinite(value) && value > 0) {
             localStorageService.setSwordLfz = value;
+            document.dispatchEvent(new Event('sd-settings-changed'));
             log.info("Updated setting", {setting: "swordLfz", value});
         } else {
             log.error("Invalid value for sword travel time", {value: $(this).val()});
             $(this).val(localStorageService.getSwordLfz);
+            document.dispatchEvent(new Event('sd-settings-changed'));
         }
     })
+    $("#sd-schwertLfz").on('input',()=>document.dispatchEvent(new Event('sd-settings-changed')));
 }

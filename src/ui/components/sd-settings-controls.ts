@@ -2,6 +2,7 @@ import {escapeHtml} from "./organizer-style";
 import {groupData, templateData} from "../../types/types";
 import {LocalStorageHelper} from "../../helpers/local-storage-helper";
 import {Log} from "../../helpers/logging-helper";
+import {initializeSettingsHelp} from './settings-help';
 
 const ACTIVE_BG = "#fff8e8";
 const INACTIVE_BG = "#fff8e8";
@@ -23,6 +24,7 @@ function buildSortOptionsHtml(): string {
 }
 
 function setControlColor($control: JQuery<HTMLElement>, isActive: boolean) {
+    if ($control.closest('[data-sd-native-settings]').length || $control.is(':checkbox')) return;
     $control.css("background", isActive ? ACTIVE_BG : INACTIVE_BG);
     if ($control.is("input[type=button]")) $control.attr("aria-pressed", String(isActive));
 }
@@ -32,7 +34,8 @@ function isDuplicateSendingEnabled(localStorageService: LocalStorageHelper): boo
 }
 
 function syncDuplicateToggle($control: JQuery<HTMLElement>, duplicateSendingEnabled: boolean) {
-    $control.val(duplicateSendingEnabled ? "An" : "Aus");
+    if ($control.is(':checkbox')) $control.prop('checked',duplicateSendingEnabled);
+    else $control.val(duplicateSendingEnabled ? "An" : "Aus");
     setControlColor($control, duplicateSendingEnabled);
 }
 
@@ -57,6 +60,7 @@ function buildTemplateSelectHtml(templates: templateData[], style: string): stri
 }
 
 function getConfiguredSelectStyle($root: JQuery<HTMLElement>, options?: SettingsControlsOptions): string {
+    if ($root.is('[data-sd-native-settings]')) return '';
     if (options?.selectStyle) {
         return options.selectStyle;
     }
@@ -69,7 +73,8 @@ function syncToggleButtons($root: JQuery<HTMLElement>, localStorageService: Loca
     const $duplicateToggle = $root.find("#prevent-duplicate-destination");
 
     const automateEnabled = localStorageService.getAutomateMassenUt;
-    $automateToggle.val(automateEnabled ? "An" : "Aus");
+    if ($automateToggle.is(':checkbox')) $automateToggle.prop('checked',automateEnabled);
+    else $automateToggle.val(automateEnabled ? "An" : "Aus");
     setControlColor($automateToggle, automateEnabled);
 
     syncDuplicateToggle($duplicateToggle, isDuplicateSendingEnabled(localStorageService));
@@ -90,11 +95,8 @@ function syncGroupControl($root: JQuery<HTMLElement>, localStorageService: Local
     const selectStyle = getConfiguredSelectStyle($root, options);
     const $existingControl = $root.find("#sd-group-id");
 
-    if (groups.length > 0 && !$existingControl.is("select")) {
-        $existingControl.replaceWith(buildGroupSelectHtml(groups, selectStyle));
-    } else if (groups.length > 0 && $existingControl.is("select")) {
-        $existingControl.replaceWith(buildGroupSelectHtml(groups, selectStyle));
-    }
+    if (groups.length > 0) replaceCatalogControl($existingControl,buildGroupSelectHtml(groups,selectStyle));
+    else if ($existingControl.is('select')) replaceCatalogControl($existingControl,`<input type="number" min="0" id="sd-group-id" size="6" style="${options?.selectStyle ?? ($root.is('[data-sd-native-settings]') ? '' : 'width:68px')}">`);
 
     const $groupControl = $root.find("#sd-group-id");
     const groupValue = localStorageService.getSdGroupId === "" ? "0" : localStorageService.getSdGroupId;
@@ -107,16 +109,21 @@ function syncTemplateControl($root: JQuery<HTMLElement>, localStorageService: Lo
     const selectStyle = getConfiguredSelectStyle($root, options);
     const $existingControl = $root.find("#sd-template-id");
 
-    if (templates.length > 0 && !$existingControl.is("select")) {
-        $existingControl.replaceWith(buildTemplateSelectHtml(templates, selectStyle));
-    } else if (templates.length > 0 && $existingControl.is("select")) {
-        $existingControl.replaceWith(buildTemplateSelectHtml(templates, selectStyle));
-    }
+    if (templates.length > 0) replaceCatalogControl($existingControl,buildTemplateSelectHtml(templates,selectStyle));
+    else if ($existingControl.is('select')) replaceCatalogControl($existingControl,`<input type="number" min="0" id="sd-template-id" size="6" style="${options?.selectStyle ?? ($root.is('[data-sd-native-settings]') ? '' : 'width:68px')}">`);
 
     const $templateControl = $root.find("#sd-template-id");
     const templateValue = localStorageService.getSelectedTemplate === "" ? "0" : localStorageService.getSelectedTemplate;
     $templateControl.val(templateValue);
     setControlColor($templateControl, templateValue !== "0");
+}
+
+function replaceCatalogControl($existing:JQuery<HTMLElement>,html:string):void {
+    const focused=document.activeElement===$existing[0];
+    const $replacement=$(html);
+    for (const className of ['sd-setup-target','sd-tour-target']) if ($existing.hasClass(className)) $replacement.addClass(className);
+    $existing.replaceWith($replacement);
+    if (focused) $replacement[0]?.focus({preventScroll:true});
 }
 
 function bindSettingsEvents(
@@ -125,10 +132,15 @@ function bindSettingsEvents(
     log: SettingsControlsLogger,
     options?: SettingsControlsOptions,
 ) {
+    const onChange=options?.onSettingsChange;
+    const changed=()=>{document.dispatchEvent(new Event('sd-settings-changed'));onChange?.();};
+    options={...options,onSettingsChange:changed};
     $root.off(".sdSettingsControls");
 
-    $root.on("click.sdSettingsControls", "#prevent-duplicate-destination", function () {
-        const nextDuplicateSendingEnabled = $(this).val() !== "An";
+    $root.on("click.sdSettingsControls change.sdSettingsControls", "#prevent-duplicate-destination", function (event) {
+        const checkbox=$(this).is(':checkbox');
+        if (checkbox !== (event.type==='change')) return;
+        const nextDuplicateSendingEnabled = checkbox ? $(this).prop('checked') : $(this).val() !== "An";
         syncDuplicateToggle($(this), nextDuplicateSendingEnabled);
         localStorageService.setPreventDuplicateDestination = !nextDuplicateSendingEnabled;
         log.info("Updated setting", {
@@ -139,9 +151,11 @@ function bindSettingsEvents(
         options?.onSettingsChange?.();
     });
 
-    $root.on("click.sdSettingsControls", "#automate-massen-ut", function () {
-        const nextValue = $(this).val() !== "An";
-        $(this).val(nextValue ? "An" : "Aus");
+    $root.on("click.sdSettingsControls change.sdSettingsControls", "#automate-massen-ut", function (event) {
+        const checkbox=$(this).is(':checkbox');
+        if (checkbox !== (event.type==='change')) return;
+        const nextValue = checkbox ? $(this).prop('checked') : $(this).val() !== "An";
+        if (!checkbox) $(this).val(nextValue ? "An" : "Aus");
         setControlColor($(this), nextValue);
         localStorageService.setAutomateMassenUt = nextValue;
         log.info("Updated setting", {setting: "automateMassenUt", value: nextValue});
@@ -208,4 +222,5 @@ export function initializeSdSettingsControls(
     syncGroupControl($root, localStorageService, options);
     syncTemplateControl($root, localStorageService, options);
     bindSettingsEvents($root, localStorageService, log, options);
+    initializeSettingsHelp($root,localStorageService);
 }

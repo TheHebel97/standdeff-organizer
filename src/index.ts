@@ -1,5 +1,6 @@
 import {showPendingOperations, confirmVisibleForumPosts} from "./ui/components/pending-operations";
 import {initializeOnboarding} from './ui/components/onboarding';
+import {initializeGameCatalog} from './helpers/game-catalog';
 
 
 import {displayMassUt} from "./ui/mass-ut";
@@ -27,11 +28,14 @@ const contextHandlers: Partial<Record<ScriptContext, { name: string, run: (pageC
             $('<p id="sd-storage-error" role="alert" style="padding:8px;border:1px solid #8d0100">').text('SD Organizer: Speichern fehlgeschlagen. Bitte freien Browserspeicher prüfen und die Änderung erneut ausführen.').prependTo('#content_value');
         });
         const contextResolution = resolveScriptContext();
+        initializeGameCatalog(contextResolution);
         log.groupCollapsed("Boot sequence");
         log.state("Resolved script context", contextResolution);
 
         const handler = contextHandlers[contextResolution.context];
         if (!handler) {
+            // Setup spans native group/template pages and survives other page changes.
+            initializeOnboarding(contextResolution);
             log.warn("No controller registered for resolved context", {
                 context: contextResolution.context,
                 screen: contextResolution.screen,

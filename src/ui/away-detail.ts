@@ -1,3 +1,4 @@
+import {dockOrganizerPanel} from "./components/organizer-dock";
 import {ensureOrganizerStyles, escapeHtml} from "./components/organizer-style";
 import {buildBunkerPreset, describeBunkerPreset} from "../helpers/bunker-import-settings";
 import {LocalStorageHelper} from "../helpers/local-storage-helper";
@@ -7,13 +8,12 @@ import {
     BUNKER_IMPORT_UNIT_ORDER,
     calculateBunkerSplitPower
 } from "../helpers/bunker-import-settings";
-import {forumQuickSettingsPosition, sdInquiry, Threads, unitNumberMap} from "../types/types";
+import {sdInquiry, Threads, unitNumberMap} from "../types/types";
 import {Unit} from "../types/tw-types";
 
 const PANEL_ID = "sd-bunker-import-panel";
 const PANEL_HANDLE_CLASS = "sd-bunker-import-panel-handle";
 const BUTTON_ID = "sd-import-bunker-requests";
-const DRAG_NAMESPACE = ".bunkerImportPanelDrag";
 const PREVIEW_ROW_SELECTOR = "[data-bunker-import-preview-row]";
 
 const log = Log.scope("away-detail");
@@ -30,100 +30,6 @@ function isImportRequestSelected(coords: string): boolean {
 
 function setImportRequestSelection(coords: string, isSelected: boolean) {
     importSelectionByCoords[coords] = isSelected;
-}
-
-function clampPanelPosition($panel: JQuery<HTMLElement>, position: forumQuickSettingsPosition): forumQuickSettingsPosition {
-    const panelWidth = $panel.outerWidth() ?? 0;
-    const panelHeight = $panel.outerHeight() ?? 0;
-    const maxLeft = Math.max(0, window.innerWidth - panelWidth);
-    const maxTop = Math.max(0, window.innerHeight - panelHeight);
-
-    return {
-        left: Math.min(Math.max(0, position.left), maxLeft),
-        top: Math.min(Math.max(0, position.top), maxTop)
-    };
-}
-
-function applyStoredPanelPosition($panel: JQuery<HTMLElement>, localStorageService: LocalStorageHelper) {
-    const storedPosition = localStorageService.getBunkerImportPanelPosition;
-    if (!storedPosition) {
-        return;
-    }
-
-    const clampedPosition = clampPanelPosition($panel, storedPosition);
-    $panel.css({
-        left: `${clampedPosition.left}px`,
-        top: `${clampedPosition.top}px`,
-        right: "auto"
-    });
-}
-
-function enableDragging($panel: JQuery<HTMLElement>, localStorageService: LocalStorageHelper) {
-    const $document = $(document);
-    let isDragging = false;
-    let panelLeft = 0;
-    let panelTop = 0;
-    let pointerOffsetX = 0;
-    let pointerOffsetY = 0;
-
-    $document.off(DRAG_NAMESPACE);
-
-    $panel.find(`.${PANEL_HANDLE_CLASS}`).on("mousedown", function (event) {
-        if (event.which !== 1) {
-            return;
-        }
-
-        const panelRect = $panel[0].getBoundingClientRect();
-        const clientX = event.clientX ?? 0;
-        const clientY = event.clientY ?? 0;
-        panelLeft = panelRect.left;
-        panelTop = panelRect.top;
-        pointerOffsetX = clientX - panelRect.left;
-        pointerOffsetY = clientY - panelRect.top;
-        isDragging = true;
-
-        $panel.css({
-            left: `${panelLeft}px`,
-            top: `${panelTop}px`,
-            right: "auto"
-        });
-
-        event.preventDefault();
-    });
-
-    $document.on(`mousemove${DRAG_NAMESPACE}`, function (event) {
-        if (!isDragging) {
-            return;
-        }
-
-        const clientX = event.clientX ?? 0;
-        const clientY = event.clientY ?? 0;
-        const clampedPosition = clampPanelPosition($panel, {
-            left: clientX - pointerOffsetX,
-            top: clientY - pointerOffsetY
-        });
-        panelLeft = clampedPosition.left;
-        panelTop = clampedPosition.top;
-
-        $panel.css({
-            left: `${panelLeft}px`,
-            top: `${panelTop}px`
-        });
-    });
-
-    $document.on(`mouseup${DRAG_NAMESPACE}`, function () {
-        if (isDragging) {
-            localStorageService.setBunkerImportPanelPosition = {
-                left: panelLeft,
-                top: panelTop
-            };
-            log.info("Stored bunker import panel position", {
-                left: panelLeft,
-                top: panelTop
-            });
-        }
-        isDragging = false;
-    });
 }
 
 function getAvailableUnits(): Unit[] {
@@ -196,7 +102,7 @@ function ensurePanel(localStorageService: LocalStorageHelper, threads: Threads) 
     const unitPowers = localStorageService.getBunkerUnitPowers;
     const selectedThreadId = resolveSelectedThreadId(localStorageService, threads);
 
-    const panelHtml = `<div id="${PANEL_ID}" class="sd-organizer" style="position: fixed; top: 140px; right: 20px; width: 360px; z-index: 9999; background: #f4e4bc; border: 2px solid #7d510f; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); border-radius: 6px;">
+    const panelHtml = `<div id="${PANEL_ID}" class="sd-organizer" style="position: fixed; top: 140px; right: 12px; width: 360px; z-index: 9999;">
   <div class="${PANEL_HANDLE_CLASS} sd-organizer-handle" style="cursor: move; user-select: none; padding: 8px 10px;  font-weight: bold; border-top-left-radius: 4px; border-top-right-radius: 4px;">
     SD Organizer
   </div>
@@ -226,10 +132,9 @@ function ensurePanel(localStorageService: LocalStorageHelper, threads: Threads) 
 
     $("body").append(panelHtml);
     $panel = $(`#${PANEL_ID}`);
-    applyStoredPanelPosition($panel, localStorageService);
+    dockOrganizerPanel($panel[0], {legacyPosition:localStorageService.getBunkerImportPanelPosition});
     $panel.find("#sd-bunker-import-thread-id").val(selectedThreadId);
     localStorageService.setBunkerImportTargetThreadId = selectedThreadId;
-    enableDragging($panel, localStorageService);
     return $panel;
 }
 

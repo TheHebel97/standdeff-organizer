@@ -12,9 +12,11 @@ Der Einstiegspunkt `src/index.ts` registriert ein `$(document).ready`-Callback u
 | `overview_villages` (`mode=units&type=away_detail`) | `displayAwayDetail` (`src/ui/away-detail.ts`) | Liest abgestellte Deff pro Dorf aus, rechnet sie ueber konfigurierbare Unit-Power- und Split-Werte in Bunkeranfragen um, zeigt die Ergebnisse als auswaehlbare Vorschau und schreibt die markierten Eintraege in den ausgewaehlten SD-Thread-Cache. |
 | `forum-view_thread` | `viewThread` (`src/ui/view-thread.ts`) | Erkennt SD-Threads, ergänzt Buttons/Popups zum Registrieren neuer Threads und zeigt bei bekannten Threads die SD-Tabelle (`sdTable`) an. |
 | `forum-new_thread` | `createNewTable` (`src/ui/new-thread.ts`) | Stellt Eingabemasken für Paket-Vorlagen bereit und generiert auf Knopfdruck den initialen Thread-Text inkl. SD-Tabelle und Spoiler-Erklärungen. |
-| `settings` | `displaySettings` (`src/ui/settings.ts`) | Rendert eine Konfigurations-Tabelle in den Spieleinstellungen, inkl. toggles, Dropdowns für Gruppen/Vorlagen und einer Liste aller bekannten SD-Threads samt Reset fuer den gespeicherten Versandstatus pro Thread. |
+| `settings` | `displaySettings` (`src/ui/settings.ts`) | Verwendet native Tabellen mit Hover-Hilfe, Gültigkeitsmarkierungen, Checkboxen und Gruppen-/Vorlagenauswahl und einer Liste bekannter SD-Threads samt Reset für den gespeicherten Versandstatus. |
 
 > **Hinweis:** Jede dieser Funktionen kapselt den kompletten jQuery-Manipulationscode für ihren Kontext. Dadurch lässt sich das Script gezielt auf den Seiten aktivieren, auf denen Tampermonkey es injiziert.
+
+Die Einrichtung wird neben Neuer Thread/Neue Umfrage in der Forum-Aktionsleiste ausdrücklich gestartet und erst dann auf anderen Seiten fortgesetzt. `game-catalog.ts` liest Gruppen und Vorlagen direkt auf den nativen Gruppen- und Vorlagenseiten und aktualisiert die Settings zusätzlich im Hintergrund. Während der passenden Einrichtungsschritte neu angelegte Einträge werden bei eindeutiger Identifikation übernommen. Ein aktives Onboarding läuft auch ohne Seitencontroller weiter; Hover-Hilfen lassen seinen Fortschritt unverändert. Randfenster teilen einen Dock-Manager mit gespeicherter Seite/Höhe und Überlappungsvermeidung.
 
 ## Persistenz & Datenmodell
 Alle nutzerbezogenen Informationen (allgemeine Settings, bekannte Threads, Thread-spezifische Cache-Daten) werden über die Singleton-Klasse `LocalStorageHelper` verwaltet (`src/helpers/local-storage-helper.ts`).
@@ -47,6 +49,8 @@ Dieses Dokument dient als Ausgangspunkt, wenn neue Contributor:innen sich schnel
 - Journal-Komprimierung schreibt zuerst einen vollständigen Snapshot mit den bereits enthaltenen Änderungsschlüsseln. Erst danach werden genau diese Einträge entfernt. Web Locks koordinieren parallele Komprimierungen; spätere Tab-Änderungen bleiben replaybar.
 - Neue Anfrage-IDs werden nicht recycelt. `sd-next-id=N` im bestehenden postCache-Spoiler hält den nächsten freien Wert fest; numerische Post-IDs werden weiterhin gesondert geparst.
 - `pending-operation.ts` hält Vorbereitung und Erfolgsbestätigung getrennt. Unklare Rückmeldungen erhalten Entwürfe und eine sichtbare Prüfung, inklusive tatsächlicher Menge bei Teilversand.
-- `organizer-style.ts` und `onboarding.ts` stellen gemeinsame Spielstile sowie versionierte Touren pro Kontext/Rolle bereit.
+- `organizer-style.ts` und `onboarding.ts` stellen gemeinsame Spielstile und kontextbezogene Hover-Hilfen bereit; `setup-onboarding.ts` verwaltet die geführte Einrichtung.
 
 Regressionen werden mit Jest/jsdom geprüft. Die reale DOM-Kopplung erfordert zusätzlich Browser-Abnahme; deren Grenzen stehen in `implementation-log.md`.
+
+Die Einrichtung validiert Gruppen und Vorlagen gegen einen aktuell bestätigten Spielbestand und ermöglicht ihre Zuordnung im Assistenten. Der persistente Fortschritt ersetzt diese Prüfung nicht. Die Settings erhalten keine Fensterstile; `sd-settings-controls.ts` unterstützt native Checkboxen in den Einstellungen und die bisherigen Schalter in den Randfenstern. Ein Fragezeichen im Header zeigt während des Hoverns alle passenden Infos gemeinsam. Gültige Werte/aktive Schutzfunktionen werden in den nativen Settings dezent grün markiert; Gruppe/Vorlage erst nach aktueller Spielbestätigung.

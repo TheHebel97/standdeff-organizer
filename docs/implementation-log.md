@@ -1,6 +1,16 @@
 # Umsetzung des großen Updates
 
-Stand: 2026-10-06. Branch: `codex/next-major-update`. Export: `2.0.0-rc.1`.
+Stand: 2026-10-14. Branch: `codex/next-major-update`. Export: `2.0.0-rc.2`.
+
+## Ergänzung vom 14.10.2026
+
+- Geführte Einrichtung, geprüfte Gruppen-/Vorlagenzuordnung, natives Settings-Layout, Rand-Andocken und gemeinsamer Header-Hover sind umgesetzt und im Opera-Browser geprüft. 74 Jest/jsdom-Regressionstests bestehen.
+- Der akzeptierte UI-Stand wurde als `0ca2a90` auf `origin/codex/next-major-update` gepusht.
+- Auslieferung wie im Reliquien-Repo: lesbares Standalone-Artefakt, MIT-Hinweis, direkte offizielle ScriptAPI vor UI-Änderungen und Offline-Prüfung von window/unsafeWindow, fehlender API und nativen Fehlern. Scriptname aus dem bisherigen Freigabethread: „Standdeff Tabelle“; Oberfläche weiterhin „SD Organizer“.
+- Deutscher Update-Forentext als Änderungstabelle ohne Codeblock. Veraltete Beschreibungen/Bilder des Startbeitrags sind benannt. GitHub ist Prüfquelle, keine erneute Freigabe behauptet.
+- Ajax-Katalogabfragen und Massen-UT-Vorauswahl sind offene Prüfpunkte. Keine Ausnahme oder erfolgreiche vollständige Live-Abnahme wird zugesichert. Siehe [Auslieferung und Einreichung](auslieferung-und-einreichung.md).
+
+## Bisheriger Umsetzungsstand vom 06.10.2026
 
 ## Implementiert
 

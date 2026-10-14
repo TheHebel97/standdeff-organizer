@@ -1,6 +1,6 @@
 # Projektzusammenfassung
 
-Stand: 2026-10-06, Testkandidat 2.0.0-rc.1.
+Stand: 2026-10-14, Update-Prüfstand 2.0.0-rc.2 für das bestehende Script Standdeff Tabelle.
 
 Das TypeScript-/jQuery-Userscript organisiert Standdeff auf Die Stämme und Tribal Wars. Forum, Massen-UT, Truppenimport und Einstellungen teilen denselben lokal gespeicherten Zustand.
 
@@ -27,8 +27,9 @@ Das TypeScript-/jQuery-Userscript organisiert Standdeff auf Die Stämme und Trib
 - `npm test -- --runInBand`: Jest/jsdom-Regressionen für Fachlogik, Storage und DOM-Ablaeufe.
 - `npm run build`: Development-Bundle nach `dist/bundle.js`.
 - `npm run dev` / `npm start`: lokaler Server auf Port 9000 für den versionierten Dev-Loader.
-- `npm run release`: Production-Export nach `compiledScript.js` und aktualisierter `devUserscript.js`, zentrale Version und Matches; kein Development-eval im Production-Script.
+- `npm run release`: lesbarer Production-Export nach `compiledScript.js`, aktualisierter `devUserscript.js` und Offline-Bundleprüfung; zentrale Version, deutsche Matches, MIT-Hinweis und offizielle ScriptAPI. Keine Minifizierung oder eval.
+- [Auslieferungsregeln](auslieferung-und-einreichung.md), [Update-Forentabelle](forum-einreichung.txt) und [Changelog](../CHANGELOG.md): GitHub-Prüfstand, erneute Prüfung der Änderungen und spätere Spieler-Auslieferung durch das Stämme-Team. Ajax-Katalogabfragen sind als Prüf-/Ausnahmebedarf beschrieben.
 
 Die DOM-Kopplung an das echte Spiel bleibt ein Wartungsrisiko. Der vollständige Versand-/Post-Durchlauf mit installiertem Production-Script ist noch als Browser-Abnahme offen. Details stehen im [Umsetzungsstand](implementation-log.md) und in den [Release-Notizen](release-notes-2.0.md).
 
-Spätere Refactors betreffen kleinere Controller, ausgelagerte BBCode-Vorlagen und weitere Selektor-Fixtures. Defaults sind konsistent: Massen-UT-Hilfe aus, doppeltes Schicken aus (`preventDuplicateDestination=true`), Registrierungs-Popup an.
+Spätere Refactors betreffen kleinere Controller, ausgelagerte BBCode-Vorlagen und weitere Selektor-Fixtures. Defaults sind konsistent: automatische Massen-UT-Vorbereitung aus, doppeltes Schicken aus (`preventDuplicateDestination=true`), Einrichtung nur nach Aktivierung im Forum. Das frühere Registrierungs-Popup entfällt.

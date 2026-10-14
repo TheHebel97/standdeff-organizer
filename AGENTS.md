@@ -77,6 +77,31 @@ Technisch ist das Projekt ein TypeScript-/jQuery-Skript, das ueber webpack zu Ja
 - `npm run release` exportiert plattformunabhaengig Production-Script und Dev-Loader.
   - `build2` ist ein Alias fuer `release`; Dev-Server und Loader verwenden Port 9000.
 
+## Auslieferungs- und Einreichungsregeln
+
+- Offizieller Scriptname aus dem bestehenden Freigabethread: `Standdeff Tabelle`.
+  `SD Organizer` ist der Oberflaechenname. ScriptAPI und Produktionsheader behalten
+  den offiziellen Namen; Autor/Kontakt: TheHebel97, Support ueber das Forum.
+- `npm run release` / `npm run build:userscript` baut den lesbaren Pruefstand
+  `compiledScript.js` ohne Minifizierung, eval, Source-Maps oder Dev-Server.
+  Vollstaendigen Metadatenheader und MIT-Lizenzhinweis mit exportieren; historische
+  Autorenangaben Fine/Regenmantel erhalten. Beide JS-Artefakte bleiben versioniert.
+- `npm run verify:userscript` prueft das tatsaechliche Bundle offline, inklusive
+  nativer ScriptAPI-Fehler und window/unsafeWindow. Die offizielle Zwei-Zeilen-
+  Registrierung muss vor UI-Aenderungen erfolgen; keine Wrapper oder Umgehung.
+- Bei Einreichungsupdates Paket-/Lockfile-Version, CHANGELOG.md, Release-Notizen
+  und `docs/forum-einreichung.txt` abgleichen und das Pruefskript neu bauen.
+- GitHub liefert nur den Pruefstand; freigegebene Spieler-Auslieferung erfolgt
+  durch das Staemme-Team. Keine bestehende Freigabe auf neue Funktionen uebertragen.
+- Deutscher Forentext fuer dieses bestehende Script: eine Aenderungstabelle,
+  kein Initialisierungscode. Alte Schmiede-Symbol-/Popup-/Einlese-Anleitung und
+  veraltete Bilder ersetzen; nichts ohne Nutzerauftrag im Forum veroeffentlichen.
+- Die aktuellen Ajax-Abfragen und datenabhaengige Massen-UT-Vorauswahl offen
+  als Pruefpunkte beschreiben. Allgemeine Regeln verbieten Ajax; eine Ausnahme
+  fuer das bestehende Script nicht behaupten. Akzeptiertes Verhalten nicht still
+  aendern, um eine vermeintliche Freigabe zu erzeugen.
+- Details und verifizierte Regelquellen: `docs/auslieferung-und-einreichung.md`.
+
 ## Nuetzliche Befehle
 
 - `npm run build`

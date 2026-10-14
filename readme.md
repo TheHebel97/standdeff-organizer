@@ -1,5 +1,9 @@
 # Standdeff Organizer 🛡️
 
+Offizieller Scriptname: **Standdeff Tabelle**; Oberfläche: **SD Organizer**.
+Der aktuelle Stand **2.0.0-rc.2** ist ein Update-Prüfstand zum [bestehenden Freigabethread](https://forum.die-staemme.de/index.php?threads/standdeff%C3%BCbersicht-automatisieren.193996/).
+Die erneute Freigabe des Updates steht aus. [Änderungstabelle fürs Forum](docs/forum-einreichung.txt), [Changelog](CHANGELOG.md) und [Auslieferungsregeln](docs/auslieferung-und-einreichung.md) sind beigefügt.
+
 Ein Userscript, das das Organisieren von Standdeff in Tribal Wars deutlich vereinfacht. 
 Es unterstützt sowohl Admins (SF) als auch normale User bei:
 
@@ -124,20 +128,20 @@ Es unterstützt sowohl Admins (SF) als auch normale User bei:
 
 ## Installation & Nutzung
 
-> Hinweis: Das Projekt ist als Userscript gedacht. Die folgenden Schritte beschreiben eine typische Nutzung über einen Userscript-Manager (z.B. Tampermonkey) sowie die lokale Entwicklung.
+Der GitHub-Stand ist eine Prüfquelle. Die Spieler-Auslieferung erfolgt nach erneuter Freigabe über das Stämme-Team; das Update wird hier nicht als bereits erlaubte Installation angeboten.
 
 ### Für Spieler / Anwender
 
-1. **Userscript installieren**
-   - Erzeuge das gebaute Script (z.B. `compiledScript.js`) aus diesem Repository oder nutze eine bereitgestellte URL.
-   - Füge das Script in Tampermonkey (oder vergleichbarem Add-on) als neues Userscript ein.
+1. **Freigegebenes Script verwenden**
+   - Verwende den vom Stämme-Team vorgesehenen Veröffentlichungsweg für „Standdeff Tabelle“.
+   - `compiledScript.js` ist der eigenständige Update-Prüfstand, `devUserscript.js` nur der lokale Entwicklungsloader.
 
 2. **Seiten aufrufen**
    - Öffne das Forum / die Seiten, auf denen Standdeff organisiert wird.
    - Das Script erkennt automatisch, auf welcher Seite es aktiv sein soll.
 
 3. **SD-Threads konfigurieren**
-   - Über das Settings-UI können Threads als SD-Threads markiert oder entfernt werden.
+   - Im jeweiligen Thread über „Als SD-Tabelle festlegen“ zuordnen; in den Settings bekannte Threads verwalten und entfernen.
    - Je nach Rolle (Admin/Normaler User) stehen unterschiedliche Funktionen im UI zur Verfügung.
 
 ### Für Entwickler
@@ -159,13 +163,14 @@ npm run build       # TypeScript/webpack -> dist/bundle.js
 npm test -- --runInBand
 npm run dev         # Server auf http://localhost:9000; entspricht npm start
 npm run release     # Production-Bundle + compiledScript.js + devUserscript.js
+npm run verify:userscript # fertiges Prüfskript offline prüfen
 ```
 
-`compiledScript.js` ist das eigenständige Userscript für Nutzung/Abgabe. `devUserscript.js` bleibt versioniert und lädt zur Entwicklung vom lokalen Server auf Port 9000. Nur eine Variante gleichzeitig aktivieren. `build2` ist ein Alias für `release`; `sed` wird nicht benötigt.
+`compiledScript.js` ist das eigenständige, lesbare Prüfskript mit Userscript-Header, offizieller ScriptAPI und vollständigem MIT-Hinweis. `npm run release` verwendet `webpack.userscript.config.js` ohne Minifizierung/eval und prüft das Artefakt automatisch. `devUserscript.js` bleibt versioniert und lädt zur lokalen Entwicklung vom Server auf Port 9000. Nur eine Variante gleichzeitig aktivieren. `build2` und `build:userscript` sind Aliase für `release`.
 
-Die Metadaten kommen aus `scripts/export-userscript.cjs` und der Paketversion. Matches unterstützen `*.die-staemme.de` und `*.tribalwars.net` unabhängig von URL-Parameterreihenfolge; die Controller begrenzen die Ausführung auf passende Kontexte. Sitter-Parameter bleiben beim Linkbau erhalten.
+Die Metadaten kommen aus `scripts/export-userscript.cjs` und der Paketversion. Matches sind auf `*.die-staemme.de` und die benötigten Ansichten Forum, Stamm, Einstellungen, Dorfübersichten und Versammlungsplatz begrenzt, unabhängig von URL-Parameterreihenfolge. Frames sind ausgeschlossen; Sitter-Parameter bleiben beim Linkbau erhalten. Der Start verwendet die offizielle ScriptAPI; eine fehlende oder ablehnende API wird nicht umgangen.
 
-Der aktuelle Export **2.0.0-rc.1** ist ein Testkandidat. Der vollständige Versand-/Post-Durchlauf mit dem installierten Production-Script steht noch aus; siehe [Umsetzungsstand](docs/implementation-log.md).
+Der aktuelle Export **2.0.0-rc.2** ist ein Update-Prüfstand. Insbesondere die zwei Ajax-GETs für Gruppen/Vorlagen werden als neuer Prüf-/Ausnahmebedarf offengelegt; eine Ausnahme von den allgemeinen Regeln wird nicht vorausgesetzt. Der vollständige Versand-/Post-Durchlauf mit dem Auslieferungsartefakt steht noch aus; siehe [Umsetzungsstand](docs/implementation-log.md).
 
 ---
 

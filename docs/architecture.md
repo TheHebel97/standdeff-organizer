@@ -36,7 +36,7 @@ Alle nutzerbezogenen Informationen (allgemeine Settings, bekannte Threads, Threa
 
 ## Build & Ausführung
 - **Entwicklung:** `npm run dev`/`npm start` startet webpack auf Port 9000. Der versionierte `devUserscript.js` lädt das aktuelle Bundle beim Seitenaufruf. `npm run build` prüft die TypeScript-Quellen.
-- **Produktion:** `npm run release` bündelt ohne Development-eval und exportiert `compiledScript.js` mit Metadaten sowie den Dev-Loader. Version und Match-Regeln werden zentral erzeugt.
+- **Update-Prüfstand:** `npm run release` baut über `webpack.userscript.config.js` ohne Minifizierung/eval und exportiert `compiledScript.js` mit Metadaten, MIT-Lizenz und offizieller ScriptAPI sowie den Dev-Loader. `verify:userscript` prüft das tatsächliche Bundle offline einschließlich Registrierung vor UI-Änderungen und nativer API-Fehler. Version und deutsche Match-Regeln werden zentral erzeugt. GitHub dient als Prüfquelle; Spieler-Auslieferung bleibt beim Stämme-Team, siehe [Auslieferungsregeln](auslieferung-und-einreichung.md).
 
 Dieses Dokument dient als Ausgangspunkt, wenn neue Contributor:innen sich schnell orientieren oder weitere Kontexte ergänzen möchten.
 

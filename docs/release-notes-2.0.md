@@ -1,6 +1,6 @@
-# SD Organizer 2.0.0-rc.1
+# Standdeff Tabelle / SD Organizer 2.0.0-rc.2
 
-Testkandidat vom 2026-10-06. Keine Veröffentlichung oder Übertragung an einen Remote-Branch erfolgt.
+Update-Prüfstand vom 2026-10-14 auf `codex/next-major-update`. Der bisherige UI-Stand wurde am 14.10.2026 gepusht; keine erneute Freigabe oder Spieler-Veröffentlichung des Updates erfolgt. [Changelog](../CHANGELOG.md), [Foren-Änderungstabelle](forum-einreichung.txt) und [Auslieferungsregeln](auslieferung-und-einreichung.md) gehören zur Update-Prüfung.
 
 ## Änderungen
 
@@ -8,15 +8,17 @@ Testkandidat vom 2026-10-06. Keine Veröffentlichung oder Übertragung an einen 
 - Generator schlägt für leere Titel „SD Tabelle“ vor; ein Klick entfernt den Vorschlag und eigene Titel bleiben erhalten.
 - Automatische Infanterie-Skalierung mit 5 % Spähern, unabhängige Paketzeilen und Leeren per Klick.
 - 100/200 Dual und Trial beim Bunkerimport, eigene Paketgrößen, getrennte Power-Einstellungen und aktive Auswahl.
-- Kurze Einführungen für Erstellung, Import, Anfragen, Massen-UT und Tabellenpflege.
-- Zuordnung über „Als SD-Tabelle festlegen“ im Organizer, als erster Einführungsschritt erklärt. Das separate Registrierungs-Popup und seine Einstellung entfallen; bekannte Threads zeigen ihren Zuordnungsstatus.
+- Geführte Einrichtung vom Forum über native Gruppe/Vorlage und sechs einzelne Settings zur Thread-Zuordnung, mit aktueller Spielbestätigung und direkter Ressourcenauswahl. Kein Massen-UT-Einleseschritt.
+- Kompakte Randfenster mit gespeichertem links/rechts Andocken; native Settings mit Gültigkeitsmarkierungen. Ein Header-Fragezeichen zeigt alle passenden Infos während des Hoverns.
+- Zuordnung über „Als SD-Tabelle festlegen“ im Organizer, in der Header-Hilfe erklärt. Das separate Registrierungs-Popup und seine Einstellung entfallen; bekannte Threads zeigen ihren Zuordnungsstatus.
 - SD-Registrierung ohne `forum_id` in Redirect-URLs, numerischer SD-Post-Anker, sofortige Initialisierung und sichtbare Speicherfehler.
 - Korrektes `done`, stabile Anfrage-IDs und erhaltener Post-Cache über mehrere Seiten.
 - Lokale Datumswerte bleiben unverändert; Handy-Anführungszeichen werden als manuelle Feldtrenner akzeptiert.
 - Validierte Eingaben, Text-Escaping, gezielter Mod-Check und Änderungen nur am SD-Post.
 - Journalisierte Persistenz mit Schema 2, Sicherung kaputter JSON-Wurzeln, Migration anhand der Dorfzuordnung und sichtbarer Klärung unsicherer Versand-IDs.
 - Unbestätigte Versand-/Post-Vorgänge behalten Daten. Bestätigungen sind idempotent, parallele Sendungen additiv; Teilversand kann mit der tatsächlich geschickten Menge bestätigt werden.
-- Reproduzierbarer Production-Export ohne Development-eval, Port 9000 für Server und Loader, portable npm-Befehle.
+- Lesbarer Production-Export ohne Minifizierung/eval, vollständiger MIT-Hinweis, offizieller Scriptname „Standdeff Tabelle“ in Header/ScriptAPI und Offline-Prüfung des tatsächlichen API-Starts. Port 9000 für Server und Dev-Loader.
+- Hintergrundabfragen der Gruppen-/Vorlagenseiten per Ajax sind ausdrücklich als neuer Prüf-/Ausnahmebedarf dokumentiert; allgemeine Regeln erlauben sie nicht automatisch. Der akzeptierte Funktionsstand wird für die Prüfung erhalten.
 
 ## Migration und Nutzung
 

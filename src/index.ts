@@ -22,6 +22,8 @@ const contextHandlers: Partial<Record<ScriptContext, { name: string, run: (pageC
 };
 
 (function () {
+    var api = typeof unsafeWindow != 'undefined' ? unsafeWindow.ScriptAPI : window.ScriptAPI;
+    api.register('Standdeff Tabelle', true, 'TheHebel97', 'support-nur-im-forum@die-staemme.de');
     $(function () {
         document.addEventListener('sd-storage-error',()=>{
             $('#sd-storage-error').remove();

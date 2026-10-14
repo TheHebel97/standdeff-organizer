@@ -1,13 +1,19 @@
 // ==UserScript==
-// @name         SD Organizer (Development)
+// @name         Standdeff Tabelle (Development)
 // @namespace    standdeff-organizer
-// @version      2.0.0-rc.1
+// @version      2.0.0-rc.2
 // @description  SD-Tabellen, Bunkeranfragen und Massen-Unterstützung organisieren
-// @author       You, Fine, Regenmantel
-// @match        https://*.die-staemme.de/game.php*
-// @match        https://*.tribalwars.net/game.php*
+// @author       TheHebel97, Fine, Regenmantel
+// @license      MIT
+// @homepageURL  https://github.com/TheHebel97/standdeff-organizer
+// @match        https://*.die-staemme.de/game.php?*screen=forum*
+// @match        https://*.die-staemme.de/game.php?*screen=ally*
+// @match        https://*.die-staemme.de/game.php?*screen=settings*
+// @match        https://*.die-staemme.de/game.php?*screen=overview_villages*
+// @match        https://*.die-staemme.de/game.php?*screen=place*
 // @grant        none
 // @run-at       document-end
+// @noframes
 // ==/UserScript==
 
 fetch('http://localhost:9000/bundle.js')

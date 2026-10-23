@@ -1,14 +1,16 @@
 import {readPendingOperations, discardPendingOperation} from '../../helpers/pending-operation';
 import {LocalStorageHelper} from '../../helpers/local-storage-helper';
 import {ensureOrganizerStyles} from './organizer-style';
+import {dockOrganizerPanel,layoutOrganizerDocks} from './organizer-dock';
 
 export function showPendingOperations() {
+    const expanded=$('#sd-pending-operations').prop('open')===true;
     $('#sd-pending-operations').remove();
     const operations = readPendingOperations();
-    if (!operations.length) return;
+    if (!operations.length) {$('#sd-pending-panel').remove();layoutOrganizerDocks();return;}
     ensureOrganizerStyles();
-    const $box = $('<div id="sd-pending-operations" class="sd-organizer" style="padding:10px;margin:10px 0" role="status">');
-    $box.append($('<b>').text('Offene Vorgänge prüfen'));
+    const $box = $('<details id="sd-pending-operations" style="margin-top:12px;border-top:1px solid #b59766;padding-top:8px">').prop('open',expanded);
+    $box.append($('<summary>').text(`Offene Vorgänge prüfen (${operations.length})`));
     operations.forEach(operation => {
         const $row = $('<div style="margin-top:8px">');
         $row.append($('<p>').text(operation.kind === 'send'
@@ -32,7 +34,15 @@ export function showPendingOperations() {
         $('<input type="button" class="btn" value="Versuch verwerfen">').on('click', () => { discardPendingOperation(operation.id); showPendingOperations(); }).appendTo($row);
         $box.append($row);
     });
-    $('#content_value').length ? $('#content_value').prepend($box) : $('body').append($box);
+    const $organizer=$('#sd-forum-quick-settings .sd-organizer-body,#sd-bunker-import-panel').first();
+    if ($organizer.length) {$('#sd-pending-panel').remove();$organizer.append($box);}
+    else {
+        let $panel=$('#sd-pending-panel');
+        if (!$panel.length) $panel=$('<aside id="sd-pending-panel" class="sd-organizer" style="width:285px;z-index:9999"><div class="sd-organizer-handle">SD Organizer</div></aside>').appendTo('body');
+        $panel.append($box);
+        dockOrganizerPanel($panel[0],{side:'right',top:140});
+    }
+    layoutOrganizerDocks();
 }
 
 export function confirmVisibleForumPosts(threadId:string) {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Standdeff Tabelle (Development)
 // @namespace    standdeff-organizer
-// @version      2.0.0-rc.2
+// @version      2.0.0-rc.3
 // @description  SD-Tabellen, Bunkeranfragen und Massen-Unterstützung organisieren
 // @author       TheHebel97, Fine, Regenmantel
 // @license      MIT

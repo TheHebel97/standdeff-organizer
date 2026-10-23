@@ -1,6 +1,16 @@
 # Umsetzung des großen Updates
 
-Stand: 2026-10-14. Branch: `codex/next-major-update`. Export: `2.0.0-rc.2`.
+Stand: 2026-10-17. Branch: `codex/next-major-update`. Export: `2.0.0-rc.3`.
+
+## Ergänzung vom 17.10.2026
+
+- Fehler reproduziert: Offene Vorgänge wurden vor die Stammesüberschrift gesetzt; die Einrichtungsaktion hing ausschließlich an der Neuer-Thread-Leiste und fehlte im Tabellenkontext.
+- Erkannte SD-Tabellen werden nun lokal beim Öffnen zugeordnet. Fehlende Gruppe/Vorlage/gültige Laufzeit starten dort die Einrichtung, außer nach bewusster Pause. Der dauerhafte Zuordnungsstatus ist durch Start/Fortsetzen/Prüfen ersetzt.
+- Offene Vorgänge sind eingeklappt im Organizer; ohne passenden Organizer in einem eigenen Dock-Panel. Auch Boot-/Speicherhinweise stehen nicht mehr vor der nativen Überschrift.
+- 80 Jest/jsdom-Regressionen bestehen, darunter Erstbesuch als normaler Nutzer ohne Ersteller-Leiste, Pause/Fortsetzen, veralteter Abschlusszustand und Hinweisposition.
+- Autorisierter Live-Test in Opera, Welt 259: Scriptdaten inklusive Änderungsjournal und offener Vorgänge lokal außerhalb des Repos gesichert, ausschließlich Scriptdaten zurückgesetzt. Automatischen Start beim ersten Besuch der bestehenden SF-Tabelle 9094 sowie Pause/Fortsetzen geprüft. Danach für den Ersteller-Ablauf nochmals frische Scriptdaten verwendet.
+- Neue Tabelle **SD Onboarding-Test 17.10.2026** (Thread 9096, Forum 2546) erstellt. Bestehende Gruppe **>sdsd<** (56162) und Vorlage **100** (2293) im Assistenten ausgewählt; keine Gruppe/Vorlage neu angelegt. Automatische Vorbereitung an, Doppelversand aus, Sortierung Schwert, Laufzeit 22. Alle neun Schritte, direkter Rücksprung zur Tabelle, Abschluss und erhaltener Zustand nach Reload erfolgreich.
+- Die Testtabelle und die neue lokale Einrichtung bleiben für den Nutzer erhalten. Der alte SF-Thread wurde nicht verändert; kein Truppenversand durchgeführt. Die vollständige Versand-/Fehler-/Teilversand-Abnahme bleibt offen.
 
 ## Ergänzung vom 14.10.2026
 

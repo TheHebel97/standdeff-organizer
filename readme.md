@@ -1,7 +1,7 @@
 # Standdeff Organizer 🛡️
 
 Offizieller Scriptname: **Standdeff Tabelle**; Oberfläche: **SD Organizer**.
-Der aktuelle Stand **2.0.0-rc.2** ist ein Update-Prüfstand zum [bestehenden Freigabethread](https://forum.die-staemme.de/index.php?threads/standdeff%C3%BCbersicht-automatisieren.193996/).
+Der aktuelle Stand **2.0.0-rc.3** ist ein Update-Prüfstand zum [bestehenden Freigabethread](https://forum.die-staemme.de/index.php?threads/standdeff%C3%BCbersicht-automatisieren.193996/).
 Die erneute Freigabe des Updates steht aus. [Änderungstabelle fürs Forum](docs/forum-einreichung.txt), [Changelog](CHANGELOG.md) und [Auslieferungsregeln](docs/auslieferung-und-einreichung.md) sind beigefügt.
 
 Ein Userscript, das das Organisieren von Standdeff in Tribal Wars deutlich vereinfacht. 
@@ -141,7 +141,7 @@ Der GitHub-Stand ist eine Prüfquelle. Die Spieler-Auslieferung erfolgt nach ern
    - Das Script erkennt automatisch, auf welcher Seite es aktiv sein soll.
 
 3. **SD-Threads konfigurieren**
-   - Im jeweiligen Thread über „Als SD-Tabelle festlegen“ zuordnen; in den Settings bekannte Threads verwalten und entfernen.
+   - Erkannte SD-Tabellen werden beim Öffnen lokal zugeordnet; die Einrichtung ist direkt im Tabellen-Organizer erreichbar. In den Settings bekannte Threads verwalten und entfernen.
    - Je nach Rolle (Admin/Normaler User) stehen unterschiedliche Funktionen im UI zur Verfügung.
 
 ### Für Entwickler
@@ -170,7 +170,7 @@ npm run verify:userscript # fertiges Prüfskript offline prüfen
 
 Die Metadaten kommen aus `scripts/export-userscript.cjs` und der Paketversion. Matches sind auf `*.die-staemme.de` und die benötigten Ansichten Forum, Stamm, Einstellungen, Dorfübersichten und Versammlungsplatz begrenzt, unabhängig von URL-Parameterreihenfolge. Frames sind ausgeschlossen; Sitter-Parameter bleiben beim Linkbau erhalten. Der Start verwendet die offizielle ScriptAPI; eine fehlende oder ablehnende API wird nicht umgangen.
 
-Der aktuelle Export **2.0.0-rc.2** ist ein Update-Prüfstand. Insbesondere die zwei Ajax-GETs für Gruppen/Vorlagen werden als neuer Prüf-/Ausnahmebedarf offengelegt; eine Ausnahme von den allgemeinen Regeln wird nicht vorausgesetzt. Der vollständige Versand-/Post-Durchlauf mit dem Auslieferungsartefakt steht noch aus; siehe [Umsetzungsstand](docs/implementation-log.md).
+Der aktuelle Export **2.0.0-rc.3** ist ein Update-Prüfstand. Insbesondere die zwei Ajax-GETs für Gruppen/Vorlagen werden als neuer Prüf-/Ausnahmebedarf offengelegt; eine Ausnahme von den allgemeinen Regeln wird nicht vorausgesetzt. Der vollständige Versand-/Post-Durchlauf mit dem Auslieferungsartefakt steht noch aus; siehe [Umsetzungsstand](docs/implementation-log.md).
 
 ---
 
@@ -184,7 +184,7 @@ Bereits implementierte Settings:
   - Liste der hinzugefügten SD-Threads
   - Threads können wieder aus der Liste entfernt werden
 - ✅ **SD-Tabelle festlegen und Einführung**
-  - Im SD Organizer des Threads über „Als SD-Tabelle festlegen“ zuordnen
+  - Erkannte SD-Tabellen werden beim Öffnen lokal zugeordnet; ein fehlgeschlagener Versuch bleibt im Organizer erneut ausführbar
   - Die Einführung erklärt den Button; bereits zugeordnete Threads zeigen ihren Status
   - Das separate Registrierungs-Popup und dessen Einstellung entfallen
 - ✅ **Massen-UT automatisch vorbereiten**
@@ -292,7 +292,7 @@ Nicht parallel eine ältere Skriptversion betreiben: Sie kennt das Änderungsjou
 
 ### Geführte Einrichtung
 
-Die Einrichtung startet ausschließlich über **Einrichtung starten** als dritte Schaltfläche neben **Neuer Thread** und **Neue Umfrage** im Stammesforum. Erst nach einem Klick öffnet sich das Onboarding-Fenster und begleitet dich über Seitenwechsel hinweg:
+Für neue Nutzer ist die vorhandene SF-Tabelle der Einstieg: Beim Öffnen wird eine erkannte SD-Tabelle lokal zugeordnet. Fehlen SD-Gruppe, SD-Vorlage oder eine gültige Schwert-Laufzeit, öffnet sich die Einrichtung direkt dort. Im Tabellen-Organizer stehen **Einrichtung starten/fortsetzen/prüfen** anstelle eines dauerhaften Zuordnungsstatus. Eine ausdrücklich pausierte Einrichtung bleibt geschlossen, auch nach einem Seitenwechsel. Zusätzlich gibt es den Einstieg neben **Neuer Thread** und **Neue Umfrage** in der Forumübersicht. Der Assistent begleitet dich über Seitenwechsel hinweg:
 SD-Dorfgruppe erstellen → passende Truppen-Vorlage anlegen → Gruppe, Vorlage, automatische Vorbereitung, Doppelversand, Sortierung und Schwert-Laufzeit in den Einstellungen prüfen → SD-Thread zuordnen. Der zusätzliche Besuch auf Massen-UT zum Einlesen entfällt.
 
 Der Fortschritt wird lokal gespeichert. „Später fortsetzen“, × oder Escape pausieren die Einrichtung; **Einrichtung fortsetzen** in derselben Forum-Aktionsleiste öffnet den gespeicherten Schritt. Nach Abschluss lässt sie sich erneut starten. Die Spielaktionen führst du selbst aus und bestätigst anschließend mit „Weiter“.

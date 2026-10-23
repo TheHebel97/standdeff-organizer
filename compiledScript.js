@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Standdeff Tabelle
 // @namespace    standdeff-organizer
-// @version      2.0.0-rc.2
+// @version      2.0.0-rc.3
 // @description  SD-Tabellen, Bunkeranfragen und Massen-Unterstützung organisieren
 // @author       TheHebel97, Fine, Regenmantel
 // @license      MIT
@@ -4078,7 +4078,7 @@ function getOnboardingSteps(context, mod) {
         return [
             { target: '.sd-package-row', title: 'Pakete definieren', text: 'Eine Menge in Speer, Schwert oder Bogen skaliert diese Paketzeile. Späher sind 5 %. Ein Klick leert ein befülltes Feld. Weitere Pakete sind unabhängig.' },
             { target: '#setupTable', title: 'SD-Tabelle vorbereiten', text: '„SD Tabelle generieren“ füllt den Forenbeitrag aus und schlägt bei leerem Titel „SD Tabelle“ vor. Ein Klick ins Titelfeld entfernt diesen Vorschlag; eigene Titel bleiben erhalten. Prüfe Titel und Text und sende den Thread im Spiel ab.' },
-            { target: 'input[name=subject]', title: 'Thread erstellen und zuordnen', text: 'Nach erfolgreichem Erstellen erkennt der Organizer deinen SD-Thread und speichert die Zuordnung. Bestehende Tabellen ordnest du im jeweiligen Thread über „Als SD-Tabelle festlegen“ im SD Organizer zu.' }
+            { target: 'input[name=subject]', title: 'Thread erstellen und zuordnen', text: 'Nach erfolgreichem Erstellen und beim Öffnen einer vorhandenen SD-Tabelle erkennt der Organizer den Tabellenbeitrag und speichert die lokale Zuordnung. Bei fehlenden Grundeinstellungen startet die Einrichtung direkt in der Tabelle.' }
         ];
     if (context.context === 'overview-away_detail')
         return [
@@ -4096,7 +4096,7 @@ function getOnboardingSteps(context, mod) {
         ];
     if (context.context === 'forum-view_thread')
         return __spreadArray([
-            { target: '#sd-register-thread', title: 'SD-Tabelle festlegen', text: 'Öffne den Beitrag mit der SD-Tabelle und klicke im SD Organizer auf „Als SD-Tabelle festlegen“. Danach sind die Tabellen- und Versandfunktionen für diesen Thread verfügbar. „SD-Tabelle festgelegt“ zeigt eine bereits gespeicherte Zuordnung. Neu erstellte SD-Threads werden automatisch zugeordnet.' },
+            { target: '#sd-thread-setup-launcher', title: 'Einrichtung aus der SD-Tabelle', text: 'Erkannte SD-Tabellen werden beim Öffnen lokal zugeordnet. Fehlen Gruppe, Vorlage oder eine gültige Schwert-Laufzeit, beginnt die Einrichtung direkt hier. Über „Einrichtung fortsetzen“ bzw. „Einrichtung prüfen“ im Organizer kannst du jederzeit zurückkehren. Eine bewusst pausierte Einrichtung öffnet sich nicht von selbst.' },
             { target: '#requestBunker', title: 'Bunker anfragen', text: 'Öffne „Antworten“, dann „Bunker anfragen“. Füge Koordinaten und Paketmengen ein. Spieler, Bemerkung und Zeitfenster sind optional. „Bunker anfragen“ füllt den Beitrag; erst Senden veröffentlicht ihn.' },
             { target: '#sd-forum-quick-settings', title: 'Massen-UT vorbereiten', text: 'Wähle hier Gruppe und Vorlage und aktiviere die Vorbereitung. Die Listen werden direkt aus der Gruppenverwaltung und den Truppen-Vorlagen aktualisiert. Folge dann dem Link der gewünschten Anfrage in der Tabelle.' },
             { target: '#addBearbeitung', title: 'Versand eintragen', text: '„Bearbeitung eintragen“ füllt deine gespeicherten Versandmeldungen ein. Prüfe und sende den Beitrag. Entwürfe werden erst bei bestätigtem Erfolg entfernt.' }
@@ -4120,8 +4120,8 @@ function initializeOnboarding(context) {
     if ($header.length && !$root.is('table'))
         $header.addClass('sd-help-header');
     var introduction = context.context === 'settings'
-        ? 'Änderungen werden sofort gespeichert. Grüne Zeilen mit Häkchen zeigen gültige Werte oder aktive Schutzfunktionen. Die geführte Einrichtung startest du im Forum neben „Neuer Thread“ und „Neue Umfrage“.'
-        : 'Die geführte Einrichtung startest du im Forum neben „Neuer Thread“ und „Neue Umfrage“.';
+        ? 'Änderungen werden sofort gespeichert. Grüne Zeilen mit Häkchen zeigen gültige Werte oder aktive Schutzfunktionen. Die Einrichtung ist im SD Organizer der Tabelle sowie in der Forumübersicht neben „Neuer Thread“ und „Neue Umfrage“ erreichbar.'
+        : 'Die geführte Einrichtung ist direkt im SD Organizer einer SD-Tabelle erreichbar und startet dort bei fehlenden Grundeinstellungen automatisch. In der Forumübersicht bleibt der Einstieg neben „Neuer Thread“ und „Neue Umfrage“ erhalten.';
     var sections = __spreadArray([{ title: 'Einrichtung und Einstellungen', text: introduction }], __read((0, settings_help_1.getSettingsHelp)($root)), false);
     if (context.context !== 'settings')
         sections.push.apply(sections, __spreadArray([], __read(steps.filter(function (step) { return step.target !== '#sd-forum-quick-settings'; })), false));
@@ -4144,11 +4144,21 @@ function addSdOptions(currentThreadId, forumId, onRegistered, registered) {
     var $controls = $("#sd-thread-registration");
     if (!$controls.length) {
         $controls = $('<div id="sd-thread-registration" style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #b59766">');
-        $('<input type="button" class="btn" id="sd-register-thread" aria-describedby="sd-thread-registration-status" style="width:100%">').appendTo($controls);
-        $('<div id="sd-thread-registration-status" role="status" style="margin-top:6px;font-size:12px">').appendTo($controls);
         $('#sd-forum-quick-settings .sd-organizer-body').prepend($controls);
     }
+    if (registered) {
+        $controls.find('#sd-register-thread,#sd-thread-registration-status').remove();
+        return;
+    }
+    if (!$controls.find('#sd-register-thread').length) {
+        $('<input type="button" class="btn" id="sd-register-thread" aria-describedby="sd-thread-registration-status" style="width:100%">').appendTo($controls);
+        $('<div id="sd-thread-registration-status" role="status" style="margin-top:6px;font-size:12px">').appendTo($controls);
+    }
     var update = function (saved) {
+        if (saved) {
+            $controls.find('#sd-register-thread,#sd-thread-registration-status').remove();
+            return;
+        }
         $controls.find('#sd-register-thread').prop('disabled', saved).val(saved ? 'SD-Tabelle festgelegt' : 'Als SD-Tabelle festlegen');
         $controls.find('#sd-thread-registration-status').text(saved ? 'Dieser Thread ist als SD-Tabelle zugeordnet.' : 'Öffne den Tabellenbeitrag und lege diesen Thread als SD-Tabelle fest.');
     };
@@ -4513,14 +4523,19 @@ exports.confirmVisibleForumPosts = exports.showPendingOperations = void 0;
 var pending_operation_1 = __webpack_require__(209);
 var local_storage_helper_1 = __webpack_require__(326);
 var organizer_style_1 = __webpack_require__(409);
+var organizer_dock_1 = __webpack_require__(617);
 function showPendingOperations() {
+    var expanded = $('#sd-pending-operations').prop('open') === true;
     $('#sd-pending-operations').remove();
     var operations = (0, pending_operation_1.readPendingOperations)();
-    if (!operations.length)
+    if (!operations.length) {
+        $('#sd-pending-panel').remove();
+        (0, organizer_dock_1.layoutOrganizerDocks)();
         return;
+    }
     (0, organizer_style_1.ensureOrganizerStyles)();
-    var $box = $('<div id="sd-pending-operations" class="sd-organizer" style="padding:10px;margin:10px 0" role="status">');
-    $box.append($('<b>').text('Offene Vorgänge prüfen'));
+    var $box = $('<details id="sd-pending-operations" style="margin-top:12px;border-top:1px solid #b59766;padding-top:8px">').prop('open', expanded);
+    $box.append($('<summary>').text("Offene Vorg\u00E4nge pr\u00FCfen (".concat(operations.length, ")")));
     operations.forEach(function (operation) {
         var _a, _b;
         var $row = $('<div style="margin-top:8px">');
@@ -4551,7 +4566,19 @@ function showPendingOperations() {
         $('<input type="button" class="btn" value="Versuch verwerfen">').on('click', function () { (0, pending_operation_1.discardPendingOperation)(operation.id); showPendingOperations(); }).appendTo($row);
         $box.append($row);
     });
-    $('#content_value').length ? $('#content_value').prepend($box) : $('body').append($box);
+    var $organizer = $('#sd-forum-quick-settings .sd-organizer-body,#sd-bunker-import-panel').first();
+    if ($organizer.length) {
+        $('#sd-pending-panel').remove();
+        $organizer.append($box);
+    }
+    else {
+        var $panel = $('#sd-pending-panel');
+        if (!$panel.length)
+            $panel = $('<aside id="sd-pending-panel" class="sd-organizer" style="width:285px;z-index:9999"><div class="sd-organizer-handle">SD Organizer</div></aside>').appendTo('body');
+        $panel.append($box);
+        (0, organizer_dock_1.dockOrganizerPanel)($panel[0], { side: 'right', top: 140 });
+    }
+    (0, organizer_dock_1.layoutOrganizerDocks)();
 }
 exports.showPendingOperations = showPendingOperations;
 function confirmVisibleForumPosts(threadId) {
@@ -5704,6 +5731,10 @@ var organizer_dock_1 = __webpack_require__(617);
 var game_catalog_1 = __webpack_require__(444);
 // A shared tour key deliberately survives context and role changes. Existing page tours remain intact.
 var SETUP_KEY = game_catalog_1.SETUP_TOUR_KEY;
+function needsSetup(storage) {
+    return !/^[1-9]\d*$/.test(storage.getSdGroupId) || !/^[1-9]\d*$/.test(storage.getSelectedTemplate)
+        || !Number.isFinite(storage.getSwordLfz) || storage.getSwordLfz <= 0;
+}
 exports.setupSteps = [
     { title: 'SD-Gruppe erstellen', screen: 'overview_villages', mode: 'groups', type: 'static', target: '#add_new_group_name', link: 'Gruppen öffnen',
         text: 'Lege im Spiel eine Dorfgruppe „SD“ an. Ordne ihr die Dörfer zu, aus denen du Standdeff schicken möchtest. Eine vorhandene passende Gruppe kannst du weiterverwenden.',
@@ -5730,7 +5761,7 @@ exports.setupSteps = [
         text: 'Prüfe die normale Schwert-Laufzeit deiner Welt in Minuten pro Feld. Sie hilft dem Organizer, die Laufzeit und einen aktiven Unterstützungs-Speedboost für ab/bis-Anfragen zu berücksichtigen.',
         tip: 'Trage den Basiswert der Welt ein. Prüfe das Ankunftsfenster vor dem Versand; einen zeitweiligen Speedboost musst du nicht als neuen Basiswert speichern.' },
     { title: 'Bereit für die SD-Tabelle', screen: 'forum', link: 'Stammesforum öffnen',
-        text: 'Öffne euren SD-Thread und klicke „Als SD-Tabelle festlegen“. Danach führt dich der Link einer Anfrage mit deinen Einstellungen zu Massen-UT. Prüfe die Auswahl, übernimm sie und sende im Spiel.',
+        text: 'Öffne euren SD-Thread. Erkannte SD-Tabellen werden beim Öffnen lokal zugeordnet. Der Link einer Anfrage führt dich mit deinen Einstellungen zu Massen-UT. Prüfe die Auswahl, übernimm sie und sende selbst im Spiel.',
         tip: 'Forenmoderatoren können zusätzlich eine SD-Tabelle erstellen und pflegen. Die Seitenhilfe erklärt die jeweiligen Funktionen. Nach dem Versand trägst du die Bearbeitung im Thread ein.' }
 ];
 function isStepPage(context, item) {
@@ -5771,17 +5802,19 @@ function getSetupValidation(step) {
 }
 exports.getSetupValidation = getSetupValidation;
 function initializeSetupOnboarding(context) {
-    var _a, _b, _c;
-    $('#sd-setup-launcher,#sd-setup-card').remove();
+    var _a, _b, _c, _d;
+    $('#sd-setup-launcher,#sd-thread-setup-launcher,#sd-setup-card').remove();
     $(document).off('.sdSetup');
     var storage = local_storage_helper_1.LocalStorageHelper.getInstance();
     var saved = (_b = (_a = storage.getOnboarding) === null || _a === void 0 ? void 0 : _a.tours) === null || _b === void 0 ? void 0 : _b[SETUP_KEY];
+    var tableEntry = context.context === 'forum-view_thread' && !!storage.getAllThreads[(_c = context.threadId) !== null && _c !== void 0 ? _c : '']
+        && $('#sd-forum-quick-settings .sd-organizer-body').length > 0;
     var forumPage = context.screen === 'forum' || (context.screen === 'ally' && context.mode === 'forum');
     // The forum is the entry point. Other pages only show a guide that the user activated.
     if (!forumPage && (!saved || saved.complete || saved.paused))
         return;
     (0, organizer_style_1.ensureOrganizerStyles)();
-    var step = Math.min(exports.setupSteps.length - 1, (_c = saved === null || saved === void 0 ? void 0 : saved.step) !== null && _c !== void 0 ? _c : 0);
+    var step = Math.min(exports.setupSteps.length - 1, (_d = saved === null || saved === void 0 ? void 0 : saved.step) !== null && _d !== void 0 ? _d : 0);
     var active = false;
     var candidates = {};
     var chosen = {};
@@ -5803,6 +5836,18 @@ function initializeSetupOnboarding(context) {
         if ($newThread.length)
             ($poll.length ? $poll : $newThread).after($open);
     }
+    var $threadOpen = $('<button type="button" class="btn" id="sd-thread-setup-launcher" style="width:100%">');
+    if (tableEntry)
+        $threadOpen.appendTo('#sd-thread-registration');
+    var $entry = tableEntry ? $threadOpen : $open;
+    var syncLaunchers = function () {
+        var _a, _b;
+        var current = (_b = (_a = storage.getOnboarding) === null || _a === void 0 ? void 0 : _a.tours) === null || _b === void 0 ? void 0 : _b[SETUP_KEY];
+        var label = current && !current.complete ? 'Einrichtung fortsetzen' : needsSetup(storage) ? 'Einrichtung starten' : 'Einrichtung prüfen';
+        $label.text(label);
+        $threadOpen.text(label);
+    };
+    syncLaunchers();
     var close = function () {
         active = false;
         $('#sd-setup-card').remove();
@@ -5814,8 +5859,8 @@ function initializeSetupOnboarding(context) {
             return;
         save(true);
         close();
-        $label.text('Einrichtung fortsetzen');
-        $open.trigger('focus');
+        syncLaunchers();
+        $entry.trigger('focus');
     };
     var render = function (focus) {
         var _a, _b, _c, _d;
@@ -5825,7 +5870,7 @@ function initializeSetupOnboarding(context) {
         close();
         active = true;
         save(false);
-        $label.text('Einrichtung fortsetzen');
+        syncLaunchers();
         $('#sd-onboarding-card').remove();
         $('.sd-tour-target').removeClass('sd-tour-target');
         var item = exports.setupSteps[step];
@@ -5878,8 +5923,11 @@ function initializeSetupOnboarding(context) {
             $card.append($resource);
         }
         if (!here || step === exports.setupSteps.length - 1) {
-            var href = step === exports.setupSteps.length - 1 ? (0, game_url_helper_1.buildGameUrl)('ally', { mode: 'forum' }) : (0, game_url_helper_1.buildGameUrl)(item.screen, { mode: item.mode, type: item.type });
-            $('<a class="sd-button sd-primary" id="sd-setup-page-link">').attr('href', href).text(item.link).on('click', function () { return save(false); }).appendTo($card);
+            var threadId = storage.getBunkerImportTargetThreadId;
+            var thread = storage.getAllThreads[threadId];
+            var last = step === exports.setupSteps.length - 1;
+            var href = last ? thread ? (0, game_url_helper_1.buildForumThreadUrl)(thread.forumId, threadId) : (0, game_url_helper_1.buildGameUrl)('ally', { mode: 'forum' }) : (0, game_url_helper_1.buildGameUrl)(item.screen, { mode: item.mode, type: item.type });
+            $('<a class="sd-button sd-primary" id="sd-setup-page-link">').attr('href', href).text(last && thread ? 'SD-Tabelle öffnen' : item.link).on('click', function () { return save(false); }).appendTo($card);
         }
         else
             $card.append($('<p class="sd-setup-status">').text('Du bist auf der passenden Seite. Nimm die Einstellung im Spiel vor und wähle dann „Weiter“.'));
@@ -5901,8 +5949,8 @@ function initializeSetupOnboarding(context) {
             if (step === exports.setupSteps.length - 1) {
                 save(false, true);
                 close();
-                $label.text('Einrichtung neu starten');
-                $open.trigger('focus');
+                syncLaunchers();
+                $entry.trigger('focus');
             }
             else {
                 step++;
@@ -5922,7 +5970,7 @@ function initializeSetupOnboarding(context) {
         else if (previousId)
             (_d = document.getElementById(previousId)) === null || _d === void 0 ? void 0 : _d.focus({ preventScroll: true });
     };
-    $open.on('click', function (event) { var _a, _b, _c; event.preventDefault(); if ((_c = (_b = (_a = storage.getOnboarding) === null || _a === void 0 ? void 0 : _a.tours) === null || _b === void 0 ? void 0 : _b[SETUP_KEY]) === null || _c === void 0 ? void 0 : _c.complete)
+    $open.add($threadOpen).on('click', function (event) { var _a, _b, _c; event.preventDefault(); if ((_c = (_b = (_a = storage.getOnboarding) === null || _a === void 0 ? void 0 : _a.tours) === null || _b === void 0 ? void 0 : _b[SETUP_KEY]) === null || _c === void 0 ? void 0 : _c.complete)
         step = 0; render(); void (0, game_catalog_1.refreshGameCatalogs)(); });
     $open.on('keydown', function (event) { if (event.key === ' ') {
         event.preventDefault();
@@ -5930,9 +5978,23 @@ function initializeSetupOnboarding(context) {
     } });
     $(document).on('keydown.sdSetup', function (event) { if (event.key === 'Escape')
         pause(); }).on('sd-pause-setup.sdSetup', pause);
-    $(document).on('sd-catalog-updated.sdSetup sd-catalog-validated.sdSetup sd-settings-changed.sdSetup', function () { if (active)
-        render(false); });
-    if (saved && !saved.paused && !saved.complete) {
+    $(document).on('sd-catalog-updated.sdSetup sd-catalog-validated.sdSetup sd-settings-changed.sdSetup', function () {
+        var _a, _b;
+        if (active)
+            render(false);
+        else {
+            syncLaunchers();
+            var current = (_b = (_a = storage.getOnboarding) === null || _a === void 0 ? void 0 : _a.tours) === null || _b === void 0 ? void 0 : _b[SETUP_KEY];
+            if (tableEntry && needsSetup(storage) && !(current === null || current === void 0 ? void 0 : current.paused)) {
+                if (current === null || current === void 0 ? void 0 : current.complete)
+                    step = 0;
+                render();
+            }
+        }
+    });
+    if ((saved && !saved.paused && !saved.complete) || (tableEntry && needsSetup(storage) && !(saved === null || saved === void 0 ? void 0 : saved.paused))) {
+        if (saved === null || saved === void 0 ? void 0 : saved.complete)
+            step = 0;
         render();
         void (0, game_catalog_1.refreshGameCatalogs)();
     }
@@ -6834,7 +6896,7 @@ function newThread() {
         includesArchers: game_data.units.includes("archer")
     });
     $("#message").closest("form").data("sd-generated", true);
-    var text = "[b]SD Tabelle Paketsystem[/b]\n\n[table]\n[**]ID[||]Dorfkoordinaten[||]angefordert[||][color=#8d0100]noch ben\u00F6tigt[/color] [||]Spieler[||]Bemerkung[||]ab[||]bis[||][color=#001c83]Massen UT-Link[/color][/**]\n[/table]\n\n".concat(paketText, "\n\n[spoiler=Erkl\u00E4rung Paketsystem]Zur Vereinfachung des Standdeffschickens wird ein Paketsystem verwendet.\n- regt zum Splitten an\n- einheitliche Bunker und keine komischen Ausrutscher\n- Rechnung innerhalb des Skriptes einfacher :)\n- das Pflegen der Tabelle w\u00E4re auch ohne Skript einfacher\n\nEin Paket besteht aus einer festen hoffentlich sinnvollen (keine skav in sd splits) Anzahl an Einheiten.\nDadruch entstehen im Stamm einheitliche Bunker und keine komischen Ausrutscher. Durch diese Art des Deffens k\u00F6nnen Verluste aufgeteilt und schneller nachgebaut werden.\n[/spoiler]\n\n[spoiler=Erkl\u00E4rung SD Skript]\nDas SD Skript besteht seit dem Update aus mehreren Bereichen:\n- Spieloptionen ganz unten -> Settings: Hier k\u00F6nnen die Einstellungen f\u00FCr das Skript vorgenommen werden\n- Massenunterst\u00FCtzung: Hier\u00FCber wird die Deff verschickt und das Skript (wenn eingeschaltet) trackt wieviele Einheiten ben\u00F6tigt werden und im Anschluss geschickt wurde.\n- SD Tabelle: Die Sd Tabelle ist die \u00DCbersicht, welche Auskunft \u00FCber die Deffanfragen gibt. Es ist bei jedem Nutzer einzustellen in welchem Forum sich die SD Tabelle befindet. \u00D6ffne den Beitrag mit der SD-Tabelle und klicke im SD Organizer auf \u201EAls SD-Tabelle festlegen\u201C. Die Einf\u00FChrung im Organizer erkl\u00E4rt die wichtigsten Abl\u00E4ufe.\n- Bearbeiten und Erstellen von Posts:\n  ->\u00FCber den Button \"Bunker Anfragen\" wird eine neue Anfrage erstellt. Diese wird innerhalb einem UI bearbeitet.\n  ->\u00FCber den Button \"Bearbeitung eintragen\" werden die bisher bearbeiteten Anfragen in das Nachrichtenfenster eingetragen.\n\n\nHandling ohne das Skript: (wieso auch immer)\n[b]Beispiele: \nAnfordern:[/b]\n[code]\n567|123 200 \"TheHebel97\"ohne den Bunker front rip\"\"\n897|123 2 \"-EDM\"2 Pakete f\u00FCr Bruder Marwin\"\"\n234|123 444 \"alt_f4 \" mauer_f4\"\"\n432|848 222 \"Manu|RWE\"\"\"\n345|123 1 \"Andimacht\"\"\"\n345|123 1 \"\"\"\"\n  [/code]\n[b]Bearbeiten:[/b]\n [code] id5 20\n  2 20\n  1 70Pakete\n  1 done\n  [/code]\n\n\n[spoiler=Wissenswertes f\u00FCr SFs]\nMoin SFs:\n- postCache Spoiler ignorieren und nicht bearbeiten\n- nun muss jeder im Stamm das entsprechende Skript installieren um von den Neuerungen zu profitieren (gl beim einrichten xD)\n- um Filter und \u00E4hnliches in Massen Ut auszuf\u00FChren, muss das Setting in den Spieleinstellungen aktiviert werden\n- Die Einrichtung startet im Forum neben \u201ENeuer Thread\u201C und \u201ENeue Umfrage\u201C. Gruppen und Truppen-Vorlagen werden direkt auf ihren Spielseiten erkannt und in den Settings aktualisiert; ein zus\u00E4tzlicher Besuch auf Massen UT zum Einlesen ist nicht n\u00F6tig.\n- f\u00FCr die normalen Nutzer ist das Textfeld blockiert, dies kann durch einen Doppelklick entfernt werden. Das dient dazu, dass die Sd posts clean bleiben. Sozialer Overhead in der SD Tabelle ist nicht erw\u00FCnscht.\n- normale Nutzer haben ebenfalls keine bearbeiten Funktionen im sd Thread, au\u00DFerdem sehen diese keine posts\n\n[/spoiler]\n[spoiler=postCache]\n[/spoiler]\n[/spoiler]\n\n");
+    var text = "[b]SD Tabelle Paketsystem[/b]\n\n[table]\n[**]ID[||]Dorfkoordinaten[||]angefordert[||][color=#8d0100]noch ben\u00F6tigt[/color] [||]Spieler[||]Bemerkung[||]ab[||]bis[||][color=#001c83]Massen UT-Link[/color][/**]\n[/table]\n\n".concat(paketText, "\n\n[spoiler=Erkl\u00E4rung Paketsystem]Zur Vereinfachung des Standdeffschickens wird ein Paketsystem verwendet.\n- regt zum Splitten an\n- einheitliche Bunker und keine komischen Ausrutscher\n- Rechnung innerhalb des Skriptes einfacher :)\n- das Pflegen der Tabelle w\u00E4re auch ohne Skript einfacher\n\nEin Paket besteht aus einer festen hoffentlich sinnvollen (keine skav in sd splits) Anzahl an Einheiten.\nDadruch entstehen im Stamm einheitliche Bunker und keine komischen Ausrutscher. Durch diese Art des Deffens k\u00F6nnen Verluste aufgeteilt und schneller nachgebaut werden.\n[/spoiler]\n\n[spoiler=Erkl\u00E4rung SD Skript]\nDas SD Skript besteht seit dem Update aus mehreren Bereichen:\n- Spieloptionen ganz unten -> Settings: Hier k\u00F6nnen die Einstellungen f\u00FCr das Skript vorgenommen werden\n- Massenunterst\u00FCtzung: Hier\u00FCber wird die Deff verschickt und das Skript (wenn eingeschaltet) trackt wieviele Einheiten ben\u00F6tigt werden und im Anschluss geschickt wurde.\n- SD Tabelle: Die Sd Tabelle zeigt die Deffanfragen. Beim \u00D6ffnen wird eine erkannte SD-Tabelle lokal zugeordnet. Fehlen Gruppe, Vorlage oder eine g\u00FCltige Schwert-Laufzeit, startet die Einrichtung direkt in der Tabelle. \u00DCber \u201EEinrichtung fortsetzen\u201C bzw. \u201EEinrichtung pr\u00FCfen\u201C im SD Organizer bleibt sie erreichbar.\n- Bearbeiten und Erstellen von Posts:\n  ->\u00FCber den Button \"Bunker Anfragen\" wird eine neue Anfrage erstellt. Diese wird innerhalb einem UI bearbeitet.\n  ->\u00FCber den Button \"Bearbeitung eintragen\" werden die bisher bearbeiteten Anfragen in das Nachrichtenfenster eingetragen.\n\n\nHandling ohne das Skript: (wieso auch immer)\n[b]Beispiele: \nAnfordern:[/b]\n[code]\n567|123 200 \"TheHebel97\"ohne den Bunker front rip\"\"\n897|123 2 \"-EDM\"2 Pakete f\u00FCr Bruder Marwin\"\"\n234|123 444 \"alt_f4 \" mauer_f4\"\"\n432|848 222 \"Manu|RWE\"\"\"\n345|123 1 \"Andimacht\"\"\"\n345|123 1 \"\"\"\"\n  [/code]\n[b]Bearbeiten:[/b]\n [code] id5 20\n  2 20\n  1 70Pakete\n  1 done\n  [/code]\n\n\n[spoiler=Wissenswertes f\u00FCr SFs]\nMoin SFs:\n- postCache Spoiler ignorieren und nicht bearbeiten\n- nun muss jeder im Stamm das entsprechende Skript installieren um von den Neuerungen zu profitieren (gl beim einrichten xD)\n- um Filter und \u00E4hnliches in Massen Ut auszuf\u00FChren, muss das Setting in den Spieleinstellungen aktiviert werden\n- Die Einrichtung startet bei fehlenden Grundeinstellungen direkt beim \u00D6ffnen der SD-Tabelle und bleibt \u00FCber den SD Organizer erreichbar. In der Forum\u00FCbersicht gibt es zus\u00E4tzlich den Einstieg neben \u201ENeuer Thread\u201C und \u201ENeue Umfrage\u201C. Gruppen und Truppen-Vorlagen werden direkt erkannt; ein zus\u00E4tzlicher Massen-UT-Besuch zum Einlesen ist nicht n\u00F6tig.\n- f\u00FCr die normalen Nutzer ist das Textfeld blockiert, dies kann durch einen Doppelklick entfernt werden. Das dient dazu, dass die Sd posts clean bleiben. Sozialer Overhead in der SD Tabelle ist nicht erw\u00FCnscht.\n- normale Nutzer haben ebenfalls keine bearbeiten Funktionen im sd Thread, au\u00DFerdem sehen diese keine posts\n\n[/spoiler]\n[spoiler=postCache]\n[/spoiler]\n[/spoiler]\n\n");
     $("#message").val(text);
     var $title = $('#message').closest('form').find('input[name=subject]');
     if (String((_a = $title.val()) !== null && _a !== void 0 ? _a : '').trim() === '') {
@@ -7001,14 +7063,17 @@ function viewThread(pageContext) {
     (0, forum_quick_settings_1.addForumQuickSettings)(currentThreadId);
     var pageState = readPageState(pageContext, localStorageService);
     var derivedState = deriveState(pageContext, pageState, localStorageService);
+    (0, options_sd_thread_1.addSdOptions)(pageState.currentThreadId, pageContext.forumId, function () { return viewThread(pageContext); }, derivedState.isKnownThread);
     var createdTitle = sessionStorage.getItem('sd-created-title');
     var currentTitle = $('.clearfix > table').first().find('h2').text().trim();
     var existingThreads = JSON.parse((_a = sessionStorage.getItem('sd-created-existing')) !== null && _a !== void 0 ? _a : '[]');
-    if (!existingThreads.includes(currentThreadId) && derivedState.hasPendingNewThreadMarker && (0, thread_registration_1.readSdPostId)() && createdTitle && createdTitle === currentTitle) {
+    if (!derivedState.isKnownThread && (0, thread_registration_1.readSdPostId)()) {
         if ((0, thread_registration_1.registerSdThread)(currentThreadId, pageContext.forumId)) {
-            localStorageService.setNewThread = false;
-            sessionStorage.removeItem('sd-created-title');
-            sessionStorage.removeItem('sd-created-existing');
+            if (!existingThreads.includes(currentThreadId) && derivedState.hasPendingNewThreadMarker && createdTitle === currentTitle) {
+                localStorageService.setNewThread = false;
+                sessionStorage.removeItem('sd-created-title');
+                sessionStorage.removeItem('sd-created-existing');
+            }
             pageState = readPageState(pageContext, localStorageService);
             derivedState = deriveState(pageContext, pageState, localStorageService);
         }
@@ -7089,6 +7154,10 @@ var logging_helper_1 = __webpack_require__(56);
 var script_context_1 = __webpack_require__(757);
 var away_detail_1 = __webpack_require__(107);
 var log = logging_helper_1.Log.scope("bootstrap");
+function showScriptNotice($notice) {
+    var $panel = $('#sd-forum-quick-settings .sd-organizer-body,#sd-bunker-import-panel').first();
+    $notice.appendTo($panel.length ? $panel : $('#content_value'));
+}
 var contextHandlers = {
     "place": { name: "displayMassUt", run: mass_ut_1.displayMassUt },
     "overview-away_detail": { name: "displayAwayDetail", run: away_detail_1.displayAwayDetail },
@@ -7103,7 +7172,7 @@ var contextHandlers = {
         var _a;
         document.addEventListener('sd-storage-error', function () {
             $('#sd-storage-error').remove();
-            $('<p id="sd-storage-error" role="alert" style="padding:8px;border:1px solid #8d0100">').text('SD Organizer: Speichern fehlgeschlagen. Bitte freien Browserspeicher prüfen und die Änderung erneut ausführen.').prependTo('#content_value');
+            showScriptNotice($('<p id="sd-storage-error" role="alert" style="padding:8px;border:1px solid #8d0100">').text('SD Organizer: Speichern fehlgeschlagen. Bitte freien Browserspeicher prüfen und die Änderung erneut ausführen.'));
         });
         var contextResolution = (0, script_context_1.resolveScriptContext)();
         (0, game_catalog_1.initializeGameCatalog)(contextResolution);
@@ -7132,7 +7201,7 @@ var contextHandlers = {
             (0, pending_operations_1.showPendingOperations)();
             (0, onboarding_1.initializeOnboarding)(contextResolution);
             if (sessionStorage.getItem('sd-storage-recovered')) {
-                $('<p role="alert" style="padding:8px;border:1px solid #8d0100">').text('SD Organizer: beschädigte Speicherdaten wurden vor der Wiederherstellung unter standdeff-organizer:backup gesichert. Bitte die Thread-Zuordnungen und Einstellungen prüfen.').prependTo('#content_value');
+                showScriptNotice($('<p role="alert" style="padding:8px;border:1px solid #8d0100">').text('SD Organizer: beschädigte Speicherdaten wurden vor der Wiederherstellung unter standdeff-organizer:backup gesichert. Bitte die Thread-Zuordnungen und Einstellungen prüfen.'));
                 sessionStorage.removeItem('sd-storage-recovered');
             }
             log.info("Controller finished boot phase", {
@@ -7142,7 +7211,7 @@ var contextHandlers = {
         }
         catch (error) {
             log.error("Unhandled error during controller boot", error);
-            $('<p role="alert" style="padding:8px;border:1px solid #8d0100">').text("SD Organizer konnte nicht gestartet werden: ".concat(error instanceof Error ? error.message : 'unbekannter Fehler')).prependTo('#content_value');
+            showScriptNotice($('<p role="alert" style="padding:8px;border:1px solid #8d0100">').text("SD Organizer konnte nicht gestartet werden: ".concat(error instanceof Error ? error.message : 'unbekannter Fehler')));
             throw error;
         }
         finally {

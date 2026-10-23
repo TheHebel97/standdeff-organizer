@@ -1,6 +1,6 @@
-# Standdeff Tabelle / SD Organizer 2.0.0-rc.2
+# Standdeff Tabelle / SD Organizer 2.0.0-rc.3
 
-Update-Prüfstand vom 2026-10-14 auf `codex/next-major-update`. Der bisherige UI-Stand wurde am 14.10.2026 gepusht; keine erneute Freigabe oder Spieler-Veröffentlichung des Updates erfolgt. [Changelog](../CHANGELOG.md), [Foren-Änderungstabelle](forum-einreichung.txt) und [Auslieferungsregeln](auslieferung-und-einreichung.md) gehören zur Update-Prüfung.
+Update-Prüfstand vom 2026-10-17 auf `codex/next-major-update`. Der bisherige UI-Stand wurde am 14.10.2026 gepusht; keine erneute Freigabe oder Spieler-Veröffentlichung des Updates erfolgt. [Changelog](../CHANGELOG.md), [Foren-Änderungstabelle](forum-einreichung.txt) und [Auslieferungsregeln](auslieferung-und-einreichung.md) gehören zur Update-Prüfung.
 
 ## Änderungen
 
@@ -9,8 +9,9 @@ Update-Prüfstand vom 2026-10-14 auf `codex/next-major-update`. Der bisherige UI
 - Automatische Infanterie-Skalierung mit 5 % Spähern, unabhängige Paketzeilen und Leeren per Klick.
 - 100/200 Dual und Trial beim Bunkerimport, eigene Paketgrößen, getrennte Power-Einstellungen und aktive Auswahl.
 - Geführte Einrichtung vom Forum über native Gruppe/Vorlage und sechs einzelne Settings zur Thread-Zuordnung, mit aktueller Spielbestätigung und direkter Ressourcenauswahl. Kein Massen-UT-Einleseschritt.
+- Offene Vorgänge liegen eingeklappt im Organizer oder in einem eigenen Dock-Panel, nie vor der Spielüberschrift.
 - Kompakte Randfenster mit gespeichertem links/rechts Andocken; native Settings mit Gültigkeitsmarkierungen. Ein Header-Fragezeichen zeigt alle passenden Infos während des Hoverns.
-- Zuordnung über „Als SD-Tabelle festlegen“ im Organizer, in der Header-Hilfe erklärt. Das separate Registrierungs-Popup und seine Einstellung entfallen; bekannte Threads zeigen ihren Zuordnungsstatus.
+- Lokale Zuordnung erkannter SD-Tabellen beim Öffnen; Start/Fortsetzen/Prüfen direkt im Tabellen-Organizer statt dauerhaftem Zuordnungsstatus. Bei fehlenden Grundeinstellungen startet die Einrichtung automatisch, ausdrückliche Pausen bleiben erhalten.
 - SD-Registrierung ohne `forum_id` in Redirect-URLs, numerischer SD-Post-Anker, sofortige Initialisierung und sichtbare Speicherfehler.
 - Korrektes `done`, stabile Anfrage-IDs und erhaltener Post-Cache über mehrere Seiten.
 - Lokale Datumswerte bleiben unverändert; Handy-Anführungszeichen werden als manuelle Feldtrenner akzeptiert.

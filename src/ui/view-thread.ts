@@ -31,15 +31,18 @@ export function viewThread(pageContext: PageContext) {
 
     let pageState = readPageState(pageContext, localStorageService);
     let derivedState = deriveState(pageContext, pageState, localStorageService);
+    addSdOptions(pageState.currentThreadId,pageContext.forumId,()=>viewThread(pageContext),derivedState.isKnownThread);
 
     const createdTitle = sessionStorage.getItem('sd-created-title');
     const currentTitle = $('.clearfix > table').first().find('h2').text().trim();
     const existingThreads:string[]=JSON.parse(sessionStorage.getItem('sd-created-existing') ?? '[]');
-    if (!existingThreads.includes(currentThreadId) && derivedState.hasPendingNewThreadMarker && readSdPostId() && createdTitle && createdTitle === currentTitle) {
+    if (!derivedState.isKnownThread && readSdPostId()) {
         if (registerSdThread(currentThreadId, pageContext.forumId)) {
-            localStorageService.setNewThread = false;
-            sessionStorage.removeItem('sd-created-title');
-            sessionStorage.removeItem('sd-created-existing');
+            if (!existingThreads.includes(currentThreadId) && derivedState.hasPendingNewThreadMarker && createdTitle === currentTitle) {
+                localStorageService.setNewThread = false;
+                sessionStorage.removeItem('sd-created-title');
+                sessionStorage.removeItem('sd-created-existing');
+            }
             pageState = readPageState(pageContext, localStorageService);
             derivedState = deriveState(pageContext, pageState, localStorageService);
         }

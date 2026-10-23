@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0-rc.3 – 2026-10-17
+
+- Ursache des fehlenden Einstiegs behoben: Die Einrichtung hängt nicht mehr nur an der Neuer-Thread-Leiste. Erkannte SD-Tabellen werden beim Öffnen lokal zugeordnet; fehlende Gruppe, Vorlage oder gültige Laufzeit starten dort den Assistenten.
+- Im Tabellen-Organizer stehen Start/Fortsetzen/Prüfen anstelle des dauerhaften „SD-Tabelle festgelegt“-Status. Bewusste Pausen werden respektiert; veralteter Abschluss mit fehlender Grundeinrichtung verhindert keinen Erststart.
+- Der Abschluss verlinkt direkt die lokal eingerichtete SD-Tabelle und erhält den Seitenfortschritt.
+- „Offene Vorgänge prüfen“ bleibt als eingeklappter Hinweis im Organizer; ohne vorhandenen Organizer erhält es ein angedocktes Panel. Kein Einfügen oberhalb der Spiel-/Stammesüberschrift. Boot-/Speicherhinweise erscheinen ebenfalls nicht am Seitenanfang.
+- Neue Regressionen für den Erstkontakt eines normalen Nutzers ohne Neuer-Thread-Leiste, Pause/Fortsetzen, alten Abschlusszustand und Hinweisposition.
+- Live-Durchlauf im Testaccount auf Welt 259: Scriptdaten gesichert und zurückgesetzt, automatische Einrichtung aus bestehender SF-Tabelle geprüft, neue Testtabelle 9096 erstellt, vorhandene Gruppe/Vorlage ausgewählt, alle neun Schritte und Persistenz nach Reload geprüft. Kein Truppenversand.
+
 ## 2.0.0-rc.2 – 2026-10-14
 
 Update-Prüfstand für das bestehende Script **Standdeff Tabelle**; Oberflächenname **SD Organizer**. Die bisherige Freigabe gilt nicht automatisch für diese Änderungen.

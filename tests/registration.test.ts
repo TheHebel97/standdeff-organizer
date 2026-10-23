@@ -35,13 +35,10 @@ test('registration reports a failed write instead of pretending success', () => 
     expect(LocalStorageHelper.getInstance().getAllThreads['7396']).toBeUndefined();
 });
 
-test('organizer button saves the numeric SD post and renders immediately without a popup', () => {
+test('opening a recognizable SD table saves its numeric post and renders without a permanent registered badge', () => {
     fixture();
     viewThread(resolveScriptContext());
-    expect($('#sd-register-thread').prop('disabled')).toBe(false);
-    $('#sd-register-thread').trigger('click');
-    expect($('#sd-register-thread').prop('disabled')).toBe(true);
-    expect($('#sd-register-thread').val()).toBe('SD-Tabelle festgelegt');
+    expect($('#sd-register-thread,#sd-thread-registration-status').length).toBe(0);
     expect(sdTable).toHaveBeenCalledTimes(1);
     expect(LocalStorageHelper.getInstance().getAllThreads['7396']?.sdPostId).toBe('50624');
     expect($('#dbInfo_popup_box').length).toBe(0);
@@ -70,9 +67,9 @@ test('invalid legacy post anchor is repairable without losing request drafts',()
 
 test('failed registration stays actionable and shows the error next to the button', () => {
     fixture();
-    viewThread(resolveScriptContext());
+    LocalStorageHelper.getInstance();
     const write = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {throw new Error('quota');});
-    try { $('#sd-register-thread').trigger('click'); } finally { write.mockRestore(); }
+    try { viewThread(resolveScriptContext());$('#sd-register-thread').trigger('click'); } finally { write.mockRestore(); }
     expect($('#sd-register-thread').prop('disabled')).toBe(false);
     expect($('#sd-thread-registration .sd-registration-error').text()).toContain('konnte nicht gespeichert werden');
     expect(sdTable).not.toHaveBeenCalled();

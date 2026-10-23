@@ -161,7 +161,7 @@ Dadruch entstehen im Stamm einheitliche Bunker und keine komischen Ausrutscher. 
 Das SD Skript besteht seit dem Update aus mehreren Bereichen:
 - Spieloptionen ganz unten -> Settings: Hier können die Einstellungen für das Skript vorgenommen werden
 - Massenunterstützung: Hierüber wird die Deff verschickt und das Skript (wenn eingeschaltet) trackt wieviele Einheiten benötigt werden und im Anschluss geschickt wurde.
-- SD Tabelle: Die Sd Tabelle ist die Übersicht, welche Auskunft über die Deffanfragen gibt. Es ist bei jedem Nutzer einzustellen in welchem Forum sich die SD Tabelle befindet. Öffne den Beitrag mit der SD-Tabelle und klicke im SD Organizer auf „Als SD-Tabelle festlegen“. Die Einführung im Organizer erklärt die wichtigsten Abläufe.
+- SD Tabelle: Die Sd Tabelle zeigt die Deffanfragen. Beim Öffnen wird eine erkannte SD-Tabelle lokal zugeordnet. Fehlen Gruppe, Vorlage oder eine gültige Schwert-Laufzeit, startet die Einrichtung direkt in der Tabelle. Über „Einrichtung fortsetzen“ bzw. „Einrichtung prüfen“ im SD Organizer bleibt sie erreichbar.
 - Bearbeiten und Erstellen von Posts:
   ->über den Button "Bunker Anfragen" wird eine neue Anfrage erstellt. Diese wird innerhalb einem UI bearbeitet.
   ->über den Button "Bearbeitung eintragen" werden die bisher bearbeiteten Anfragen in das Nachrichtenfenster eingetragen.
@@ -191,7 +191,7 @@ Moin SFs:
 - postCache Spoiler ignorieren und nicht bearbeiten
 - nun muss jeder im Stamm das entsprechende Skript installieren um von den Neuerungen zu profitieren (gl beim einrichten xD)
 - um Filter und ähnliches in Massen Ut auszuführen, muss das Setting in den Spieleinstellungen aktiviert werden
-- Die Einrichtung startet im Forum neben „Neuer Thread“ und „Neue Umfrage“. Gruppen und Truppen-Vorlagen werden direkt auf ihren Spielseiten erkannt und in den Settings aktualisiert; ein zusätzlicher Besuch auf Massen UT zum Einlesen ist nicht nötig.
+- Die Einrichtung startet bei fehlenden Grundeinstellungen direkt beim Öffnen der SD-Tabelle und bleibt über den SD Organizer erreichbar. In der Forumübersicht gibt es zusätzlich den Einstieg neben „Neuer Thread“ und „Neue Umfrage“. Gruppen und Truppen-Vorlagen werden direkt erkannt; ein zusätzlicher Massen-UT-Besuch zum Einlesen ist nicht nötig.
 - für die normalen Nutzer ist das Textfeld blockiert, dies kann durch einen Doppelklick entfernt werden. Das dient dazu, dass die Sd posts clean bleiben. Sozialer Overhead in der SD Tabelle ist nicht erwünscht.
 - normale Nutzer haben ebenfalls keine bearbeiten Funktionen im sd Thread, außerdem sehen diese keine posts
 

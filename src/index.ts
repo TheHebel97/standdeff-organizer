@@ -13,6 +13,11 @@ import {displayAwayDetail} from "./ui/away-detail";
 
 const log = Log.scope("bootstrap");
 
+function showScriptNotice($notice:JQuery<HTMLElement>) {
+    const $panel=$('#sd-forum-quick-settings .sd-organizer-body,#sd-bunker-import-panel').first();
+    $notice.appendTo($panel.length ? $panel : $('#content_value'));
+}
+
 const contextHandlers: Partial<Record<ScriptContext, { name: string, run: (pageContext: PageContext) => void }>> = {
     "place": {name: "displayMassUt", run: displayMassUt},
     "overview-away_detail": {name: "displayAwayDetail", run: displayAwayDetail},
@@ -27,7 +32,7 @@ const contextHandlers: Partial<Record<ScriptContext, { name: string, run: (pageC
     $(function () {
         document.addEventListener('sd-storage-error',()=>{
             $('#sd-storage-error').remove();
-            $('<p id="sd-storage-error" role="alert" style="padding:8px;border:1px solid #8d0100">').text('SD Organizer: Speichern fehlgeschlagen. Bitte freien Browserspeicher prüfen und die Änderung erneut ausführen.').prependTo('#content_value');
+            showScriptNotice($('<p id="sd-storage-error" role="alert" style="padding:8px;border:1px solid #8d0100">').text('SD Organizer: Speichern fehlgeschlagen. Bitte freien Browserspeicher prüfen und die Änderung erneut ausführen.'));
         });
         const contextResolution = resolveScriptContext();
         initializeGameCatalog(contextResolution);
@@ -58,7 +63,7 @@ const contextHandlers: Partial<Record<ScriptContext, { name: string, run: (pageC
             showPendingOperations();
             initializeOnboarding(contextResolution);
             if (sessionStorage.getItem('sd-storage-recovered')) {
-                $('<p role="alert" style="padding:8px;border:1px solid #8d0100">').text('SD Organizer: beschädigte Speicherdaten wurden vor der Wiederherstellung unter standdeff-organizer:backup gesichert. Bitte die Thread-Zuordnungen und Einstellungen prüfen.').prependTo('#content_value');
+                showScriptNotice($('<p role="alert" style="padding:8px;border:1px solid #8d0100">').text('SD Organizer: beschädigte Speicherdaten wurden vor der Wiederherstellung unter standdeff-organizer:backup gesichert. Bitte die Thread-Zuordnungen und Einstellungen prüfen.'));
                 sessionStorage.removeItem('sd-storage-recovered');
             }
             log.info("Controller finished boot phase", {
@@ -67,7 +72,7 @@ const contextHandlers: Partial<Record<ScriptContext, { name: string, run: (pageC
             });
         } catch (error) {
             log.error("Unhandled error during controller boot", error);
-            $('<p role="alert" style="padding:8px;border:1px solid #8d0100">').text(`SD Organizer konnte nicht gestartet werden: ${error instanceof Error ? error.message : 'unbekannter Fehler'}`).prependTo('#content_value');
+            showScriptNotice($('<p role="alert" style="padding:8px;border:1px solid #8d0100">').text(`SD Organizer konnte nicht gestartet werden: ${error instanceof Error ? error.message : 'unbekannter Fehler'}`));
             throw error;
         } finally {
             log.groupEnd();

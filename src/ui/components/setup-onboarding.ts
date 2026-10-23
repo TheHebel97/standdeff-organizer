@@ -1,6 +1,6 @@
 import {LocalStorageHelper} from '../../helpers/local-storage-helper';
 import {SETUP_ICON_DATA_URI} from '../ui-assets';
-import {buildGameUrl} from '../../helpers/game-url-helper';
+import {buildGameUrl,buildForumThreadUrl} from '../../helpers/game-url-helper';
 import {PageContext} from '../../helpers/script-context';
 import {ensureOrganizerStyles} from './organizer-style';
 import {dockOrganizerPanel, layoutOrganizerDocks} from './organizer-dock';
@@ -8,6 +8,11 @@ import {SETUP_TOUR_KEY, getCatalogCheck, isCatalogSelectionValid, refreshGameCat
 
 // A shared tour key deliberately survives context and role changes. Existing page tours remain intact.
 const SETUP_KEY = SETUP_TOUR_KEY;
+
+function needsSetup(storage:LocalStorageHelper):boolean {
+    return !/^[1-9]\d*$/.test(storage.getSdGroupId) || !/^[1-9]\d*$/.test(storage.getSelectedTemplate)
+        || !Number.isFinite(storage.getSwordLfz) || storage.getSwordLfz<=0;
+}
 type SetupStep = {title:string; text:string; tip:string; screen:string; mode?:string; type?:string; target?:string; link:string};
 export const setupSteps:SetupStep[] = [
     {title:'SD-Gruppe erstellen', screen:'overview_villages', mode:'groups', type:'static', target:'#add_new_group_name', link:'Gruppen öffnen',
@@ -35,7 +40,7 @@ export const setupSteps:SetupStep[] = [
         text:'Prüfe die normale Schwert-Laufzeit deiner Welt in Minuten pro Feld. Sie hilft dem Organizer, die Laufzeit und einen aktiven Unterstützungs-Speedboost für ab/bis-Anfragen zu berücksichtigen.',
         tip:'Trage den Basiswert der Welt ein. Prüfe das Ankunftsfenster vor dem Versand; einen zeitweiligen Speedboost musst du nicht als neuen Basiswert speichern.'},
     {title:'Bereit für die SD-Tabelle', screen:'forum', link:'Stammesforum öffnen',
-        text:'Öffne euren SD-Thread und klicke „Als SD-Tabelle festlegen“. Danach führt dich der Link einer Anfrage mit deinen Einstellungen zu Massen-UT. Prüfe die Auswahl, übernimm sie und sende im Spiel.',
+        text:'Öffne euren SD-Thread. Erkannte SD-Tabellen werden beim Öffnen lokal zugeordnet. Der Link einer Anfrage führt dich mit deinen Einstellungen zu Massen-UT. Prüfe die Auswahl, übernimm sie und sende selbst im Spiel.',
         tip:'Forenmoderatoren können zusätzlich eine SD-Tabelle erstellen und pflegen. Die Seitenhilfe erklärt die jeweiligen Funktionen. Nach dem Versand trägst du die Bearbeitung im Thread ein.'}
 ];
 
@@ -63,10 +68,12 @@ export function getSetupValidation(step:number):{valid:boolean; message:string} 
 }
 
 export function initializeSetupOnboarding(context:PageContext):void {
-    $('#sd-setup-launcher,#sd-setup-card').remove();
+    $('#sd-setup-launcher,#sd-thread-setup-launcher,#sd-setup-card').remove();
     $(document).off('.sdSetup');
     const storage = LocalStorageHelper.getInstance();
     const saved = storage.getOnboarding?.tours?.[SETUP_KEY];
+    const tableEntry=context.context==='forum-view_thread' && !!storage.getAllThreads[context.threadId ?? '']
+        && $('#sd-forum-quick-settings .sd-organizer-body').length>0;
     const forumPage=context.screen==='forum' || (context.screen==='ally' && context.mode==='forum');
     // The forum is the entry point. Other pages only show a guide that the user activated.
     if (!forumPage && (!saved || saved.complete || saved.paused)) return;
@@ -89,6 +96,15 @@ export function initializeSetupOnboarding(context:PageContext):void {
         const $poll=$newThread.parent().find('a.thread_button[href*="mode=new_poll"]').last();
         if ($newThread.length) ($poll.length ? $poll:$newThread).after($open);
     }
+    const $threadOpen=$('<button type="button" class="btn" id="sd-thread-setup-launcher" style="width:100%">');
+    if (tableEntry) $threadOpen.appendTo('#sd-thread-registration');
+    const $entry=tableEntry ? $threadOpen : $open;
+    const syncLaunchers=()=>{
+        const current=storage.getOnboarding?.tours?.[SETUP_KEY];
+        const label=current && !current.complete ? 'Einrichtung fortsetzen' : needsSetup(storage) ? 'Einrichtung starten' : 'Einrichtung prüfen';
+        $label.text(label);$threadOpen.text(label);
+    };
+    syncLaunchers();
     const close = () => {
         active = false;
         $('#sd-setup-card').remove();
@@ -97,13 +113,13 @@ export function initializeSetupOnboarding(context:PageContext):void {
     };
     const pause = () => {
         if (!active) return;
-        save(true); close(); $label.text('Einrichtung fortsetzen');$open.trigger('focus');
+        save(true); close(); syncLaunchers();$entry.trigger('focus');
     };
     const render = (focus=true) => {
         const previousFocus=document.activeElement as HTMLElement|null;
         const previousId=previousFocus?.closest('#sd-setup-card') ? previousFocus.id:'';
         close(); active = true; save(false);
-        $label.text('Einrichtung fortsetzen');
+        syncLaunchers();
         $('#sd-onboarding-card').remove(); $('.sd-tour-target').removeClass('sd-tour-target');
         const item = setupSteps[step];
         const here = isStepPage(context,item);
@@ -151,8 +167,11 @@ export function initializeSetupOnboarding(context:PageContext):void {
             $card.append($resource);
         }
         if (!here || step === setupSteps.length-1) {
-            const href = step === setupSteps.length-1 ? buildGameUrl('ally',{mode:'forum'}) : buildGameUrl(item.screen, {mode:item.mode,type:item.type});
-            $('<a class="sd-button sd-primary" id="sd-setup-page-link">').attr('href',href).text(item.link).on('click',()=>save(false)).appendTo($card);
+            const threadId=storage.getBunkerImportTargetThreadId;
+            const thread=storage.getAllThreads[threadId];
+            const last=step===setupSteps.length-1;
+            const href=last ? thread ? buildForumThreadUrl(thread.forumId,threadId) : buildGameUrl('ally',{mode:'forum'}) : buildGameUrl(item.screen,{mode:item.mode,type:item.type});
+            $('<a class="sd-button sd-primary" id="sd-setup-page-link">').attr('href',href).text(last && thread ? 'SD-Tabelle öffnen' : item.link).on('click',()=>save(false)).appendTo($card);
         } else $card.append($('<p class="sd-setup-status">').text('Du bist auf der passenden Seite. Nimm die Einstellung im Spiel vor und wähle dann „Weiter“.'));
         if (here && item.target) {
             const $target = $(item.target).first();
@@ -165,7 +184,7 @@ export function initializeSetupOnboarding(context:PageContext):void {
         const validation=getSetupValidation(step);
         $('<button type="button" class="sd-button sd-primary" id="sd-setup-next">').text(step === setupSteps.length-1 ? 'Einrichtung abschließen' : 'Weiter').prop('disabled',needsSettings || !validation.valid).on('click',()=>{
             if (!getSetupValidation(step).valid || needsSettings) {render(false);return;}
-            if (step === setupSteps.length-1) {save(false,true);close();$label.text('Einrichtung neu starten');$open.trigger('focus');}
+            if (step === setupSteps.length-1) {save(false,true);close();syncLaunchers();$entry.trigger('focus');}
             else {step++;render();}
         }).appendTo($actions);
         $('<button type="button" class="sd-button">Später fortsetzen</button>').on('click',pause).appendTo($actions);
@@ -178,9 +197,19 @@ export function initializeSetupOnboarding(context:PageContext):void {
         else if (previousFocus?.isConnected) previousFocus.focus({preventScroll:true});
         else if (previousId) document.getElementById(previousId)?.focus({preventScroll:true});
     };
-    $open.on('click',event=>{event.preventDefault();if (storage.getOnboarding?.tours?.[SETUP_KEY]?.complete) step=0;render();void refreshGameCatalogs();});
+    $open.add($threadOpen).on('click',event=>{event.preventDefault();if (storage.getOnboarding?.tours?.[SETUP_KEY]?.complete) step=0;render();void refreshGameCatalogs();});
     $open.on('keydown',event=>{if (event.key===' ') {event.preventDefault();$open.trigger('click');}});
     $(document).on('keydown.sdSetup',event=>{if (event.key === 'Escape') pause();}).on('sd-pause-setup.sdSetup',pause);
-    $(document).on('sd-catalog-updated.sdSetup sd-catalog-validated.sdSetup sd-settings-changed.sdSetup',()=>{if (active) render(false);});
-    if (saved && !saved.paused && !saved.complete) {render();void refreshGameCatalogs();}
+    $(document).on('sd-catalog-updated.sdSetup sd-catalog-validated.sdSetup sd-settings-changed.sdSetup',()=>{
+        if (active) render(false);
+        else {
+            syncLaunchers();
+            const current=storage.getOnboarding?.tours?.[SETUP_KEY];
+            if (tableEntry && needsSetup(storage) && !current?.paused) {if(current?.complete) step=0;render();}
+        }
+    });
+    if ((saved && !saved.paused && !saved.complete) || (tableEntry && needsSetup(storage) && !saved?.paused)) {
+        if (saved?.complete) step=0;
+        render();void refreshGameCatalogs();
+    }
 }

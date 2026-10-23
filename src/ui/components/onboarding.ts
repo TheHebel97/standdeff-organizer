@@ -9,7 +9,7 @@ export function getOnboardingSteps(context:PageContext, mod:boolean):Step[] {
     if (context.context === 'forum-new_thread' && mod) return [
         {target:'.sd-package-row',title:'Pakete definieren',text:'Eine Menge in Speer, Schwert oder Bogen skaliert diese Paketzeile. Späher sind 5 %. Ein Klick leert ein befülltes Feld. Weitere Pakete sind unabhängig.'},
         {target:'#setupTable',title:'SD-Tabelle vorbereiten',text:'„SD Tabelle generieren“ füllt den Forenbeitrag aus und schlägt bei leerem Titel „SD Tabelle“ vor. Ein Klick ins Titelfeld entfernt diesen Vorschlag; eigene Titel bleiben erhalten. Prüfe Titel und Text und sende den Thread im Spiel ab.'},
-        {target:'input[name=subject]',title:'Thread erstellen und zuordnen',text:'Nach erfolgreichem Erstellen erkennt der Organizer deinen SD-Thread und speichert die Zuordnung. Bestehende Tabellen ordnest du im jeweiligen Thread über „Als SD-Tabelle festlegen“ im SD Organizer zu.'}
+        {target:'input[name=subject]',title:'Thread erstellen und zuordnen',text:'Nach erfolgreichem Erstellen und beim Öffnen einer vorhandenen SD-Tabelle erkennt der Organizer den Tabellenbeitrag und speichert die lokale Zuordnung. Bei fehlenden Grundeinstellungen startet die Einrichtung direkt in der Tabelle.'}
     ];
     if (context.context === 'overview-away_detail') return [
         {target:'.sd-preset-buttons',title:'Paketgröße wählen',text:'100 oder 200 Dual enthält Speer und Schwert. Auf Bogenwelten enthält Trial zusätzlich Bogen. Eigene Paketgrößen und Power sind separat einklappbar.'},
@@ -24,7 +24,7 @@ export function getOnboardingSteps(context:PageContext, mod:boolean):Step[] {
         {target:'#sd-repeat-send-button',title:'Bearbeitung melden',text:'Nach erfolgreichem Versand zurück zur SD-Tabelle: „Antworten“ → „Bearbeitung eintragen“ → Beitrag prüfen → Senden. Die Meldung aktualisiert den Bedarf für alle Nutzer.'}
     ];
     if (context.context === 'forum-view_thread') return [
-        {target:'#sd-register-thread',title:'SD-Tabelle festlegen',text:'Öffne den Beitrag mit der SD-Tabelle und klicke im SD Organizer auf „Als SD-Tabelle festlegen“. Danach sind die Tabellen- und Versandfunktionen für diesen Thread verfügbar. „SD-Tabelle festgelegt“ zeigt eine bereits gespeicherte Zuordnung. Neu erstellte SD-Threads werden automatisch zugeordnet.'},
+        {target:'#sd-thread-setup-launcher',title:'Einrichtung aus der SD-Tabelle',text:'Erkannte SD-Tabellen werden beim Öffnen lokal zugeordnet. Fehlen Gruppe, Vorlage oder eine gültige Schwert-Laufzeit, beginnt die Einrichtung direkt hier. Über „Einrichtung fortsetzen“ bzw. „Einrichtung prüfen“ im Organizer kannst du jederzeit zurückkehren. Eine bewusst pausierte Einrichtung öffnet sich nicht von selbst.'},
         {target:'#requestBunker',title:'Bunker anfragen',text:'Öffne „Antworten“, dann „Bunker anfragen“. Füge Koordinaten und Paketmengen ein. Spieler, Bemerkung und Zeitfenster sind optional. „Bunker anfragen“ füllt den Beitrag; erst Senden veröffentlicht ihn.'},
         {target:'#sd-forum-quick-settings',title:'Massen-UT vorbereiten',text:'Wähle hier Gruppe und Vorlage und aktiviere die Vorbereitung. Die Listen werden direkt aus der Gruppenverwaltung und den Truppen-Vorlagen aktualisiert. Folge dann dem Link der gewünschten Anfrage in der Tabelle.'},
         {target:'#addBearbeitung',title:'Versand eintragen',text:'„Bearbeitung eintragen“ füllt deine gespeicherten Versandmeldungen ein. Prüfe und sende den Beitrag. Entwürfe werden erst bei bestätigtem Erfolg entfernt.'},
@@ -47,8 +47,8 @@ export function initializeOnboarding(context:PageContext) {
     const $host=$header.length ? $header : $('#content_value h2,#content_value h3').first();
     if ($header.length && !$root.is('table')) $header.addClass('sd-help-header');
     const introduction=context.context==='settings'
-        ? 'Änderungen werden sofort gespeichert. Grüne Zeilen mit Häkchen zeigen gültige Werte oder aktive Schutzfunktionen. Die geführte Einrichtung startest du im Forum neben „Neuer Thread“ und „Neue Umfrage“.'
-        : 'Die geführte Einrichtung startest du im Forum neben „Neuer Thread“ und „Neue Umfrage“.';
+        ? 'Änderungen werden sofort gespeichert. Grüne Zeilen mit Häkchen zeigen gültige Werte oder aktive Schutzfunktionen. Die Einrichtung ist im SD Organizer der Tabelle sowie in der Forumübersicht neben „Neuer Thread“ und „Neue Umfrage“ erreichbar.'
+        : 'Die geführte Einrichtung ist direkt im SD Organizer einer SD-Tabelle erreichbar und startet dort bei fehlenden Grundeinstellungen automatisch. In der Forumübersicht bleibt der Einstieg neben „Neuer Thread“ und „Neue Umfrage“ erhalten.';
     const sections=[{title:'Einrichtung und Einstellungen',text:introduction},...getSettingsHelp($root)];
     if (context.context!=='settings') sections.push(...steps.filter(step=>step.target!=='#sd-forum-quick-settings'));
     addHoverHelp($host,'SD Organizer – Hilfe',sections,'sd-onboarding-launcher');

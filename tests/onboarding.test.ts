@@ -17,7 +17,7 @@ test('hover help is contextual, has no tour controls and does not save tour prog
     initializeOnboarding(resolveScriptContext());
     const $help=$('#sd-onboarding-launcher');
     $help.trigger('mouseenter');
-    expect($('#sd-hover-help').text()).toContain('Als SD-Tabelle festlegen');
+    expect($('#sd-hover-help').text()).toContain('Erkannte SD-Tabellen');
     expect($('#sd-hover-help').attr('role')).toBe('tooltip');
     expect($('#sd-onboarding-card,input[value=Weiter],input[value=Überspringen]').length).toBe(0);
     expect(LocalStorageHelper.getInstance().getOnboarding?.tours).toEqual({});
@@ -46,7 +46,7 @@ test('header help is a question mark and repeated initialization does not duplic
     expect($('#sd-forum-quick-settings .sd-organizer-handle > #sd-onboarding-launcher').text()).toBe('?');
     expect($('.sd-help-icon').length).toBe(1);
     $('#sd-onboarding-launcher').trigger('mouseenter');
-    expect($('#sd-hover-help').text()).toContain('SD-Tabelle festlegen');
+    expect($('#sd-hover-help').text()).toContain('Einrichtung aus der SD-Tabelle');
     expect($('input[value="Seitenhilfe starten"],input[value="Seitenhilfe fortsetzen"]').length).toBe(0);
 });
 
